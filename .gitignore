@@ -54,3 +54,4 @@ coverage/
 .claude/settings.local.json
 .aiox/
 .ai/
+.vercel
