@@ -1,0 +1,150 @@
+id: wf-conversion-optimization
+name: "Ciclo de Otimização de Conversão"
+squad: squad-vendas-conversao
+version: 0.1.0
+type: workflow
+
+description: |
+  Workflow completo de otimização de conversão trial→paid.
+  Ciclo iterativo: medir → analisar → hipótese → testar → implementar.
+  Executado mensalmente ou quando conversion rate cai abaixo do target.
+
+trigger:
+  type: scheduled
+  frequency: monthly
+  condition: "Sempre executar, ou quando conversion_rate < 15%"
+
+owner: garden-growth-chief
+
+phases:
+  - id: measure
+    name: "Medir"
+    description: "Coletar e consolidar métricas do período"
+    tasks:
+      - task: create-activation-metrics
+        scope: "Atualizar métricas com dados do período"
+    agent: garden-growth-chief
+    outputs:
+      - metrics_snapshot
+      - cohort_data
+    duration: "1 dia"
+    steps:
+      - "Extrair dados de analytics do período (30 dias)"
+      - "Calcular taxas de conversão por etapa do funil"
+      - "Gerar cohort charts de retenção"
+      - "Comparar com período anterior"
+      - "Identificar anomalias e tendências"
+
+  - id: analyze
+    name: "Analisar"
+    description: "Identificar oportunidades e gargalos"
+    tasks:
+      - task: optimize-trial-conversion
+        scope: "Análise de funil"
+    agent: garden-growth-chief
+    depends_on: [measure]
+    outputs:
+      - funnel_analysis
+      - drop_off_map
+      - segment_analysis
+    duration: "1 dia"
+    steps:
+      - "Mapear funil completo com taxas atuais"
+      - "Identificar top 3 pontos de drop-off"
+      - "Segmentar por fonte de aquisição, plataforma, região"
+      - "Analisar comportamento de quem converteu vs quem não"
+      - "Benchmarking com mês anterior e target"
+
+  - id: hypothesize
+    name: "Hipóteses"
+    description: "Formular hipóteses testáveis para melhorias"
+    agent: garden-growth-chief
+    depends_on: [analyze]
+    outputs:
+      - hypothesis_backlog
+      - experiment_plans
+    duration: "0.5 dia"
+    steps:
+      - "Brainstorm de hipóteses baseadas na análise"
+      - "Priorizar por ICE score (Impact, Confidence, Ease)"
+      - "Selecionar top 2 hipóteses para o ciclo"
+      - "Definir experimento para cada hipótese"
+      - "Calcular sample size e duração necessária"
+
+  - id: create_assets
+    name: "Criar Ativos"
+    description: "Criar copy, telas e assets para os experimentos"
+    agents:
+      - garden-conversion-copy
+      - garden-onboarding
+    depends_on: [hypothesize]
+    outputs:
+      - experiment_copy
+      - screen_specs
+      - communication_assets
+    duration: "2 dias"
+    steps:
+      - "Escrever copy para variações dos experimentos"
+      - "Especificar telas/fluxos alternativos"
+      - "Criar assets de comunicação (emails, pushs)"
+      - "Revisar com checklist de qualidade"
+      - "Aprovar copy e specs"
+
+  - id: test
+    name: "Testar"
+    description: "Executar experimentos A/B"
+    agent: garden-growth-chief
+    depends_on: [create_assets]
+    outputs:
+      - experiment_results
+      - statistical_analysis
+    duration: "14-28 dias"
+    steps:
+      - "Configurar experimentos na plataforma de A/B testing"
+      - "Validar instrumentação de eventos"
+      - "Iniciar experimentos"
+      - "Monitorar diariamente por anomalias"
+      - "Aguardar significância estatística"
+      - "Analisar resultados e declarar vencedor"
+
+  - id: implement
+    name: "Implementar"
+    description: "Implementar variação vencedora em produção"
+    agent: garden-growth-chief
+    depends_on: [test]
+    outputs:
+      - implementation_spec
+      - updated_metrics
+    duration: "2 dias"
+    steps:
+      - "Documentar resultado do experimento"
+      - "Especificar implementação da variação vencedora"
+      - "Coordenar com squad-produto-core para deploy"
+      - "Validar métricas pós-implementação"
+      - "Atualizar baselines e targets"
+
+  - id: learn
+    name: "Aprender"
+    description: "Documentar aprendizados e alimentar próximo ciclo"
+    agent: garden-growth-chief
+    depends_on: [implement]
+    outputs:
+      - learnings_doc
+      - updated_hypothesis_backlog
+    duration: "0.5 dia"
+    steps:
+      - "Documentar o que funcionou e o que não funcionou"
+      - "Atualizar backlog de hipóteses com novos insights"
+      - "Compartilhar learnings com outros squads"
+      - "Ajustar targets se necessário"
+      - "Iniciar próximo ciclo"
+
+success_criteria:
+  - "Conversion rate medido e comparado com target"
+  - "Pelo menos 1 experimento executado por ciclo"
+  - "Resultados documentados e compartilhados"
+  - "Learnings aplicados no próximo ciclo"
+
+exit_criteria:
+  - "Conversion rate consistentemente acima de 15% por 3 meses"
+  - "Nenhum drop-off significativo identificado"

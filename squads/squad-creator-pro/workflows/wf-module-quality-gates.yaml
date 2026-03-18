@@ -1,0 +1,80 @@
+# Workflow: Module Quality Gates
+# Pluggable quality gates customizable per squad type
+name: wf-module-quality-gates
+version: 1.0.0
+description: |
+  Applies a quality gate profile (minimal, standard, strict) to a squad,
+  evaluating each gate and producing a consolidated quality report.
+
+type: state_machine
+
+states:
+  load_profile:
+    description: "Load the quality gate profile configuration"
+    model: haiku
+    actions:
+      - "Read module-quality-config.yaml"
+      - "Select profile: minimal, standard, or strict"
+      - "Load gate definitions and thresholds for selected profile"
+      - "Validate profile configuration is complete"
+    inputs:
+      squad_path: "{{squad_path}}"
+      profile: "{{profile|default:standard}}"
+    output: "profile_config, gates_to_evaluate"
+    transitions:
+      - condition: "profile_loaded"
+        to: scan_squad
+      - condition: "invalid_profile"
+        to: failed
+
+  scan_squad:
+    description: "Scan squad for quality gate evaluation data"
+    model: haiku
+    actions:
+      - "Enumerate all squad components (agents, tasks, workflows, config)"
+      - "Collect metrics: file count, YAML validity, reference integrity"
+      - "Gather existing quality scores (fidelity, health, smoke tests)"
+      - "Build evaluation context for each gate"
+    output: "squad_scan_data, component_inventory"
+    transitions:
+      - condition: "scan_complete"
+        to: evaluate_gates
+
+  evaluate_gates:
+    description: "Evaluate each quality gate against squad data"
+    model: sonnet
+    actions:
+      - "For each gate in profile:"
+      - "  - Run gate evaluation logic"
+      - "  - Compare result against threshold"
+      - "  - Record PASS / WARN / FAIL verdict"
+      - "  - Capture evidence and recommendations"
+      - "Calculate overall quality score"
+      - "Determine overall verdict: PASS (all gates pass), CONDITIONAL (warnings only), FAIL (any gate fails)"
+    output: "gate_results, overall_score, overall_verdict"
+    transitions:
+      - condition: "evaluation_complete"
+        to: report
+
+  report:
+    description: "Generate consolidated quality report"
+    model: haiku
+    actions:
+      - "Compile gate results into quality-report.md"
+      - "Include per-gate verdicts with evidence"
+      - "Add recommendations for failed/warned gates"
+      - "Include overall score and verdict"
+      - "Write quality-report.md to squad output directory"
+    output: "quality-report.md"
+    transitions:
+      - condition: "always"
+        to: complete
+
+  complete:
+    description: "Quality gates workflow complete"
+    terminal: true
+
+  failed:
+    description: "Quality gates workflow failed"
+    terminal: true
+    error: true

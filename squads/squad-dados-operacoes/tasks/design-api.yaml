@@ -1,0 +1,108 @@
+# Task: Design API
+# Squad: squad-dados-operacoes
+# Version: 0.1.0
+
+task:
+  id: design-api
+  name: "Projetar API Publica/Interna"
+  version: "0.1.0"
+  purpose: "Projetar API RESTful com OpenAPI spec, versionamento, rate limiting, e documentacao para consumo interno ou terceiros"
+  executor: "@garden-integrations"
+  collaborators:
+    - "@garden-devops"           # Seguranca e rate limiting
+    - "@garden-fullstack-dev"    # Implementacao (squad-produto-core)
+  elicit: true
+  execution_type: hybrid
+
+pre_conditions:
+  - "Dominio de negocio definido (quais recursos serao expostos)"
+  - "Supabase schema existente para os recursos"
+  - "Decisao de escopo: API interna (mobile/web) ou publica (terceiros)"
+
+inputs:
+  - name: api_scope
+    type: select
+    prompt: "Escopo da API:"
+    options: ["Internal (mobile/web client)", "Public (third-party developers)", "Hybrid (internal + public subset)"]
+  - name: resources
+    type: text
+    prompt: "Recursos principais a expor (ex: services, clients, invoices):"
+  - name: auth_method
+    type: select
+    prompt: "Metodo de autenticacao:"
+    options: ["Supabase Auth (JWT)", "API Key", "OAuth2", "Hybrid"]
+
+steps:
+  - id: step_1_resource_modeling
+    name: "Modelagem de Recursos"
+    action: |
+      1. Listar todos os recursos (nouns) da API
+      2. Para cada recurso, definir:
+         - CRUD operations disponíveis
+         - Relationships (has_many, belongs_to)
+         - Campos retornados (public vs private)
+         - Filtros disponiveis
+      3. Definir URL patterns: /api/v1/{resource}
+      4. Definir pagination: cursor-based (preferido) ou offset
+      5. Definir response format: JSON API ou flat JSON
+
+  - id: step_2_openapi_spec
+    name: "OpenAPI Specification"
+    action: |
+      1. Criar OpenAPI 3.1 spec (YAML)
+      2. Definir schemas para request/response bodies
+      3. Definir error responses (400, 401, 403, 404, 422, 429, 500)
+      4. Documentar cada endpoint com exemplos
+      5. Definir rate limits por endpoint
+      6. Incluir authentication schemes
+
+  - id: step_3_security
+    name: "Security Design"
+    action: |
+      1. Authentication: JWT validation via Supabase ou API key
+      2. Authorization: RLS policies aplicam automaticamente via Supabase
+      3. Rate limiting: por API key/user, com tiers (free: 100/min, pro: 1000/min)
+      4. Input validation: Zod schemas para todos os inputs
+      5. CORS: configurar para dominios permitidos
+      6. Logging: registrar todas as chamadas para auditoria
+
+  - id: step_4_implementation_plan
+    name: "Plano de Implementacao"
+    action: |
+      Internal API (Supabase Edge Functions):
+      1. Criar Edge Functions para logica de negocio
+      2. Usar PostgREST (Supabase client) para CRUD direto
+      3. Adicionar middleware de rate limiting
+
+      Public API (se aplicavel):
+      1. API Gateway layer (Edge Function ou Next.js API routes)
+      2. API key management (tabela api_keys no Supabase)
+      3. Usage tracking e billing
+      4. Developer portal com documentacao interativa
+
+  - id: step_5_documentation
+    name: "Documentacao"
+    action: |
+      1. README da API com quick start
+      2. Authentication guide
+      3. Rate limiting guide
+      4. Error handling guide
+      5. Code examples (curl, JavaScript, Python)
+      6. Changelog format para versionamento
+
+output:
+  format: markdown
+  sections:
+    - resource_model
+    - openapi_spec_location
+    - security_design
+    - implementation_plan
+    - documentation_outline
+
+quality_gate:
+  openapi_spec_valid: true
+  all_endpoints_documented: true
+  error_responses_defined: true
+  rate_limiting_configured: true
+  auth_documented: true
+  examples_included: true

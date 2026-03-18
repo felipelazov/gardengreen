@@ -1,0 +1,134 @@
+# Export Package — Package squad for portability
+name: wf-export-package
+version: 1.0.0
+description: |
+  Empacotar squad como pacote portátil para importação em outro projeto AIOX.
+
+type: sequential
+
+phases:
+  - name: "pre_export_check"
+    description: "Validar squad antes de exportar"
+    model: haiku
+    actions:
+      - "Run health check"
+      - "Verify structural completeness"
+      - "Check for external dependencies"
+      - "Verify config validity"
+    checkpoint:
+      gate: "QG-PRO-EX-1"
+      condition: "health HEALTHY or WARNING (not CRITICAL)"
+
+  - name: "resolve_dependencies"
+    description: "Resolver e documentar dependências"
+    model: sonnet
+    actions:
+      - "Scan all files for internal references"
+      - "Identify cross-squad references"
+      - "Document external dependencies"
+      - "Generate dependency manifest"
+
+  - name: "package"
+    description: "Criar pacote portátil"
+    model: haiku
+    actions:
+      - "Create export directory"
+      - "Copy included components (agents, tasks, workflows, etc)"
+      - "Exclude test-cases, benchmarks, scripts (unless requested)"
+      - "Generate manifest.yaml"
+      - "Generate IMPORT-GUIDE.md"
+
+  - name: "verify"
+    description: "Verificar integridade do pacote"
+    model: haiku
+    actions:
+      - "Verify all files copied correctly"
+      - "Validate manifest against actual contents"
+      - "Run structural validation on export"
+    checkpoint:
+      gate: "QG-PRO-EX-2"
+      condition: "package integrity verified"
+
+  - name: "report"
+    description: "Relatório de exportação"
+    model: haiku
+    output: |
+      ## Export Complete: {squad_name}
+
+      **Package:** {export_path}
+      **Files:** {file_count}
+      **Size:** {total_lines} lines
+
+      ### Contents
+      | Component | Count |
+      |-----------|-------|
+      | Agents | {n} |
+      | Tasks | {n} |
+      | Workflows | {n} |
+      | Checklists | {n} |
+      | Templates | {n} |
+      | Data | {n} |
+      | Minds | {n} |
+
+      ### Import Instructions
+      1. Copy to `squads/{name}/`
+      2. Run `*refresh-registry`
+      3. Activate: `@{entry_agent}`
+
+# Veto conditions
+veto_conditions:
+  - condition: "squad_health_critical"
+    message: "Squad health is CRITICAL — fix issues before exporting"
+    severity: BLOCK
+  - condition: "export_dir_exists"
+    message: "Export directory already exists at {export_path} — may overwrite"
+    severity: WARN
+    action: "Prompt user to confirm overwrite or choose different path"
+  - condition: "squad_not_found"
+    message: "Squad '{squad_name}' does not exist"
+    severity: BLOCK
+
+# Export options — what to include/exclude in the package
+export_options:
+  include_scripts:
+    type: boolean
+    default: false
+    description: "Include squad scripts/ directory (fidelity-scorer, etc.)"
+  include_tests:
+    type: boolean
+    default: false
+    description: "Include test-cases/ directory with golden baselines"
+  include_benchmarks:
+    type: boolean
+    default: false
+    description: "Include benchmark data and qualification results"
+  include_minds:
+    type: boolean
+    default: true
+    description: "Include minds/ directory (processed expert data)"
+  include_observatory:
+    type: boolean
+    default: false
+    description: "Include observatory metrics and history"
+
+# Error handling
+error_handling:
+  file_copy_fails:
+    description: "File copy operation fails during package phase"
+    actions:
+      - "Retry once"
+      - "If retry fails → log file as MISSING in manifest"
+      - "Continue with remaining files"
+      - "Report missing files in export report"
+  manifest_mismatch:
+    description: "Manifest does not match actual package contents after verify"
+    actions:
+      - "Regenerate manifest from actual contents"
+      - "Re-run verify phase"
+      - "If still mismatched → BLOCK export and report"
+  dependency_unresolved:
+    description: "Cross-squad reference cannot be resolved"
+    actions:
+      - "Document as external dependency in IMPORT-GUIDE.md"
+      - "Add warning to manifest"
+      - "Continue export — consumer handles resolution on import"

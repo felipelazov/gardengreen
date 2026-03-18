@@ -1,0 +1,186 @@
+# Workflow: MVP Build
+# Squad: squad-produto-core
+# Version: 0.1.0
+
+workflow:
+  id: wf-mvp-build
+  name: "Build do MVP GardenGreen"
+  version: "0.1.0"
+  purpose: "Workflow para construir o MVP do GardenGreen — módulos core que permitem um jardineiro solo operar digitalmente"
+  orchestrator: "@garden-product-chief"
+  mode: quality
+
+# ═══════════════════════════════════════════════════════════════════
+# MVP DEFINITION
+# ═══════════════════════════════════════════════════════════════════
+
+mvp:
+  target_persona: "Jardineiro solo, 30-55 anos, Android, não tech-savvy"
+  success_metric: "Jardineiro consegue gerenciar agenda + clientes + cobrar em 1 semana de uso"
+  timeline: "8-12 semanas"
+  philosophy: |
+    MVP = Minimum VIABLE Product.
+    Viável = jardineiro real consegue abandonar o caderninho.
+    Se precisa de mais uma feature para ser viável, não é MVP.
+
+# ═══════════════════════════════════════════════════════════════════
+# MODULES (ordem de construção)
+# ═══════════════════════════════════════════════════════════════════
+
+modules:
+  - id: module_0_foundation
+    name: "Fundação Técnica"
+    priority: P0
+    sprint: 1
+    description: "Setup do monorepo, Supabase, auth, e estrutura base"
+    deliverables:
+      - "Monorepo Turborepo configurado (apps/mobile, apps/web, packages/*)"
+      - "Supabase project criado (local + staging)"
+      - "Auth flow: magic link + Google sign-in"
+      - "Base schema: gardeners, organizations"
+      - "WatermelonDB setup com sync básico"
+      - "Design system base (NativeWind, cores, tipografia)"
+      - "CI/CD base (GitHub Actions, EAS)"
+    agent: "@garden-fullstack-dev"
+
+  - id: module_1_crm
+    name: "CRM Clientes"
+    priority: P0
+    sprint: "2-3"
+    description: "Cadastro e gestão de clientes e seus jardins"
+    deliverables:
+      - "CRUD de clientes (nome, telefone, endereço, notas)"
+      - "Cadastro de jardins por cliente (tamanho, tipo, fotos)"
+      - "Histórico de serviços por cliente"
+      - "Busca rápida de cliente (por nome ou endereço)"
+      - "Quick action: ligar para cliente (1 toque)"
+      - "Quick action: navegar até cliente (1 toque, abre Waze/Maps)"
+      - "Offline: dados de clientes disponíveis sem internet"
+    agent: "@garden-fullstack-dev"
+    depends_on: [module_0_foundation]
+
+  - id: module_2_scheduling
+    name: "Agenda/Scheduling"
+    priority: P0
+    sprint: "3-4"
+    description: "Agenda de serviços com recorrência e visão do dia"
+    deliverables:
+      - "Tela 'Hoje': lista de serviços do dia com horário e cliente"
+      - "Agenda semanal com visão de calendário"
+      - "Criar serviço: cliente, tipo, data, horário, recorrência"
+      - "Recorrência: semanal, quinzenal, mensal"
+      - "Marcar serviço como concluído (com foto opcional)"
+      - "Reagendar serviço (drag-drop ou edit)"
+      - "Notificação push: lembrete 30min antes"
+      - "Offline: agenda do dia disponível sem internet"
+    agent: "@garden-fullstack-dev"
+    depends_on: [module_1_crm]
+
+  - id: module_3_financial
+    name: "Financeiro Básico"
+    priority: P0
+    sprint: "5-6"
+    description: "Orçamentos, faturas, e visão financeira simples"
+    deliverables:
+      - "Criar orçamento rápido (itens predefinidos + custom)"
+      - "Enviar orçamento via WhatsApp (PDF ou link)"
+      - "Converter orçamento em fatura"
+      - "Marcar fatura como paga"
+      - "Resumo do mês: 'Ganhou X, Recebeu Y, Falta Z'"
+      - "Histórico financeiro por cliente"
+      - "Catálogo de serviços com preços padrão"
+    agent: "@garden-fullstack-dev"
+    depends_on: [module_1_crm, module_2_scheduling]
+
+  - id: module_4_mobile_polish
+    name: "Polimento Mobile"
+    priority: P0
+    sprint: "7-8"
+    description: "Polimento da experiência mobile para lançamento"
+    deliverables:
+      - "Onboarding flow (3 telas max: nome, serviços, primeiro cliente)"
+      - "Home screen com resumo do dia + quick actions"
+      - "Galeria de fotos de serviços (antes/depois)"
+      - "Configurações: perfil, serviços, preços padrão"
+      - "Sync indicator (online/offline/syncing)"
+      - "Empty states com CTAs claros"
+      - "Performance optimization (< 2s cold start)"
+      - "Haptic feedback em ações principais"
+    agent: "@garden-ux-mobile"
+    depends_on: [module_1_crm, module_2_scheduling, module_3_financial]
+
+  - id: module_5_dashboard
+    name: "Dashboard Web (básico)"
+    priority: P1
+    sprint: "8-10"
+    description: "Dashboard web para planejamento e visão geral"
+    deliverables:
+      - "Dashboard home: clientes, serviços do mês, receita"
+      - "Lista de clientes com busca e filtro"
+      - "Calendário mensal de serviços"
+      - "Relatório financeiro mensal"
+      - "Responsive (funciona em tablet e desktop)"
+    agent: "@garden-fullstack-dev"
+    depends_on: [module_0_foundation, module_1_crm]
+
+# ═══════════════════════════════════════════════════════════════════
+# PHASES
+# ═══════════════════════════════════════════════════════════════════
+
+phases:
+  - id: phase_1_foundation
+    name: "Fundação (Sprint 1)"
+    modules: [module_0_foundation]
+    gate: "Auth funciona, sync básico funciona, CI green"
+
+  - id: phase_2_core_data
+    name: "Core Data (Sprints 2-4)"
+    modules: [module_1_crm, module_2_scheduling]
+    gate: "Jardineiro consegue cadastrar clientes e agendar serviços"
+
+  - id: phase_3_monetization
+    name: "Monetização (Sprints 5-6)"
+    modules: [module_3_financial]
+    gate: "Jardineiro consegue criar orçamento e cobrar"
+
+  - id: phase_4_launch
+    name: "Lançamento (Sprints 7-10)"
+    modules: [module_4_mobile_polish, module_5_dashboard]
+    gate: "App na Play Store, dashboard acessível, onboarding funcional"
+
+# ═══════════════════════════════════════════════════════════════════
+# QUALITY GATES POR MÓDULO
+# ═══════════════════════════════════════════════════════════════════
+
+quality_gates:
+  per_module:
+    - "Todos os acceptance criteria atendidos"
+    - "Testes passando (80%+ coverage em lógica de negócio)"
+    - "Lint + typecheck green"
+    - "Funciona offline (dados críticos)"
+    - "Performance: < 3s load em Android médio"
+    - "Acessibilidade: contraste AAA, touch 48px+"
+  pre_launch:
+    - "5 jardineiros reais testaram (beta)"
+    - "Onboarding < 3 minutos"
+    - "Crash rate < 1%"
+    - "Cold start < 2s"
+    - "Todos os módulos P0 completos"
+
+# ═══════════════════════════════════════════════════════════════════
+# RISKS
+# ═══════════════════════════════════════════════════════════════════
+
+risks:
+  - risk: "WatermelonDB sync com Supabase é complexo"
+    mitigation: "Spike no Sprint 1. Se inviável, avaliar PowerSync."
+    impact: high
+  - risk: "Jardineiros não adotam — complexo demais"
+    mitigation: "Beta com 5 jardineiros reais no Sprint 6. Iterar antes de lançar."
+    impact: critical
+  - risk: "Performance em Android barato"
+    mitigation: "Testar em dispositivo real desde Sprint 2. Budget Moto G play."
+    impact: medium
+  - risk: "Scope creep — features de empresa antes do MVP"
+    mitigation: "Product Chief tem veto. Solo-first é inegociável no MVP."
+    impact: medium

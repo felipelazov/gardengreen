@@ -1,0 +1,112 @@
+# Task: Performance Audit
+# Squad: squad-dados-operacoes
+# Version: 0.1.0
+
+task:
+  id: performance-audit
+  name: "Auditoria de Performance"
+  version: "0.1.0"
+  purpose: "Auditar performance completa da plataforma: database queries, API response times, web vitals, mobile build size e runtime"
+  executor: "@garden-devops"
+  collaborators:
+    - "@garden-data-chief"       # Impacto em dashboards e analytics queries
+    - "@garden-fullstack-dev"    # Contexto de implementacao (squad-produto-core)
+  elicit: true
+  execution_type: hybrid
+
+pre_conditions:
+  - "Ambiente staging ou production acessivel"
+  - "Monitoramento basico configurado (PostHog ou Vercel Analytics)"
+
+inputs:
+  - name: audit_scope
+    type: multiselect
+    prompt: "Areas para auditar:"
+    options: ["Database (Supabase)", "Web (Next.js/Vercel)", "Mobile (React Native/Expo)", "API (Edge Functions)", "All"]
+  - name: environment
+    type: select
+    prompt: "Ambiente:"
+    options: ["staging", "production"]
+  - name: severity_focus
+    type: select
+    prompt: "Foco:"
+    options: ["Critical only (blocking users)", "All issues", "Optimization opportunities"]
+
+steps:
+  - id: step_1_database
+    name: "Database Performance"
+    action: |
+      1. Identificar queries lentas (pg_stat_statements, > 100ms)
+      2. Rodar EXPLAIN ANALYZE nas top 10 queries mais lentas
+      3. Verificar indices:
+         - Missing indexes (sequential scans em tabelas grandes)
+         - Unused indexes (overhead sem beneficio)
+         - Bloated indexes (REINDEX candidates)
+      4. Verificar connection pooling (PgBouncer via Supabase)
+      5. Verificar table bloat (VACUUM stats)
+      6. Verificar RLS policy performance (policies complexas = queries lentas)
+      7. Avaliar necessidade de materialized views para aggregations
+
+  - id: step_2_web
+    name: "Web Performance (Next.js)"
+    action: |
+      1. Core Web Vitals: LCP, FID/INP, CLS
+      2. Bundle size analysis (next/bundle-analyzer)
+      3. Server Component vs Client Component ratio
+      4. ISR/caching effectiveness
+      5. Image optimization (next/image usage)
+      6. Third-party script impact
+      7. Edge function cold start times
+      8. Target: LCP < 2.5s, INP < 200ms, CLS < 0.1
+
+  - id: step_3_mobile
+    name: "Mobile Performance (React Native)"
+    action: |
+      1. App size (APK/IPA): target < 30MB
+      2. Startup time: target < 2s on mid-range Android
+      3. JS bundle size: Hermes bytecode analysis
+      4. Memory usage: profile key screens
+      5. WatermelonDB sync performance
+      6. Offline → online transition time
+      7. Animation frame rate (target: 60fps)
+      8. Battery impact assessment
+
+  - id: step_4_api
+    name: "API Performance"
+    action: |
+      1. Response time distribution (p50, p95, p99)
+      2. Edge Function cold start analysis
+      3. Supabase PostgREST response times
+      4. Payload sizes (are we over-fetching?)
+      5. Caching effectiveness (hit rates)
+      6. Error rates by endpoint
+      7. Target: p95 < 500ms para API calls
+
+  - id: step_5_report
+    name: "Relatorio e Recomendacoes"
+    action: |
+      Para cada issue encontrada:
+      1. Severidade: CRITICAL / HIGH / MEDIUM / LOW
+      2. Impacto no usuario: descricao em linguagem simples
+      3. Root cause: analise tecnica
+      4. Recomendacao: acao especifica com estimativa de esforco
+      5. Expected improvement: metrica esperada apos fix
+      6. Priorizar: quick wins primeiro, depois investimentos maiores
+
+output:
+  format: markdown
+  sections:
+    - executive_summary
+    - database_findings
+    - web_findings
+    - mobile_findings
+    - api_findings
+    - prioritized_recommendations
+    - benchmark_comparisons
+
+quality_gate:
+  all_areas_audited: true
+  every_finding_has_severity: true
+  every_finding_has_recommendation: true
+  recommendations_prioritized: true
+  benchmarks_included: true

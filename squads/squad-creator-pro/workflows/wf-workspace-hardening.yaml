@@ -1,0 +1,167 @@
+# Workspace Hardening — Production-ready integration
+name: wf-workspace-hardening
+version: 1.0.0
+description: |
+  Hardening de integração para garantir que squad funciona perfeitamente
+  no ambiente de produção (IDE, MCP, hooks, commands).
+
+type: sequential
+
+phases:
+  - name: "environment_scan"
+    description: "Escanear ambiente de execução"
+    model: haiku
+    actions:
+      - "Detect IDE (VSCode, Cursor, etc)"
+      - "Check Claude Code version"
+      - "Verify MCP servers available"
+      - "Check .claude/ configuration"
+    output: "environment_profile"
+
+  - name: "command_sync"
+    description: "Sincronizar comandos com IDE"
+    model: haiku
+    actions:
+      - "Generate IDE command files for each agent"
+      - "Sync to .claude/commands/ or equivalent"
+      - "Verify command accessibility"
+    checkpoint:
+      gate: "QG-PRO-WH-1"
+      condition: "all commands accessible from IDE"
+
+  - name: "integration_test"
+    description: "Testar integração end-to-end"
+    model: sonnet
+    actions:
+      - "Activate each agent and verify greeting"
+      - "Execute *help and verify command list"
+      - "Run one representative task per agent"
+      - "Verify handoffs between agents"
+    checkpoint:
+      gate: "QG-PRO-WH-2"
+      condition: "all agents activate and respond correctly"
+
+  - name: "hardening_report"
+    description: "Relatório de hardening"
+    model: haiku
+    output: |
+      ## Workspace Hardening: {squad_name}
+
+      ### Environment
+      - IDE: {ide}
+      - Claude Code: {version}
+      - MCP Servers: {count} available
+
+      ### Integration Status
+      | Component | Status |
+      |-----------|--------|
+      | Commands synced | {status} |
+      | Agents activate | {status} |
+      | Tasks execute | {status} |
+      | Handoffs work | {status} |
+
+      ### Ready for Production: {YES/NO}
+
+# --- Veto Conditions ---
+veto_conditions:
+  - condition: "no .claude/ directory found in project root"
+    severity: BLOCK
+    message: "Not a Claude Code project — .claude/ directory not found. Hardening requires Claude Code configuration."
+    gate: "VETO-WH-1"
+
+  - condition: "target squad does not exist in squads/"
+    severity: BLOCK
+    message: "Squad '{squad_name}' not found. Cannot harden a non-existent squad."
+    gate: "VETO-WH-2"
+
+# --- Troubleshooting Phase ---
+  - name: "troubleshooting"
+    description: "Diagnosticar falhas de integração"
+    model: sonnet
+    depends_on: "integration_test"
+    trigger: "any integration test failure"
+    actions:
+      - "For each failed test:"
+      - "  Classify error type: permission_error | missing_file | wrong_path | config_error | timeout | unknown"
+      - "  Check file permissions on .claude/ and squad directories"
+      - "  Verify all referenced paths exist and are accessible"
+      - "  Check for broken symlinks"
+      - "  Validate config file syntax (YAML/JSON parsing)"
+      - "  Generate specific fix instructions per error"
+    output: "diagnostic_report with actionable fixes per failure"
+
+# --- Remediation Phase ---
+  - name: "remediation"
+    description: "Auto-corrigir problemas comuns"
+    model: haiku
+    depends_on: "troubleshooting"
+    auto_fixes:
+      missing_commands_dir:
+        check: ".claude/commands/ directory missing"
+        fix: "mkdir -p .claude/commands/"
+        severity: "auto-fix"
+
+      broken_symlinks:
+        check: "Symlinks pointing to non-existent targets"
+        fix: "Remove broken symlinks, recreate with correct targets"
+        severity: "auto-fix"
+
+      malformed_config:
+        check: "Config files with syntax errors"
+        fix: "Regenerate config from squad template defaults"
+        severity: "auto-fix with backup"
+
+      wrong_permissions:
+        check: "Files with insufficient read/execute permissions"
+        fix: "chmod +r on config files, chmod +x on scripts"
+        severity: "auto-fix"
+
+      missing_agent_files:
+        check: "Agent definition files referenced but missing"
+        fix: "Regenerate from squad template"
+        severity: "warn — manual review recommended"
+    actions:
+      - "Apply all auto-fix severity items automatically"
+      - "Report warn severity items for manual review"
+      - "Re-run failed integration tests after fixes"
+    output: "remediation_results"
+
+# --- MCP Verification Phase ---
+  - name: "mcp_verification"
+    description: "Verificar disponibilidade e saúde dos MCP servers"
+    model: haiku
+    actions:
+      - "List all MCP servers configured in environment"
+      - "For each MCP server:"
+      - "  Check if server process is running"
+      - "  Send health check / ping request"
+      - "  Log response time and status"
+      - "  Verify required tools are exposed"
+      - "Flag unavailable servers as WARNING"
+      - "Log MCP health status to hardening report"
+    output: |
+      ### MCP Server Health
+      | Server | Status | Response Time | Tools Available |
+      |--------|--------|---------------|-----------------|
+      {mcp_rows}
+
+      **Available:** {available_count}/{total_count}
+      **Degraded:** {degraded_list}
+
+# --- Rollback ---
+rollback:
+  description: "Restaurar estado pré-hardening se algo quebrar"
+  pre_hardening_snapshot:
+    enabled: true
+    storage: ".aiox/snapshots/pre-hardening-{squad_name}-{timestamp}/"
+    includes:
+      - ".claude/commands/"
+      - ".claude/settings.json"
+      - "Squad config files"
+  trigger: "manual (*rollback-hardening) or automatic (critical failure during hardening)"
+  actions:
+    - "Restore all files from pre-hardening snapshot"
+    - "Remove any files created during hardening that weren't in snapshot"
+    - "Verify restored state matches snapshot checksum"
+    - "Report rollback result"
+  command: "*rollback-hardening {squad_name}"

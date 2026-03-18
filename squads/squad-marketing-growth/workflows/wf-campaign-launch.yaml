@@ -1,0 +1,143 @@
+id: wf-campaign-launch
+name: "Lançamento de Campanha de Marketing"
+squad: squad-marketing-growth
+version: 0.1.0
+type: workflow
+
+description: |
+  Workflow completo para planejar, criar, distribuir, medir e iterar uma
+  campanha de marketing do GardenGreen. Da ideia ao relatório de resultado.
+  Cada campanha passa por 6 fases obrigatórias para garantir qualidade
+  e mensuração de resultados.
+
+trigger:
+  type: manual
+  condition: "Nova campanha aprovada, lançamento sazonal, ou blitz de aquisição"
+
+owner: garden-marketing-chief
+
+phases:
+  - id: plan
+    name: "Planejar"
+    description: "Definir objetivo, público, canais e budget da campanha"
+    agent: garden-marketing-chief
+    tasks:
+      - task: write-campaign-brief
+    outputs:
+      - campaign_brief
+      - budget_allocation
+      - timeline
+    duration: "2-3 dias"
+    steps:
+      - "Definir objetivo SMART da campanha"
+      - "Selecionar público-alvo e segmento"
+      - "Escolher canais e formatos"
+      - "Alocar budget por canal"
+      - "Definir timeline com marcos"
+      - "Definir KPIs e critérios de sucesso"
+      - "Gerar brief usando template campaign-brief-tmpl.md"
+
+  - id: create
+    name: "Criar"
+    description: "Produzir todo o conteúdo e material da campanha"
+    agent: garden-content
+    depends_on: [plan]
+    outputs:
+      - content_pieces
+      - visual_assets
+      - copy_deck
+    duration: "3-5 dias"
+    steps:
+      - "Criar copy de cada peça de conteúdo"
+      - "Produzir Reels/Shorts conforme brief"
+      - "Criar cards para WhatsApp"
+      - "Escrever posts de Instagram com variações"
+      - "Preparar blog posts se campanha inclui SEO"
+      - "Coletar testimonials se necessário"
+      - "Revisar: tudo passa no teste 'jardineiro compartilharia?'"
+
+  - id: activate_referral
+    name: "Ativar Referral e Parcerias"
+    description: "Configurar mecânicas de viralização e ativar parceiros"
+    agent: garden-referral
+    depends_on: [plan]
+    outputs:
+      - referral_campaign_config
+      - partner_activation
+    duration: "2-3 dias"
+    steps:
+      - "Configurar incentivo especial de indicação (se aplicável)"
+      - "Preparar material para parceiros (lojas, associações)"
+      - "Ativar códigos de cupom da campanha"
+      - "Coordenar timing com parceiros"
+      - "Verificar tracking e atribuição funcionando"
+
+  - id: distribute
+    name: "Distribuir"
+    description: "Publicar conteúdo e ativar canais conforme timeline"
+    agents:
+      - garden-content
+      - garden-referral
+    depends_on: [create, activate_referral]
+    outputs:
+      - published_content
+      - activated_channels
+    duration: "Duração da campanha"
+    steps:
+      - "Publicar conteúdo conforme calendário"
+      - "Ativar parcerias e material de ponto de venda"
+      - "Enviar comunicação para base existente (se aplicável)"
+      - "Monitorar publicações: engajamento, comentários, shares"
+      - "Responder comentários e mensagens"
+      - "Ajustar horários de publicação conforme performance"
+
+  - id: measure
+    name: "Medir"
+    description: "Acompanhar métricas e performance da campanha"
+    agent: garden-marketing-chief
+    depends_on: [distribute]
+    outputs:
+      - performance_report
+      - insights
+    duration: "Contínuo durante campanha"
+    steps:
+      - "Semana 1: acompanhamento diário de KPIs"
+      - "Verificar: downloads, CTR, engajamento, referral rate"
+      - "Comparar com targets do brief"
+      - "Identificar canal com melhor performance"
+      - "Identificar canal com pior performance"
+      - "Documentar aprendizados em tempo real"
+
+  - id: iterate
+    name: "Iterar"
+    description: "Ajustar campanha baseado em dados e gerar relatório final"
+    agent: garden-marketing-chief
+    depends_on: [measure]
+    outputs:
+      - final_report
+      - learnings
+      - next_campaign_inputs
+    duration: "2-3 dias após fim da campanha"
+    steps:
+      - "Se mid-campaign: realocar budget de canal ruim para canal bom"
+      - "Se mid-campaign: ajustar copy/creative se engajamento baixo"
+      - "Ao final: compilar relatório completo de resultados"
+      - "Calcular ROI real vs estimado"
+      - "Calcular CAC real por canal"
+      - "Documentar top 3 aprendizados"
+      - "Gerar inputs para próxima campanha"
+
+handoff:
+  to_squad: squad-vendas-conversao
+  deliverables:
+    - "Downloads gerados com fonte de aquisição"
+    - "Leads qualificados (jardineiros que baixaram e se cadastraram)"
+    - "Dados de atribuição: canal, campanha, creative"
+  format: "Analytics dashboard + relatório de campanha"
+
+success_criteria:
+  - "Objetivo SMART da campanha atingido"
+  - "CAC real dentro do target (R$30-50)"
+  - "Relatório final com métricas completas"
+  - "Top 3 aprendizados documentados"
+  - "Inputs para próxima campanha gerados"

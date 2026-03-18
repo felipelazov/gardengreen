@@ -1,0 +1,122 @@
+id: create-content-calendar
+name: "Criar Calendário Editorial de Conteúdo"
+squad: squad-marketing-growth
+version: 0.1.0
+type: task
+
+description: |
+  Criar calendário editorial mensal ou trimestral com todas as peças de conteúdo
+  planejadas para cada canal. Distribuir conteúdo pelos 4 pilares, respeitar
+  sazonalidade, e garantir frequência consistente. Tudo em linguagem de jardineiro.
+
+owner: garden-content
+collaborators:
+  - garden-marketing-chief
+
+inputs:
+  - name: periodo
+    type: string
+    description: "Período do calendário: mensal ou trimestral"
+    default: "mensal"
+  - name: mes_inicio
+    type: string
+    description: "Mês de início do calendário (ex: 2026-04)"
+    required: true
+  - name: canais_ativos
+    type: list
+    description: "Canais ativos para produção de conteúdo"
+    default: ["instagram", "youtube_shorts", "blog", "whatsapp"]
+
+outputs:
+  - name: content_calendar
+    type: document
+    description: "Calendário editorial completo"
+    path: "docs/marketing/content-calendar-{periodo}.md"
+  - name: content_briefs
+    type: document
+    description: "Brief resumido de cada peça de conteúdo"
+    path: "docs/marketing/content-briefs/"
+
+preconditions:
+  - "Pilares de conteúdo definidos (config/content-pillars.md)"
+  - "Canais prioritários definidos (config/channels.md)"
+  - "Sazonalidade do período mapeada"
+
+steps:
+  - id: 1
+    name: "Mapear contexto sazonal"
+    agent: garden-content
+    action: |
+      Analisar o período e identificar:
+      - Estação do ano e impacto na jardinagem
+      - Datas comemorativas relevantes
+      - Picos de demanda do mercado de jardinagem
+      - Temas quentes do momento para jardineiros
+
+  - id: 2
+    name: "Distribuir por pilares"
+    agent: garden-content
+    action: |
+      Distribuir conteúdo pelos 4 pilares:
+      - Gestão do Negócio: 40% das peças
+      - Histórias de Sucesso: 25%
+      - Dicas Sazonais: 20%
+      - Comunidade: 15%
+      Ajustar proporções conforme sazonalidade.
+
+  - id: 3
+    name: "Definir temas semanais"
+    agent: garden-content
+    action: |
+      Para cada semana, definir:
+      - Tema principal (ex: "como cobrar mais")
+      - Formato por canal (Reel 30s, Short 60s, post, card)
+      - Pilar de conteúdo correspondente
+      - CTA principal de cada peça
+
+  - id: 4
+    name: "Criar briefs de cada peça"
+    agent: garden-content
+    action: |
+      Para cada peça de conteúdo, criar mini-brief:
+      - Título/headline
+      - Formato e duração
+      - Mensagem principal (1 frase)
+      - CTA
+      - Visual sugerido
+      Usar template: templates/social-post-tmpl.md
+
+  - id: 5
+    name: "Mapear necessidade de assets"
+    agent: garden-content
+    action: |
+      Listar todos os assets necessários:
+      - Fotos antes/depois a coletar
+      - Testimonials a gravar
+      - Vídeos a produzir
+      - Designs gráficos a criar
+      Definir deadline de cada asset (1 semana antes da publicação).
+
+  - id: 6
+    name: "Validar com estratégia de marketing"
+    agent: garden-marketing-chief
+    action: |
+      Revisar calendário contra estratégia de canais:
+      - Frequência por canal está adequada?
+      - Mix de conteúdo alinhado com objetivos de aquisição?
+      - CTAs convergem para download/indicação?
+      - Orçamento de produção é viável?
+      Aprovar ou solicitar ajustes.
+
+postconditions:
+  - "Calendário completo com todas as peças datadas"
+  - "Brief de cada peça de conteúdo"
+  - "Lista de assets necessários com deadlines"
+  - "Calendário validado pelo marketing chief"
+
+acceptance_criteria:
+  - "Mínimo 16 peças de conteúdo por mês (4/semana)"
+  - "Distribuição respeita proporção dos 4 pilares"
+  - "Cada peça tem brief com headline, formato, CTA"
+  - "Sazonalidade considerada no planejamento"
+  - "Assets necessários listados com 1 semana de antecedência"

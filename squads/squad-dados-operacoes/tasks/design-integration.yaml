@@ -1,0 +1,134 @@
+# Task: Design Integration
+# Squad: squad-dados-operacoes
+# Version: 0.1.0
+
+task:
+  id: design-integration
+  name: "Projetar e Implementar Integracao"
+  version: "0.1.0"
+  purpose: "Projetar integracao com servico externo garantindo resiliencia, idempotency, e experiencia invisivel para o jardineiro"
+  executor: "@garden-integrations"
+  collaborators:
+    - "@garden-devops"           # Infra, security, monitoring
+    - "@garden-fullstack-dev"    # Implementacao no app (squad-produto-core)
+  elicit: true
+  execution_type: hybrid
+
+pre_conditions:
+  - "Servico externo identificado e conta criada"
+  - "Caso de uso claro definido (o que o jardineiro ganha)"
+  - "Budget aprovado para custo de API (se aplicavel)"
+
+inputs:
+  - name: service_name
+    type: text
+    prompt: "Nome do servico externo (ex: Stripe, WhatsApp, Google Calendar):"
+  - name: integration_type
+    type: select
+    prompt: "Tipo de integracao:"
+    options: ["Payment", "Communication", "Calendar/Scheduling", "Maps/Location", "Weather", "Accounting/Tax", "Custom"]
+  - name: direction
+    type: select
+    prompt: "Direcao do fluxo:"
+    options: ["Outbound (GardenGreen → Servico)", "Inbound (Servico → GardenGreen)", "Bidirectional"]
+  - name: criticality
+    type: select
+    prompt: "Criticidade:"
+    options: ["Critical (pagamento, auth)", "High (comunicacao, calendario)", "Medium (maps, weather)", "Low (nice-to-have)"]
+
+steps:
+  - id: step_1_discovery
+    name: "Discovery — Entender o Servico"
+    action: |
+      1. Revisar documentacao oficial da API
+      2. Mapear endpoints necessarios
+      3. Entender modelo de autenticacao (API key, OAuth2, webhook signature)
+      4. Verificar rate limits e pricing
+      5. Identificar sandbox/test environment
+      6. Listar SDKs disponiveis (Node.js, React Native)
+      7. Verificar compliance (LGPD, PCI-DSS se pagamento)
+
+  - id: step_2_architecture
+    name: "Arquitetura da Integracao"
+    action: |
+      1. Definir fluxo de dados (diagrama):
+         - Jardineiro action → GardenGreen → Service → Response → Jardineiro feedback
+      2. Definir onde roda a logica:
+         - Supabase Edge Function (serverless, low latency)
+         - Next.js API route (se precisa de SSR context)
+         - Background job (se async)
+      3. Projetar error handling:
+         - Retry strategy: exponential backoff (3 tentativas, max 30s)
+         - Circuit breaker: open apos 5 falhas em 1 min
+         - Dead letter queue: para mensagens que falharam todas as retries
+         - Fallback: o que acontece se o servico esta fora?
+      4. Projetar offline resilience:
+         - Queue local no device (WatermelonDB)
+         - Sync quando voltar online
+         - Conflict resolution strategy
+
+  - id: step_3_data_mapping
+    name: "Mapeamento de Dados"
+    action: |
+      1. Mapear campos GardenGreen → Service (outbound)
+      2. Mapear campos Service → GardenGreen (inbound)
+      3. Definir transformations necessarias
+      4. Definir validation rules para dados de entrada
+      5. Definir o que armazenar localmente (cache, audit trail)
+      6. Considerar: dados sensiveis precisam de encryption?
+
+  - id: step_4_security
+    name: "Security Design"
+    action: |
+      1. API keys/secrets: armazenar em environment variables (nunca no codigo)
+      2. Webhook verification: validar signature em todo webhook recebido
+      3. Idempotency: toda operacao critica com idempotency key
+      4. Data minimization: enviar apenas dados necessarios
+      5. Encryption: TLS para transito, encryption at rest para dados sensiveis
+      6. Audit log: registrar toda interacao com servico externo
+
+  - id: step_5_testing_plan
+    name: "Plano de Testes"
+    action: |
+      1. Unit tests: mock da API externa
+      2. Integration tests: usar sandbox/test mode
+      3. Error scenarios:
+         - Servico fora do ar (timeout)
+         - Rate limit exceeded
+         - Invalid response
+         - Network failure mid-request
+         - Duplicate webhook delivery
+      4. End-to-end: fluxo completo do jardineiro
+      5. Monitoring: metricas de sucesso/falha da integracao
+
+  - id: step_6_spec_document
+    name: "Documentacao — Integration Spec"
+    action: |
+      Usar template: templates/integration-spec-tmpl.md
+      1. Preencher todas as secoes
+      2. Incluir diagrama de fluxo
+      3. Documentar todos os error codes e handling
+      4. Documentar configuracao necessaria (env vars, accounts)
+      5. Criar runbook para troubleshooting
+
+output:
+  format: markdown
+  template: "templates/integration-spec-tmpl.md"
+  sections:
+    - service_overview
+    - architecture_diagram
+    - data_mapping
+    - security_design
+    - error_handling
+    - testing_plan
+    - configuration_guide
+
+quality_gate:
+  idempotency_designed: true
+  retry_strategy_defined: true
+  circuit_breaker_defined: true
+  offline_fallback_defined: true
+  webhook_verification: true
+  secrets_in_env_vars: true
+  test_plan_includes_errors: true
+  spec_document_complete: true

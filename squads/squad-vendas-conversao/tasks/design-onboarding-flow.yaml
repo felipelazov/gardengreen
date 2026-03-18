@@ -1,0 +1,135 @@
+id: design-onboarding-flow
+name: "Desenhar Fluxo de Onboarding Zero-Fricção"
+squad: squad-vendas-conversao
+version: 0.1.0
+type: task
+
+description: |
+  Desenhar o fluxo completo de onboarding do GardenGreen para novos usuários.
+  O objetivo é levar o jardineiro de "abriu o app" até "tem 1 cliente e 1 serviço
+  agendado" em menos de 2 minutos, sem ler nenhuma instrução.
+
+owner: garden-onboarding
+collaborators:
+  - garden-growth-chief
+  - garden-conversion-copy
+
+inputs:
+  - name: target_persona
+    type: string
+    description: "Persona alvo: solo_gardener | gardening_company"
+    default: "solo_gardener"
+  - name: current_flow
+    type: document
+    description: "Fluxo de onboarding atual (se existir)"
+    required: false
+
+outputs:
+  - name: onboarding_flow
+    type: document
+    description: "Especificação completa do fluxo de onboarding"
+    path: "docs/specs/onboarding-flow.md"
+  - name: screen_specs
+    type: document
+    description: "Especificação de cada tela do onboarding"
+    path: "docs/specs/onboarding-screens/"
+  - name: copy_deck
+    type: document
+    description: "Toda a copy do fluxo de onboarding"
+    path: "docs/copy/onboarding-copy.md"
+
+preconditions:
+  - "Personas definidas e validadas"
+  - "Benchmark de apps similares realizado"
+
+steps:
+  - id: 1
+    name: "Mapear jornada atual"
+    agent: garden-onboarding
+    action: |
+      Mapear o fluxo atual de primeiro uso (se existir) ou o fluxo ideal
+      do competidor mais próximo. Documentar cada tela, campo, e decisão
+      que o usuário precisa tomar. Cronometrar tempo por tela.
+
+  - id: 2
+    name: "Definir fluxo mínimo"
+    agent: garden-onboarding
+    action: |
+      Aplicar regra de 2 minutos: eliminar tudo que não é essencial para
+      o jardineiro ver valor. Definir o fluxo mínimo viável:
+      - Login (1 toque)
+      - Nome (1 campo)
+      - Primeiro cliente (nome + telefone)
+      - Primeiro serviço (data + tipo)
+      - Dashboard com dados
+
+  - id: 3
+    name: "Escrever copy de cada tela"
+    agent: garden-conversion-copy
+    action: |
+      Para cada tela do fluxo, escrever:
+      - Headline (máx 5 palavras)
+      - Subtext (máx 15 palavras)
+      - Label de cada campo
+      - Texto dos botões
+      - Empty state (se aplicável)
+      Usar template: templates/onboarding-screen-tmpl.md
+
+  - id: 4
+    name: "Definir progressive profiling"
+    agent: garden-onboarding
+    action: |
+      Mapear todos os dados do perfil do jardineiro e definir QUANDO
+      cada um será pedido:
+      - Onboarding: nome apenas
+      - Primeiro orçamento: endereço, serviços oferecidos
+      - Primeira cobrança: dados bancários/PIX
+      - Primeiro mês: CPF/CNPJ (se quiser nota)
+      - Nunca obrigatório: foto, bio, redes sociais
+
+  - id: 5
+    name: "Desenhar empty states"
+    agent: garden-conversion-copy
+    action: |
+      Para cada seção do app, criar copy de empty state que:
+      - Não pareça erro
+      - Convide à ação
+      - Mostre o benefício de preencher
+      Telas: Agenda, Clientes, Financeiro, Orçamentos, Serviços
+
+  - id: 6
+    name: "Validar com métricas"
+    agent: garden-growth-chief
+    action: |
+      Definir métricas de sucesso do onboarding:
+      - Completion rate por tela
+      - Drop-off rate por tela
+      - Time to first client added
+      - Time to first service scheduled
+      - Day 1 retention de quem completou vs não completou
+      Definir instrumentação necessária (eventos analytics).
+
+  - id: 7
+    name: "Simular teste low-tech"
+    agent: garden-onboarding
+    action: |
+      Simular o fluxo como jardineiro low-tech:
+      - Android básico, tela 5.5", sol na tela
+      - Sem ler texto pequeno
+      - Dedo grosso, erros de toque
+      Validar que cada tela passa no teste de "é óbvio?"
+
+postconditions:
+  - "Fluxo de onboarding documentado com máximo 5 telas"
+  - "Tempo estimado total < 2 minutos"
+  - "Copy de cada tela aprovada"
+  - "Empty states de todas as seções definidos"
+  - "Métricas de sucesso instrumentadas"
+  - "Fluxo validado com simulação low-tech"
+
+acceptance_criteria:
+  - "Jardineiro consegue completar onboarding em < 2 minutos"
+  - "Máximo 5 telas no fluxo"
+  - "Nenhum campo obrigatório além de nome, telefone do cliente, e data do serviço"
+  - "Empty states escritos para todas as 5 seções principais"
+  - "Progressive profiling definido para todos os dados do perfil"

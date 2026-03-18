@@ -1,0 +1,127 @@
+id: design-channel-strategy
+name: "Desenhar Estratégia de Canais de Aquisição"
+squad: squad-marketing-growth
+version: 0.1.0
+type: task
+
+description: |
+  Mapear, priorizar e planejar os canais de aquisição do GardenGreen para
+  jardineiros. Foco em canais onde jardineiros realmente estão (WhatsApp,
+  Instagram, lojas de insumos) — não em canais tradicionais de SaaS.
+
+owner: garden-marketing-chief
+collaborators:
+  - garden-referral
+  - garden-content
+
+inputs:
+  - name: budget_mensal
+    type: number
+    description: "Budget mensal disponível para marketing (em R$)"
+    default: 2000
+  - name: target_downloads
+    type: number
+    description: "Meta de downloads mensais"
+    default: 500
+  - name: regiao_foco
+    type: string
+    description: "Região geográfica de foco inicial"
+    required: false
+
+outputs:
+  - name: channel_strategy
+    type: document
+    description: "Documento com estratégia completa de canais"
+    path: "docs/marketing/channel-strategy.md"
+  - name: budget_allocation
+    type: document
+    description: "Alocação de budget por canal"
+    path: "docs/marketing/budget-allocation.md"
+  - name: channel_playbooks
+    type: document
+    description: "Playbook operacional de cada canal prioritário"
+    path: "docs/marketing/channel-playbooks/"
+
+preconditions:
+  - "Personas de jardineiro definidas e validadas"
+  - "Budget de marketing aprovado"
+  - "Métricas de conversão baseline definidas (squad-vendas-conversao)"
+
+steps:
+  - id: 1
+    name: "Mapear canais candidatos"
+    agent: garden-marketing-chief
+    action: |
+      Listar todos os canais onde jardineiros podem ser alcançados.
+      Para cada canal, documentar:
+      - Onde exatamente o jardineiro está (ex: grupo WhatsApp X, loja Y)
+      - Volume estimado de audiência
+      - Custo estimado por lead/download
+      - Tempo para resultado (imediato, 30 dias, 90 dias)
+      - Facilidade de execução (equipe necessária, ferramentas)
+
+  - id: 2
+    name: "Priorizar com framework ICE"
+    agent: garden-marketing-chief
+    action: |
+      Para cada canal, aplicar ICE Score:
+      - Impact (1-10): impacto estimado em downloads
+      - Confidence (1-10): confiança na estimativa
+      - Ease (1-10): facilidade de implementação
+      Ordenar por ICE Score. Selecionar top 4-5 canais para foco.
+
+  - id: 3
+    name: "Alocar budget por canal"
+    agent: garden-marketing-chief
+    action: |
+      Distribuir budget mensal entre canais selecionados:
+      - 60% para canais de maior ICE (comprovados)
+      - 30% para canais de growth (promissores)
+      - 10% para experimentação (novos canais)
+      Calcular CAC esperado por canal.
+
+  - id: 4
+    name: "Criar playbook de cada canal"
+    agent: garden-marketing-chief
+    action: |
+      Para cada canal prioritário, criar playbook:
+      - Tática específica (ex: "postar 3 Reels/semana com dicas de negócio")
+      - Frequência e volume
+      - Responsável
+      - Ferramentas necessárias
+      - KPIs e como medir
+      - Timeline de implementação
+
+  - id: 5
+    name: "Mapear dependências entre canais"
+    agent: garden-marketing-chief
+    action: |
+      Identificar sinergias e dependências:
+      - Conteúdo de Instagram alimenta WhatsApp
+      - Referral amplifica todos os canais
+      - SEO é longo prazo, complementa canais imediatos
+      - Parcerias com lojas potencializam referral local
+
+  - id: 6
+    name: "Definir métricas e dashboard"
+    agent: garden-marketing-chief
+    action: |
+      Para cada canal, definir:
+      - Métrica primária (downloads atribuídos)
+      - Métricas secundárias (engajamento, reach)
+      - Frequência de revisão (semanal)
+      - Triggers de realocação de budget
+      - Dashboard de acompanhamento
+
+postconditions:
+  - "Mínimo 4 canais priorizados com ICE score"
+  - "Budget alocado por canal com CAC esperado"
+  - "Playbook operacional para cada canal prioritário"
+  - "Dashboard de métricas definido"
+
+acceptance_criteria:
+  - "Canais priorizados são onde jardineiros realmente estão (não canais B2B genéricos)"
+  - "Budget alocado com 60/30/10 split"
+  - "CAC esperado por canal calculado"
+  - "Playbook de cada canal tem tática, frequência e KPI"
+  - "Métricas de cada canal são mensuráveis"

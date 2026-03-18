@@ -1,0 +1,597 @@
+# Project Profiles
+# Squad: squad-pm | Version: 1.0.0
+# Used by: @pm-chief (Atlax) for routing and squad activation
+# Last updated: 2026-03-08
+
+# -------------------------------------------------------------------
+# Profile Selection Logic:
+#   1. @pm-chief collects intake data
+#   2. Triggers are evaluated against intake responses
+#   3. First matching profile is selected (order: simple → standard → enterprise)
+#   4. Override: user can explicitly request a profile
+# -------------------------------------------------------------------
+
+profiles:
+
+  # ===================================================================
+  # SIMPLE — Solo founder, MVP, small project
+  # ===================================================================
+  simple:
+    name: "Simple"
+    description: "Solo founder, MVP, small project — fast-track to PRD"
+    icon: "🚀"
+
+    # --- Trigger Rules ---
+    # ALL conditions must match (AND logic)
+    # Any single enterprise trigger overrides to enterprise
+    triggers:
+      team_size:
+        operator: "<="
+        value: 3
+        description: "1-3 people (solo founder or tiny team)"
+      budget:
+        operator: "<"
+        value: 50000
+        currency: "USD"
+        description: "Under $50K total budget"
+      timeline:
+        operator: "<"
+        value: 3
+        unit: "months"
+        description: "Less than 3 months to delivery"
+      complexity_score:
+        operator: "<="
+        value: 8
+        description: "Low complexity (scored by 5 dimensions)"
+      regulatory_requirements:
+        operator: "=="
+        value: false
+        description: "No regulatory or compliance requirements"
+
+    # --- Agent Activation ---
+    active_agents:
+      - id: pm-chief
+        role: "Orchestrator + PRD writer"
+        mandatory: true
+      - id: discovery-lead
+        role: "Lightweight discovery (JTBD only)"
+        mandatory: true
+      - id: requirements-engineer
+        role: "FR/NFR extraction"
+        mandatory: true
+      - id: prd-validator
+        role: "PRD quality gate"
+        mandatory: true
+
+    inactive_agents:
+      - id: market-analyst
+        reason: "Market analysis skipped for simple projects"
+      - id: schedule-planner
+        reason: "Simple timeline, no formal schedule needed"
+      - id: cost-estimator
+        reason: "Budget is straightforward"
+      - id: risk-strategist
+        reason: "Risk assessment light — embedded in PRD"
+      - id: prioritization-engine
+        reason: "MoSCoW inline, no RICE/WSJF needed"
+      - id: stakeholder-liaison
+        reason: "Solo founder / tiny team — no complex stakeholders"
+      - id: integration-architect
+        reason: "No methodology adaptation needed"
+      - id: okr-tracker
+        reason: "OKRs optional for small projects"
+      - id: pm-auditor
+        reason: "Lightweight audit inline"
+
+    # --- Phase Configuration ---
+    phases:
+      - id: 0_intake
+        name: "Intake"
+        skip: false
+        duration: "30 min"
+      - id: 1_discovery_market
+        name: "Discovery & Market"
+        skip: true
+        skip_reason: "Solo founder already knows their market"
+      - id: 2_requirements
+        name: "Requirements"
+        skip: false
+        duration: "1-2 hours"
+      - id: 3_prd
+        name: "PRD Generation"
+        skip: false
+        duration: "1-2 hours"
+      - id: 4_planning
+        name: "Planning"
+        skip: true
+        skip_reason: "Timeline and cost are simple enough for inline estimates"
+      - id: 5_risk
+        name: "Risk Assessment"
+        skip: true
+        skip_reason: "Basic risks documented in PRD"
+      - id: 6_delivery
+        name: "Delivery Package"
+        skip: false
+        duration: "30 min"
+
+    # --- Tasks ---
+    skip_tasks:
+      - market-analysis
+      - lean-canvas
+      - stakeholder-map
+      - define-okrs
+      - create-schedule
+      - estimate-cost
+      - risk-assessment
+
+    active_tasks:
+      - intake-prep
+      - intake-parser
+      - project-diagnostic
+      - discovery-session    # lightweight version
+      - gather-requirements
+      - write-prd
+      - validate-prd
+      - prioritize-backlog   # MoSCoW only
+
+    # --- Deliverables ---
+    deliverables:
+      required:
+        - id: project-brief
+          format: "yaml"
+          template: "client-intake-tmpl.yaml"
+          description: "Parsed intake with project context"
+        - id: prd
+          format: "md"
+          template: "prd-tmpl.yaml"
+          description: "Complete PRD with FR, NFR, AC"
+        - id: prioritized-backlog
+          format: "yaml"
+          description: "MoSCoW-prioritized feature list"
+      optional:
+        - id: lean-canvas
+          format: "md"
+          condition: "user requests it"
+        - id: risk-summary
+          format: "md"
+          condition: "high-risk items detected"
+
+    # --- Estimates ---
+    estimated_time: "1-2 dias"
+    estimated_agent_calls: 8-15
+    estimated_tokens: "50K-100K"
+
+  # ===================================================================
+  # STANDARD — Startup, seed/series A, medium project
+  # ===================================================================
+  standard:
+    name: "Standard"
+    description: "Startup, seed/series A, medium project — full PM cycle"
+    icon: "⚡"
+
+    # --- Trigger Rules ---
+    triggers:
+      team_size:
+        operator: "between"
+        min: 4
+        max: 15
+        description: "4-15 people"
+      budget:
+        operator: "between"
+        min: 50000
+        max: 500000
+        currency: "USD"
+        description: "$50K-$500K total budget"
+      timeline:
+        operator: "between"
+        min: 3
+        max: 9
+        unit: "months"
+        description: "3-9 months to delivery"
+      complexity_score:
+        operator: "between"
+        min: 9
+        max: 15
+        description: "Medium complexity"
+      regulatory_requirements:
+        operator: "any"
+        description: "May or may not have compliance needs"
+
+    # --- Agent Activation ---
+    active_agents:
+      - id: pm-chief
+        role: "Full orchestration"
+        mandatory: true
+      - id: discovery-lead
+        role: "Full discovery with OST"
+        mandatory: true
+      - id: market-analyst
+        role: "Market analysis + Lean Canvas"
+        mandatory: true
+      - id: requirements-engineer
+        role: "Full requirements engineering + story mapping"
+        mandatory: true
+      - id: prioritization-engine
+        role: "RICE + WSJF scoring"
+        mandatory: true
+      - id: schedule-planner
+        role: "Schedule with Cone of Uncertainty"
+        mandatory: true
+      - id: cost-estimator
+        role: "Cost estimation with PERT"
+        mandatory: true
+      - id: risk-strategist
+        role: "Full risk assessment with ATOM"
+        mandatory: true
+      - id: prd-validator
+        role: "PRD quality gate (7 criteria)"
+        mandatory: true
+
+    inactive_agents:
+      - id: stakeholder-liaison
+        reason: "Activated on demand if stakeholder complexity detected"
+        activation_condition: "stakeholder_count > 5 OR org_politics == true"
+      - id: integration-architect
+        reason: "Activated if multi-methodology detected"
+        activation_condition: "methodology != 'scrum' OR teams > 3"
+      - id: okr-tracker
+        reason: "Activated if strategic alignment needed"
+        activation_condition: "has_okrs == true OR investor_reporting == true"
+
+    # --- Phase Configuration ---
+    phases:
+      - id: 0_intake
+        name: "Intake"
+        skip: false
+        duration: "1 hora"
+      - id: 1_discovery_market
+        name: "Discovery & Market"
+        skip: false
+        duration: "2-4 horas"
+      - id: 2_requirements
+        name: "Requirements"
+        skip: false
+        duration: "3-5 horas"
+      - id: 3_prd
+        name: "PRD Generation"
+        skip: false
+        duration: "2-3 horas"
+      - id: 4_planning
+        name: "Planning"
+        skip: false
+        duration: "3-5 horas"
+      - id: 5_risk
+        name: "Risk Assessment"
+        skip: false
+        duration: "2-3 horas"
+      - id: 6_delivery
+        name: "Delivery Package"
+        skip: false
+        duration: "1-2 horas"
+
+    # --- Tasks ---
+    skip_tasks: []
+    active_tasks: all
+
+    # --- Deliverables ---
+    deliverables:
+      required:
+        - id: project-brief
+          format: "yaml"
+          template: "client-intake-tmpl.yaml"
+          description: "Complete intake with diagnostics"
+        - id: prd
+          format: "md"
+          template: "prd-tmpl.yaml"
+          description: "Full PRD with all sections"
+        - id: lean-canvas
+          format: "md"
+          template: "lean-canvas-tmpl.md"
+          description: "Lean Canvas with all 9 blocks"
+        - id: prioritized-backlog
+          format: "yaml"
+          description: "RICE/WSJF-scored backlog"
+        - id: schedule
+          format: "md"
+          description: "Timeline with milestones and Cone of Uncertainty"
+        - id: cost-estimate
+          format: "md"
+          description: "PERT-based cost estimation"
+        - id: risk-matrix
+          format: "md"
+          template: "risk-dashboard-tmpl.md"
+          description: "5x5 risk matrix with response strategies"
+        - id: executive-summary
+          format: "md"
+          template: "executive-summary-tmpl.md"
+          description: "One-page executive summary"
+      optional:
+        - id: stakeholder-map
+          format: "md"
+          condition: "stakeholder_count > 5"
+        - id: okr-dashboard
+          format: "md"
+          condition: "has_okrs == true"
+        - id: commercial-proposal
+          format: "md"
+          condition: "needs_proposal == true"
+
+    # --- Estimates ---
+    estimated_time: "3-5 dias"
+    estimated_agent_calls: 25-50
+    estimated_tokens: "150K-300K"
+
+  # ===================================================================
+  # ENTERPRISE — Corporate, compliance, large project
+  # ===================================================================
+  enterprise:
+    name: "Enterprise"
+    description: "Corporate, compliance, large project — full squad activation"
+    icon: "🏛️"
+
+    # --- Trigger Rules ---
+    # ANY single enterprise trigger activates this profile
+    triggers:
+      team_size:
+        operator: ">"
+        value: 15
+        description: "More than 15 people"
+      budget:
+        operator: ">"
+        value: 500000
+        currency: "USD"
+        description: "Over $500K total budget"
+      timeline:
+        operator: ">"
+        value: 9
+        unit: "months"
+        description: "More than 9 months"
+      complexity_score:
+        operator: ">="
+        value: 16
+        description: "High complexity"
+      regulatory_requirements:
+        operator: "=="
+        value: true
+        override: true
+        description: "Any regulatory requirement forces enterprise profile"
+      multi_team:
+        operator: "=="
+        value: true
+        override: true
+        description: "Multiple teams forces enterprise profile"
+
+    # --- Agent Activation ---
+    active_agents: all
+    # All 10 agents + 3 tools activated
+    agent_details:
+      - id: pm-chief
+        role: "Full orchestration with governance layer"
+      - id: discovery-lead
+        role: "Deep discovery with multiple stakeholder groups"
+      - id: market-analyst
+        role: "Full market analysis with competitive landscape"
+      - id: requirements-engineer
+        role: "Requirements engineering with traceability matrix"
+      - id: prioritization-engine
+        role: "Multi-criteria prioritization (RICE + WSJF + Kano)"
+      - id: schedule-planner
+        role: "CCPM schedule with resource leveling"
+      - id: cost-estimator
+        role: "Detailed cost estimation with EVM setup"
+      - id: risk-strategist
+        role: "Full ATOM with risk register and response plans"
+      - id: stakeholder-liaison
+        role: "Stakeholder mapping + RACI + communication plan"
+      - id: integration-architect
+        role: "Methodology selection + PI Planning coordination"
+      - id: prd-validator
+        role: "Full 7-criteria validation with compliance check"
+      - id: okr-tracker
+        role: "Strategic OKR alignment with metrics dashboard"
+      - id: pm-auditor
+        role: "Full self-diagnostic and meta-QA audit"
+
+    # --- Phase Configuration ---
+    phases:
+      - id: 0_intake
+        name: "Intake"
+        skip: false
+        duration: "2-4 horas"
+        gate: intake-completeness
+      - id: 1_discovery_market
+        name: "Discovery & Market"
+        skip: false
+        duration: "1-2 dias"
+        gate: discovery-quality
+      - id: 2_requirements
+        name: "Requirements"
+        skip: false
+        duration: "2-3 dias"
+        gate: requirements-coverage
+      - id: 3_prd
+        name: "PRD Generation"
+        skip: false
+        duration: "1-2 dias"
+        gate: prd-quality-gate
+      - id: 4_planning
+        name: "Planning"
+        skip: false
+        duration: "2-3 dias"
+        gate: planning-quality-gate
+      - id: 5_risk
+        name: "Risk Assessment"
+        skip: false
+        duration: "1-2 dias"
+        gate: risk-coverage
+      - id: 6_delivery
+        name: "Delivery Package"
+        skip: false
+        duration: "1 dia"
+        gate: phase-transition
+
+    # --- Tasks ---
+    skip_tasks: []
+    active_tasks: all
+
+    # --- Extra Gates ---
+    extra_gates:
+      - id: compliance-review
+        trigger: "regulatory_requirements == true"
+        reviewer: "pm-chief + external"
+        checklist:
+          - "All regulatory requirements mapped to FR/NFR"
+          - "Compliance matrix complete"
+          - "Data privacy requirements documented"
+          - "Audit trail requirements specified"
+          - "Industry-specific standards referenced"
+      - id: executive-approval
+        trigger: "budget > 500000 OR team_size > 15"
+        reviewer: "stakeholder-liaison"
+        checklist:
+          - "Executive summary reviewed"
+          - "Budget approved by sponsor"
+          - "Timeline accepted by all stakeholders"
+          - "Risk register acknowledged"
+          - "Go/No-Go decision documented"
+      - id: architecture-review
+        trigger: "complexity_score >= 16"
+        reviewer: "integration-architect"
+        checklist:
+          - "Technology choices validated"
+          - "Integration points documented"
+          - "Scalability requirements addressed"
+          - "Security architecture reviewed"
+
+    # --- Deliverables ---
+    deliverables:
+      required:
+        - id: project-brief
+          format: "yaml"
+          description: "Comprehensive intake with full diagnostics"
+        - id: prd
+          format: "md"
+          description: "Enterprise PRD with traceability"
+        - id: lean-canvas
+          format: "md"
+          description: "Lean Canvas with competitive overlay"
+        - id: prioritized-backlog
+          format: "yaml"
+          description: "Multi-criteria scored backlog"
+        - id: schedule
+          format: "md"
+          description: "CCPM schedule with milestones and dependencies"
+        - id: cost-estimate
+          format: "md"
+          description: "Detailed cost with EVM baseline"
+        - id: risk-matrix
+          format: "md"
+          description: "Full risk register with ATOM analysis"
+        - id: stakeholder-map
+          format: "md"
+          description: "Power/Interest grid + RACI matrix"
+        - id: communication-plan
+          format: "md"
+          description: "Stakeholder communication plan"
+        - id: executive-summary
+          format: "md"
+          description: "Executive summary for leadership"
+        - id: project-charter
+          format: "md"
+          description: "Formal project charter"
+        - id: okr-dashboard
+          format: "md"
+          description: "Strategic OKR alignment"
+        - id: compliance-matrix
+          format: "md"
+          description: "Regulatory compliance mapping"
+          condition: "regulatory_requirements == true"
+        - id: commercial-proposal
+          format: "md"
+          description: "Commercial proposal for client"
+          condition: "needs_proposal == true"
+        - id: roadmap
+          format: "md"
+          description: "Visual roadmap with dependencies"
+      optional:
+        - id: competitive-analysis
+          format: "md"
+          condition: "market_competition == 'high'"
+        - id: vendor-assessment
+          format: "md"
+          condition: "external_dependencies > 3"
+
+    # --- Estimates ---
+    estimated_time: "1-2 semanas"
+    estimated_agent_calls: 60-120
+    estimated_tokens: "400K-800K"
+
+# -------------------------------------------------------------------
+# Profile Selection Algorithm
+# -------------------------------------------------------------------
+selection:
+  algorithm: "match_first"
+  priority_order: [enterprise, standard, simple]
+  override_triggers:
+    - condition: "regulatory_requirements == true"
+      force_profile: enterprise
+      reason: "Compliance requirements demand full enterprise process"
+    - condition: "multi_team == true"
+      force_profile: enterprise
+      reason: "Multi-team coordination requires enterprise orchestration"
+    - condition: "user_explicit_profile != null"
+      force_profile: "{user_explicit_profile}"
+      reason: "User explicitly selected profile"
+
+  fallback: standard
+  fallback_reason: "When triggers are ambiguous, default to standard for safety"
+
+# -------------------------------------------------------------------
+# Complexity Scoring (5 Dimensions, 1-5 each, max 25)
+# -------------------------------------------------------------------
+complexity_dimensions:
+  scope:
+    name: "Scope"
+    description: "Number of features, screens, integrations"
+    scale:
+      1: "1-3 screens, no integrations"
+      2: "4-8 screens, 1 integration"
+      3: "9-15 screens, 2-3 integrations"
+      4: "16-30 screens, 4-6 integrations"
+      5: "30+ screens, 7+ integrations"
+  integration:
+    name: "Integration"
+    description: "External APIs, third-party services, legacy systems"
+    scale:
+      1: "No external integrations"
+      2: "1-2 well-documented APIs"
+      3: "3-4 APIs, some complex"
+      4: "5-7 APIs, legacy systems"
+      5: "8+ APIs, complex legacy, real-time"
+  infrastructure:
+    name: "Infrastructure"
+    description: "Deployment, scaling, security requirements"
+    scale:
+      1: "Simple hosting (Vercel, Netlify)"
+      2: "Standard cloud (single region)"
+      3: "Multi-service cloud architecture"
+      4: "Multi-region, compliance requirements"
+      5: "Hybrid cloud, on-premise, air-gapped"
+  knowledge:
+    name: "Knowledge"
+    description: "Team familiarity with technology and domain"
+    scale:
+      1: "Team expert in all technologies"
+      2: "Mostly known, 1 new technology"
+      3: "50% known, significant learning"
+      4: "Mostly new stack, domain knowledge"
+      5: "New stack + new domain + new team"
+  risk:
+    name: "Risk"
+    description: "Business criticality and failure impact"
+    scale:
+      1: "Internal tool, low impact"
+      2: "Customer-facing, moderate impact"
+      3: "Revenue-critical, data handling"
+      4: "Financial/health data, regulatory"
+      5: "Life-safety, critical infrastructure"

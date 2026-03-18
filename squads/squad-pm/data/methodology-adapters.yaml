@@ -1,0 +1,494 @@
+# Methodology Adapters
+# Squad: squad-pm | Version: 1.0.0
+# Used by: @integration-architect (Iris) for methodology adaptation
+# Last updated: 2026-03-08
+#
+# Purpose: Adapts squad-pm outputs (backlog, schedule, estimation,
+# deliverables) to match the target methodology used by the project team.
+# @pm-chief detects methodology during intake; Iris applies the adapter.
+
+adapters:
+
+  # ===================================================================
+  # SCRUM
+  # ===================================================================
+  scrum:
+    name: "Scrum"
+    description: "Iterative framework with fixed-length sprints, defined roles, and ceremonies"
+    source: "Scrum Guide (Schwaber & Sutherland, 2020)"
+
+    # --- Ceremony Mapping ---
+    ceremony_mapping:
+      intake: "Sprint 0 / Discovery Sprint"
+      planning: "Sprint Planning"
+      review: "Sprint Review"
+      retrospective: "Sprint Retrospective"
+      daily_sync: "Daily Standup (15 min)"
+      refinement: "Backlog Refinement (10% capacity)"
+
+    # --- Output Formats ---
+    output_formats:
+      backlog:
+        name: "Product Backlog Items (PBIs)"
+        structure: "Epics → Features → User Stories → Tasks"
+        item_format: "As a {persona}, I want {action}, so that {benefit}"
+        acceptance_criteria: "Given-When-Then (BDD)"
+        ordering: "Priority + Dependencies"
+      schedule:
+        name: "Sprint-based timeline"
+        unit: "Sprints"
+        sprint_duration: 2  # weeks
+        planning_horizon: "3-6 sprints"
+        milestones: "End of each sprint (potentially shippable increment)"
+        buffer_strategy: "Velocity-based forecasting with confidence intervals"
+      estimation:
+        name: "Story Points (Fibonacci)"
+        scale: [1, 2, 3, 5, 8, 13, 21]
+        technique: "Planning Poker"
+        velocity_tracking: true
+        capacity_planning: "Velocity * remaining sprints"
+      deliverables:
+        roadmap: "Sprint-based roadmap with sprint goals"
+        progress: "Burn-down chart (sprint), Burn-up chart (release)"
+        risk: "Risk burn-down chart"
+
+    # --- Prioritization ---
+    prioritization:
+      primary: "WSJF"
+      secondary: "MoSCoW"
+      backlog_ordering: "Priority + sprint goal alignment"
+
+    # --- Roles Mapping ---
+    roles_mapping:
+      pm-chief: "Product Owner (proxy during PM phase)"
+      requirements-engineer: "Product Owner (requirements detail)"
+      schedule-planner: "Scrum Master (planning support)"
+      risk-strategist: "Scrum Master (impediment identification)"
+      discovery-lead: "Product Owner (discovery)"
+      prioritization-engine: "Product Owner (backlog ordering)"
+
+    # --- Artifact Templates ---
+    artifact_adaptations:
+      sprint_goal: "One clear sentence per sprint describing the objective"
+      definition_of_done:
+        - "Code complete and peer-reviewed"
+        - "Unit tests passing (>80% coverage)"
+        - "Integration tests passing"
+        - "Documentation updated"
+        - "No critical/high severity bugs"
+        - "Deployed to staging"
+        - "PO accepted"
+      definition_of_ready:
+        - "Acceptance criteria defined (Given-When-Then)"
+        - "Dependencies identified"
+        - "Estimated in story points"
+        - "Fits within one sprint"
+        - "Design/UX approved (if applicable)"
+
+  # ===================================================================
+  # KANBAN
+  # ===================================================================
+  kanban:
+    name: "Kanban"
+    description: "Flow-based system with WIP limits and continuous delivery"
+    source: "David J. Anderson (Kanban: Successful Evolutionary Change)"
+
+    # --- Ceremony Mapping ---
+    ceremony_mapping:
+      intake: "Replenishment Meeting"
+      planning: "Kanban Meeting (per cadence)"
+      review: "Service Delivery Review"
+      retrospective: "Operations Review"
+      daily_sync: "Daily Kanban (optional, at board)"
+
+    # --- Output Formats ---
+    output_formats:
+      backlog:
+        name: "Work Items with WIP limits"
+        structure: "Input Queue → In Progress → Review → Done"
+        item_format: "Work Item with class of service"
+        acceptance_criteria: "Checklist format"
+        ordering: "Class of Service + Age"
+        classes_of_service:
+          - name: "Expedite"
+            wip_limit: 1
+            description: "Urgent, bypasses queue"
+          - name: "Fixed Date"
+            wip_limit: null
+            description: "Regulatory or contractual deadline"
+          - name: "Standard"
+            wip_limit: "per column"
+            description: "Normal flow"
+          - name: "Intangible"
+            wip_limit: null
+            description: "Technical debt, improvements"
+      schedule:
+        name: "Flow metrics (cycle time, throughput)"
+        unit: "Days (cycle time)"
+        planning_horizon: "Monte Carlo simulation"
+        milestones: "SLA-based (e.g., 85th percentile cycle time)"
+        buffer_strategy: "WIP limits + flow management"
+      estimation:
+        name: "T-shirt sizes → lead time prediction"
+        scale: ["XS", "S", "M", "L", "XL"]
+        technique: "Reference class forecasting"
+        velocity_tracking: false
+        capacity_planning: "Throughput-based with Monte Carlo"
+      deliverables:
+        roadmap: "Now / Next / Later format"
+        progress: "Cumulative Flow Diagram (CFD)"
+        risk: "Aging WIP chart"
+
+    # --- Prioritization ---
+    prioritization:
+      primary: "RICE + Cost of Delay"
+      secondary: "Class of Service"
+      backlog_ordering: "Cost of Delay / WIP age"
+
+    # --- Roles Mapping ---
+    roles_mapping:
+      pm-chief: "Service Request Manager"
+      requirements-engineer: "Service Request Manager (detail)"
+      schedule-planner: "Flow Manager"
+      risk-strategist: "Flow Manager (blockers)"
+
+    # --- Flow Metrics ---
+    flow_metrics:
+      cycle_time:
+        healthy: "<= 5 days"
+        warning: "5-10 days"
+        critical: "> 10 days"
+      throughput:
+        measurement: "Items per week"
+        forecasting: "Monte Carlo (500 simulations)"
+      wip_limits:
+        recommended: "team_size * 1.5"
+        minimum: "team_size"
+        maximum: "team_size * 2"
+
+  # ===================================================================
+  # SHAPE UP
+  # ===================================================================
+  shape_up:
+    name: "Shape Up"
+    description: "Basecamp's approach: 6-week cycles, pitches, appetites"
+    source: "Ryan Singer (Shape Up: Stop Running in Circles)"
+
+    # --- Ceremony Mapping ---
+    ceremony_mapping:
+      intake: "Pitch Preparation"
+      planning: "Betting Table"
+      review: "Cycle Demo"
+      retrospective: "Cooldown reflection"
+      daily_sync: "None (team self-manages)"
+
+    # --- Output Formats ---
+    output_formats:
+      backlog:
+        name: "Pitches with appetite"
+        structure: "Raw ideas → Shaped pitches → Bets → Cycles"
+        item_format: |
+          Pitch: {title}
+          Problem: {what and why}
+          Appetite: {small batch: 1-2 weeks | big batch: 6 weeks}
+          Solution: {breadboard + fat marker sketch}
+          Rabbit holes: {risks to avoid}
+          No-gos: {what is explicitly excluded}
+        acceptance_criteria: "Scope hammering during cycle"
+        ordering: "Appetite fit + strategic value"
+        no_backlog: true  # pitches written fresh each cycle
+      schedule:
+        name: "6-week cycles + 2-week cooldown"
+        unit: "Cycles"
+        cycle_duration: 6  # weeks
+        cooldown_duration: 2  # weeks
+        planning_horizon: "1 cycle at a time"
+        milestones: "End of each cycle (circuit breaker)"
+        buffer_strategy: "Fixed time, variable scope"
+      estimation:
+        name: "Appetite-based (not estimates)"
+        scale:
+          small_batch: "1-2 weeks (1-2 people)"
+          big_batch: "6 weeks (small team)"
+        technique: "Shaping (senior team shapes before betting)"
+        velocity_tracking: false
+        capacity_planning: "N teams * 1 big batch per cycle"
+      deliverables:
+        roadmap: "Next cycle bets only (no long-term roadmap)"
+        progress: "Hill Chart (uphill: figuring out / downhill: executing)"
+        risk: "Rabbit holes list + circuit breaker"
+
+    # --- Prioritization ---
+    prioritization:
+      primary: "Appetite vs. value"
+      secondary: "Strategic fit"
+      backlog_ordering: "No persistent backlog — pitches are ephemeral"
+
+    # --- Roles Mapping ---
+    roles_mapping:
+      pm-chief: "Shaper (shapes pitches for betting table)"
+      requirements-engineer: "Shaper (details within appetite)"
+      discovery-lead: "Problem researcher (pre-shaping)"
+
+    # --- Shape Up Specific ---
+    shaping_rules:
+      - "Shape at the right level of abstraction (breadboards, not wireframes)"
+      - "Define boundaries: what is IN and what is OUT"
+      - "Identify rabbit holes before betting"
+      - "Small batch vs big batch decision is strategic"
+      - "Circuit breaker: if not done in the cycle, it stops"
+
+  # ===================================================================
+  # SAFe (Scaled Agile Framework)
+  # ===================================================================
+  safe:
+    name: "SAFe (Scaled Agile Framework)"
+    description: "Enterprise-scale agile with ARTs, PIs, and portfolio management"
+    source: "Dean Leffingwell (SAFe 6.0)"
+
+    # --- Ceremony Mapping ---
+    ceremony_mapping:
+      intake: "Portfolio Kanban / Funnel"
+      planning: "PI Planning (2-day event)"
+      review: "System Demo (every 2 weeks) + PI System Demo"
+      retrospective: "Inspect & Adapt (I&A)"
+      daily_sync: "Daily Standup + Scrum of Scrums"
+
+    # --- Output Formats ---
+    output_formats:
+      backlog:
+        name: "Features & Enablers"
+        structure: "Epics → Capabilities → Features → Stories"
+        item_format: |
+          Feature: {title}
+          Benefit Hypothesis: {measurable benefit}
+          Acceptance Criteria: {conditions for acceptance}
+        acceptance_criteria: "Benefit hypothesis + acceptance criteria"
+        ordering: "WSJF (mandatory)"
+        types:
+          - "Business Feature"
+          - "Enabler Feature"
+          - "Business Epic"
+          - "Enabler Epic"
+      schedule:
+        name: "Program Increments (PI)"
+        unit: "PIs (8-12 weeks)"
+        pi_duration: 10  # weeks typical
+        sprints_per_pi: 5
+        ip_sprint: true  # Innovation & Planning sprint
+        planning_horizon: "3 PIs (rolling)"
+        milestones: "PI boundaries + mid-PI checkpoints"
+        buffer_strategy: "IP sprint as buffer + capacity allocation"
+      estimation:
+        name: "Normalized story points"
+        scale: [1, 2, 3, 5, 8, 13]
+        technique: "Team-level Planning Poker, normalized across ART"
+        velocity_tracking: true
+        capacity_planning: "Load vs. capacity per team per PI"
+      deliverables:
+        roadmap: "PI Roadmap (3 PIs) + Solution Roadmap"
+        progress: "PI Burn-down + Feature Progress"
+        risk: "ROAM board (Resolved, Owned, Accepted, Mitigated)"
+
+    # --- Prioritization ---
+    prioritization:
+      primary: "WSJF"
+      secondary: "Strategic themes alignment"
+      backlog_ordering: "WSJF score (strictly enforced)"
+
+    # --- Roles Mapping ---
+    roles_mapping:
+      pm-chief: "Product Manager (ART level)"
+      requirements-engineer: "Product Owner (team level)"
+      schedule-planner: "Release Train Engineer (RTE)"
+      risk-strategist: "RTE (risk management)"
+      integration-architect: "System Architect"
+      stakeholder-liaison: "Business Owner"
+      prioritization-engine: "Product Manager (WSJF)"
+
+    # --- SAFe Specific ---
+    pi_planning:
+      duration: "2 days"
+      inputs:
+        - "Product Vision"
+        - "Top 10 Features (WSJF-ordered)"
+        - "Architecture Vision"
+      outputs:
+        - "PI Objectives (team + ART)"
+        - "Program Board (dependencies)"
+        - "ROAM board (risks)"
+        - "Confidence vote (1-5)"
+      confidence_threshold: 3  # average must be >= 3
+
+  # ===================================================================
+  # WATERFALL
+  # ===================================================================
+  waterfall:
+    name: "Waterfall"
+    description: "Sequential, phase-gated development with formal sign-offs"
+    source: "Traditional SDLC / PMBOK predictive approach"
+
+    # --- Ceremony Mapping ---
+    ceremony_mapping:
+      intake: "Project Initiation"
+      planning: "Detailed Planning Phase"
+      review: "Phase Gate Review"
+      retrospective: "Lessons Learned (end of project)"
+      daily_sync: "Weekly Status Meeting"
+
+    # --- Output Formats ---
+    output_formats:
+      backlog:
+        name: "WBS (Work Breakdown Structure)"
+        structure: "Phases → Deliverables → Work Packages → Activities"
+        item_format: "WBS element with ID, description, responsible, duration"
+        acceptance_criteria: "Formal specification + test plan"
+        ordering: "Sequential by phase"
+      schedule:
+        name: "Gantt chart with dependencies"
+        unit: "Weeks/Months"
+        planning_horizon: "Entire project upfront"
+        milestones: "Phase gate approvals"
+        buffer_strategy: "Management reserve (5-10%) + contingency reserve"
+        dependencies: "Finish-to-Start (FS), Start-to-Start (SS), Finish-to-Finish (FF), Start-to-Finish (SF)"
+      estimation:
+        name: "Hours/days with critical path"
+        scale: "Hours/Days/Weeks"
+        technique: "Bottom-up with PERT three-point"
+        velocity_tracking: false
+        capacity_planning: "Resource histogram + leveling"
+      deliverables:
+        roadmap: "Gantt chart with milestones"
+        progress: "Earned Value (SPI, CPI) + Status reports"
+        risk: "Risk register with quantitative analysis"
+
+    # --- Prioritization ---
+    prioritization:
+      primary: "MoSCoW"
+      secondary: "Critical path dependencies"
+      backlog_ordering: "Phase sequence + MoSCoW within phase"
+
+    # --- Roles Mapping ---
+    roles_mapping:
+      pm-chief: "Project Manager"
+      requirements-engineer: "Business Analyst"
+      schedule-planner: "Project Scheduler"
+      cost-estimator: "Cost Engineer"
+      risk-strategist: "Risk Manager"
+      stakeholder-liaison: "Project Coordinator"
+
+    # --- Phase Gates ---
+    phase_gates:
+      - gate: "Requirements Approval"
+        criteria: ["Requirements signed off", "Traceability matrix complete"]
+      - gate: "Design Approval"
+        criteria: ["Architecture approved", "Design docs complete"]
+      - gate: "Development Complete"
+        criteria: ["All code complete", "Unit tests passing"]
+      - gate: "Testing Complete"
+        criteria: ["All test cases executed", "No critical defects"]
+      - gate: "Go-Live Approval"
+        criteria: ["UAT signed off", "Deployment plan approved", "Rollback plan ready"]
+
+  # ===================================================================
+  # HYBRID (Agile + Traditional)
+  # ===================================================================
+  hybrid:
+    name: "Hybrid (Agile + Traditional)"
+    description: "Waterfall for planning and governance, Agile for execution"
+    source: "PMBOK 7th Edition adaptive approach"
+
+    # --- Ceremony Mapping ---
+    ceremony_mapping:
+      intake: "Project Initiation (formal)"
+      planning: "High-level Waterfall planning + Sprint Planning"
+      review: "Sprint Review + Phase Gate Review"
+      retrospective: "Sprint Retrospective"
+      daily_sync: "Daily Standup"
+
+    # --- Output Formats ---
+    output_formats:
+      backlog:
+        name: "Hybrid backlog (epics as WBS, stories as PBIs)"
+        structure: "WBS phases → Epics → User Stories"
+        item_format: "User Stories within WBS-defined phases"
+        acceptance_criteria: "Given-When-Then within formal requirements"
+        ordering: "Phase sequence + WSJF within phase"
+      schedule:
+        name: "Phase milestones + sprint timeline"
+        unit: "Phases (months) + Sprints (weeks)"
+        planning_horizon: "Full project phases + 2-3 sprint detail"
+        milestones: "Phase gates + sprint boundaries"
+        buffer_strategy: "Phase-level contingency + velocity-based sprint forecasting"
+      estimation:
+        name: "Story points within phase-level PERT"
+        scale: "PERT for phases, story points for sprints"
+        technique: "Top-down phases, bottom-up sprints"
+        velocity_tracking: true
+        capacity_planning: "Phase budgets + sprint velocity"
+      deliverables:
+        roadmap: "Phase-gated roadmap with sprint detail"
+        progress: "EVM at phase level + burn-down at sprint level"
+        risk: "Risk register + sprint impediment log"
+
+    # --- Prioritization ---
+    prioritization:
+      primary: "WSJF (within agile phases)"
+      secondary: "MoSCoW (for phase-level scope)"
+      backlog_ordering: "Phase gates determine macro order, WSJF determines micro order"
+
+    # --- Roles Mapping ---
+    roles_mapping:
+      pm-chief: "Project Manager + Product Owner (hybrid)"
+      requirements-engineer: "Business Analyst + PO (detail)"
+      schedule-planner: "Project Scheduler (phases) + Scrum Master (sprints)"
+      risk-strategist: "Risk Manager + SM (impediments)"
+      integration-architect: "Integration Lead (phase alignment)"
+
+    # --- Hybrid Rules ---
+    hybrid_rules:
+      governance: "Waterfall (phase gates, sign-offs, change control)"
+      execution: "Agile (sprints, iterations, continuous feedback)"
+      reporting: "EVM for stakeholders, burn-down for teams"
+      change_management: "Formal CCB for scope changes, sprint backlog flexible"
+      transition_points:
+        - phase: "Planning → Execution"
+          approach: "Switch from Waterfall to Agile"
+        - phase: "Execution → Closure"
+          approach: "Switch from Agile to Waterfall"
+
+# -------------------------------------------------------------------
+# Adapter Selection Logic
+# -------------------------------------------------------------------
+selection:
+  default: "scrum"
+  detection_signals:
+    scrum:
+      - "sprints mentioned"
+      - "scrum master role exists"
+      - "sprint planning referenced"
+    kanban:
+      - "continuous flow mentioned"
+      - "WIP limits referenced"
+      - "no fixed iterations"
+    shape_up:
+      - "cycles mentioned"
+      - "appetite referenced"
+      - "Basecamp-style"
+    safe:
+      - "multiple teams"
+      - "PI planning mentioned"
+      - "ART referenced"
+      - "scaled agile"
+    waterfall:
+      - "phases mentioned"
+      - "Gantt chart referenced"
+      - "formal sign-offs"
+      - "fixed scope"
+    hybrid:
+      - "mix of agile and traditional"
+      - "phase gates + sprints"
+      - "enterprise agile"
+
+  fallback: "scrum"
+  fallback_reason: "Scrum is the most common framework and provides good defaults"

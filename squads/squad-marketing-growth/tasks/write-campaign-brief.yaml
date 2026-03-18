@@ -1,0 +1,122 @@
+id: write-campaign-brief
+name: "Escrever Brief de Campanha de Marketing"
+squad: squad-marketing-growth
+version: 0.1.0
+type: task
+
+description: |
+  Criar brief completo para uma campanha de marketing do GardenGreen.
+  O brief serve como documento único que alinha todos os envolvidos:
+  conteúdo, referral, parcerias. Foco em campanhas para jardineiros,
+  não campanhas genéricas de SaaS.
+
+owner: garden-marketing-chief
+collaborators:
+  - garden-content
+  - garden-referral
+
+inputs:
+  - name: campaign_type
+    type: string
+    description: "Tipo: lancamento, sazonal, referral_blitz, parceria, always_on"
+    required: true
+  - name: campaign_name
+    type: string
+    description: "Nome descritivo da campanha"
+    required: true
+  - name: budget
+    type: number
+    description: "Budget da campanha em R$"
+    required: true
+  - name: duracao
+    type: string
+    description: "Duração da campanha (ex: 30 dias, 3 meses)"
+    required: true
+
+outputs:
+  - name: campaign_brief
+    type: document
+    description: "Brief completo da campanha"
+    path: "docs/marketing/campaigns/{campaign_name}-brief.md"
+
+preconditions:
+  - "Objetivo da campanha definido"
+  - "Budget aprovado"
+  - "Canais prioritários definidos"
+
+steps:
+  - id: 1
+    name: "Definir objetivo e contexto"
+    agent: garden-marketing-chief
+    action: |
+      Estabelecer:
+      - Objetivo SMART (ex: 200 downloads em 30 dias via Instagram)
+      - Contexto: por que esta campanha agora?
+      - Público-alvo específico (segmento de jardineiro)
+      - Diferencial vs campanhas anteriores
+
+  - id: 2
+    name: "Definir mensagem e posicionamento"
+    agent: garden-marketing-chief
+    action: |
+      Criar:
+      - Mensagem principal (1 frase que o jardineiro entende)
+      - Mensagens secundárias por canal
+      - Tom de voz específico da campanha
+      - Proposta de valor em linguagem de jardineiro
+
+  - id: 3
+    name: "Selecionar canais e formatos"
+    agent: garden-marketing-chief
+    action: |
+      Para cada canal ativo na campanha:
+      - Formato de conteúdo (Reel, Short, card, post, cartaz)
+      - Frequência durante a campanha
+      - Budget alocado ao canal
+      - Responsável pela execução
+
+  - id: 4
+    name: "Criar plano de conteúdo da campanha"
+    agent: garden-content
+    action: |
+      Para a duração da campanha:
+      - Lista de peças de conteúdo necessárias
+      - Timeline de produção e publicação
+      - Assets necessários (fotos, vídeos, designs)
+      - Copy principal e variações por canal
+
+  - id: 5
+    name: "Integrar referral e parcerias"
+    agent: garden-referral
+    action: |
+      Se aplicável, integrar:
+      - Incentivo especial de indicação durante a campanha
+      - Ativação de parcerias com lojas/associações
+      - Material de ponto de venda (se campanha inclui offline)
+      - Mecânica de viralização específica da campanha
+
+  - id: 6
+    name: "Definir métricas e plano de medição"
+    agent: garden-marketing-chief
+    action: |
+      Estabelecer:
+      - KPI primário (ex: downloads)
+      - KPIs secundários (ex: reach, engajamento, share rate)
+      - Ferramentas de medição e tracking
+      - Frequência de análise (diária na primeira semana)
+      - Critérios de sucesso / trigger de ajuste
+      Gerar brief final usando template: templates/campaign-brief-tmpl.md
+
+postconditions:
+  - "Brief completo preenchido e salvo"
+  - "Objetivo SMART definido"
+  - "Budget alocado por canal"
+  - "Plano de conteúdo com timeline"
+  - "Métricas de sucesso definidas"
+
+acceptance_criteria:
+  - "Brief segue template campaign-brief-tmpl.md"
+  - "Objetivo é SMART e mensurável"
+  - "Mensagem principal é compreensível por jardineiro"
+  - "Plano de conteúdo tem peças específicas com datas"
+  - "Budget total não excede input"

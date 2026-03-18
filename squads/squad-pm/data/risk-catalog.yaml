@@ -1,0 +1,679 @@
+# Risk Catalog
+# Squad: squad-pm | Version: 1.0.0
+# Source: David Hillson (ATOM) + industry patterns + AIOX experience
+# Used by: @risk-strategist (Risco) for quick risk identification
+# Last updated: 2026-03-08
+#
+# Probability/Impact scale: 1-5
+# Risk Score = Probability x Impact (max 25)
+# Zones: Green (1-4), Yellow (5-9), Orange (10-15), Red (16-25)
+#
+# Risk Metalanguage:
+#   Due to {cause}, {risk event} may occur, leading to {effect on objectives}.
+
+categories:
+
+  # ===================================================================
+  # TECHNICAL — Technology and architecture risks
+  # ===================================================================
+  technical:
+    id: "RT"
+    description: "Technology, architecture, and infrastructure risks"
+    color: "#4A90D9"
+    common_risks:
+
+      - id: "RT-001"
+        name: "Technology immaturity"
+        description: "Chosen technology is unproven, rapidly changing, or lacks community support"
+        metalanguage: "Due to selecting an immature technology stack, unexpected breaking changes and lack of documentation may occur, leading to schedule delays and increased development cost."
+        typical_probability: 3
+        typical_impact: 4
+        typical_score: 12
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Build POC before committing to technology"
+            cost: "1-2 weeks"
+          - strategy: "mitigate"
+            action: "Identify fallback technology before starting"
+            cost: "2-3 days research"
+          - strategy: "avoid"
+            action: "Choose proven technology with large community"
+            cost: "May limit innovation"
+
+      - id: "RT-002"
+        name: "Integration complexity"
+        description: "Third-party API integration is more complex than anticipated"
+        metalanguage: "Due to undocumented API behaviors and versioning issues, integration failures may occur, leading to feature delays and degraded user experience."
+        typical_probability: 4
+        typical_impact: 3
+        typical_score: 12
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Build integration spike early in the project"
+            cost: "3-5 days"
+          - strategy: "transfer"
+            action: "Use established integration middleware (e.g., Zapier, Mulesoft)"
+            cost: "Licensing fee"
+          - strategy: "mitigate"
+            action: "Create adapter layer to isolate integration changes"
+            cost: "1-2 days architecture"
+
+      - id: "RT-003"
+        name: "Performance bottleneck"
+        description: "System cannot meet performance requirements under expected load"
+        metalanguage: "Due to unoptimized architecture or database design, performance degradation may occur under production load, leading to user dissatisfaction and potential revenue loss."
+        typical_probability: 3
+        typical_impact: 4
+        typical_score: 12
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Define performance budgets and test early"
+            cost: "Ongoing"
+          - strategy: "mitigate"
+            action: "Load testing in CI/CD pipeline"
+            cost: "2-3 days setup"
+          - strategy: "mitigate"
+            action: "Architecture review focused on scalability"
+            cost: "1 day"
+
+      - id: "RT-004"
+        name: "Technical debt accumulation"
+        description: "Shortcuts taken during development create maintenance burden"
+        metalanguage: "Due to pressure to deliver fast, code quality shortcuts may accumulate, leading to increased maintenance costs and slower feature delivery over time."
+        typical_probability: 4
+        typical_impact: 3
+        typical_score: 12
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Allocate 20% of sprint capacity to tech debt"
+            cost: "20% capacity"
+          - strategy: "mitigate"
+            action: "Enforce code review and quality gates"
+            cost: "Ongoing process"
+          - strategy: "accept_active"
+            action: "Track tech debt backlog with cost-of-delay"
+            cost: "Tracking overhead"
+
+      - id: "RT-005"
+        name: "Security vulnerability"
+        description: "Application has exploitable security weaknesses"
+        metalanguage: "Due to insufficient security practices, exploitable vulnerabilities may be introduced, leading to data breaches, compliance violations, and reputational damage."
+        typical_probability: 3
+        typical_impact: 5
+        typical_score: 15
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "SAST/DAST in CI/CD pipeline"
+            cost: "Tool licensing + setup"
+          - strategy: "mitigate"
+            action: "Security code review checklist"
+            cost: "Ongoing"
+          - strategy: "transfer"
+            action: "Third-party penetration testing"
+            cost: "$5K-$50K"
+
+      - id: "RT-006"
+        name: "Data migration failure"
+        description: "Migration of existing data to new system fails or corrupts data"
+        metalanguage: "Due to data format inconsistencies and undocumented legacy schemas, data migration may fail or produce corrupted records, leading to data loss and extended downtime."
+        typical_probability: 3
+        typical_impact: 5
+        typical_score: 15
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Dry-run migrations with production-like data"
+            cost: "1-2 weeks"
+          - strategy: "mitigate"
+            action: "Build rollback procedures and verify data integrity"
+            cost: "3-5 days"
+          - strategy: "accept_active"
+            action: "Parallel run period with both systems"
+            cost: "Infrastructure cost"
+
+  # ===================================================================
+  # RESOURCE — People and skills risks
+  # ===================================================================
+  resource:
+    id: "RR"
+    description: "People, skills, and team-related risks"
+    color: "#E8A838"
+    common_risks:
+
+      - id: "RR-001"
+        name: "Key person dependency"
+        description: "Critical knowledge concentrated in a single person"
+        metalanguage: "Due to critical domain/technical knowledge being held by one person, their unavailability may block progress, leading to schedule delays and knowledge loss."
+        typical_probability: 4
+        typical_impact: 4
+        typical_score: 16
+        zone: "red"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Cross-training and pair programming"
+            cost: "10-15% capacity"
+          - strategy: "mitigate"
+            action: "Comprehensive documentation of critical knowledge"
+            cost: "Ongoing effort"
+          - strategy: "accept_active"
+            action: "Identify backup person for each critical role"
+            cost: "Minimal"
+
+      - id: "RR-002"
+        name: "Skill gap"
+        description: "Team lacks necessary skills for the chosen technology or domain"
+        metalanguage: "Due to team inexperience with required technologies, learning curve delays and quality issues may occur, leading to missed deadlines and increased bug rate."
+        typical_probability: 3
+        typical_impact: 3
+        typical_score: 9
+        zone: "yellow"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Training program before project starts"
+            cost: "1-2 weeks + course fees"
+          - strategy: "transfer"
+            action: "Hire specialist or consultant for ramp-up"
+            cost: "Consulting fees"
+          - strategy: "mitigate"
+            action: "Spike/POC phase to build competence"
+            cost: "1-2 weeks"
+
+      - id: "RR-003"
+        name: "Team turnover"
+        description: "Key team members leave during the project"
+        metalanguage: "Due to market competition for talent, team members may resign mid-project, leading to knowledge loss, ramp-up costs for replacements, and schedule delays."
+        typical_probability: 3
+        typical_impact: 4
+        typical_score: 12
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Retention incentives tied to project milestones"
+            cost: "Budget allocation"
+          - strategy: "mitigate"
+            action: "Maintain onboarding documentation"
+            cost: "Ongoing effort"
+          - strategy: "accept_active"
+            action: "Buffer schedule for potential ramp-up"
+            cost: "10-15% schedule buffer"
+
+      - id: "RR-004"
+        name: "Team availability conflict"
+        description: "Shared team members pulled between multiple projects"
+        metalanguage: "Due to team members being allocated to multiple projects, context switching and reduced availability may occur, leading to throughput reduction and quality issues."
+        typical_probability: 4
+        typical_impact: 3
+        typical_score: 12
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "avoid"
+            action: "Dedicate team members full-time to the project"
+            cost: "Resource commitment"
+          - strategy: "mitigate"
+            action: "Minimum allocation of 80% per person"
+            cost: "Negotiation"
+          - strategy: "accept_active"
+            action: "Account for reduced velocity in planning"
+            cost: "Extended timeline"
+
+      - id: "RR-005"
+        name: "Communication breakdown"
+        description: "Distributed or cross-functional team fails to communicate effectively"
+        metalanguage: "Due to timezone differences and lack of communication protocols, misunderstandings and duplicated work may occur, leading to rework, delays, and team frustration."
+        typical_probability: 3
+        typical_impact: 3
+        typical_score: 9
+        zone: "yellow"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Establish communication cadence and tools"
+            cost: "Setup time"
+          - strategy: "mitigate"
+            action: "Overlap hours for distributed teams (min 4h)"
+            cost: "Schedule adjustment"
+
+  # ===================================================================
+  # SCHEDULE — Timeline and delivery risks
+  # ===================================================================
+  schedule:
+    id: "RS"
+    description: "Timeline, delivery, and dependency risks"
+    color: "#D94A4A"
+    common_risks:
+
+      - id: "RS-001"
+        name: "Scope creep"
+        description: "Uncontrolled addition of features without adjusting schedule/budget"
+        metalanguage: "Due to weak change control and stakeholder pressure, scope may expand beyond original boundaries, leading to budget overrun and missed deadlines."
+        typical_probability: 5
+        typical_impact: 4
+        typical_score: 20
+        zone: "red"
+        mitigation_patterns:
+          - strategy: "avoid"
+            action: "Formal change control process (CCB)"
+            cost: "Process overhead"
+          - strategy: "mitigate"
+            action: "MoSCoW prioritization with strict Must-have cap (60%)"
+            cost: "Discipline"
+          - strategy: "mitigate"
+            action: "Impact analysis for every scope change request"
+            cost: "1-2 hours per request"
+
+      - id: "RS-002"
+        name: "Underestimation"
+        description: "Work takes significantly longer than estimated"
+        metalanguage: "Due to optimism bias and incomplete understanding of requirements, tasks may take 2-4x longer than estimated, leading to schedule slippage and budget overrun."
+        typical_probability: 4
+        typical_impact: 4
+        typical_score: 16
+        zone: "red"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Use Cone of Uncertainty multipliers for current phase"
+            cost: "Wider estimate ranges"
+          - strategy: "mitigate"
+            action: "Three-point estimation (PERT) for all tasks"
+            cost: "Estimation time"
+          - strategy: "mitigate"
+            action: "Compare with historical data from similar projects"
+            cost: "Research time"
+
+      - id: "RS-003"
+        name: "Dependency delay"
+        description: "External dependency (API, vendor, approval) arrives late"
+        metalanguage: "Due to external parties not delivering on agreed timeline, blocked work items may accumulate, leading to critical path delays and team idle time."
+        typical_probability: 4
+        typical_impact: 3
+        typical_score: 12
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Mock/stub external dependencies early"
+            cost: "1-3 days per dependency"
+          - strategy: "mitigate"
+            action: "Contractual SLAs with vendors"
+            cost: "Legal review"
+          - strategy: "accept_active"
+            action: "Buffer time for external dependencies on critical path"
+            cost: "Schedule buffer"
+
+      - id: "RS-004"
+        name: "Approval bottleneck"
+        description: "Stakeholder approvals take longer than planned"
+        metalanguage: "Due to stakeholder unavailability or indecision, approval cycles may extend beyond planned duration, leading to idle team time and schedule delays."
+        typical_probability: 3
+        typical_impact: 3
+        typical_score: 9
+        zone: "yellow"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Pre-schedule approval windows in project calendar"
+            cost: "Minimal"
+          - strategy: "mitigate"
+            action: "Delegate approval authority for non-critical decisions"
+            cost: "Governance change"
+
+      - id: "RS-005"
+        name: "Regulatory timeline"
+        description: "Regulatory approval process takes longer than anticipated"
+        metalanguage: "Due to complex regulatory review processes, compliance approval may be delayed, leading to postponed launch and lost market opportunity."
+        typical_probability: 3
+        typical_impact: 5
+        typical_score: 15
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Engage regulatory consultants early"
+            cost: "Consulting fees"
+          - strategy: "mitigate"
+            action: "Start compliance documentation in parallel with development"
+            cost: "Process change"
+
+  # ===================================================================
+  # SCOPE — Requirements and scope risks
+  # ===================================================================
+  scope:
+    id: "RSC"
+    description: "Requirements volatility, ambiguity, and scope definition risks"
+    color: "#9B59B6"
+    common_risks:
+
+      - id: "RSC-001"
+        name: "Requirements volatility"
+        description: "Requirements change frequently after approval"
+        metalanguage: "Due to evolving business understanding, approved requirements may change frequently, leading to rework, waste, and team frustration."
+        typical_probability: 4
+        typical_impact: 3
+        typical_score: 12
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Agile approach with short iterations for early feedback"
+            cost: "Process adoption"
+          - strategy: "mitigate"
+            action: "Requirements freeze per sprint/phase"
+            cost: "Discipline"
+
+      - id: "RSC-002"
+        name: "Ambiguous requirements"
+        description: "Requirements have multiple interpretations"
+        metalanguage: "Due to vague or ambiguous requirements, developers may implement features differently than intended, leading to rework and stakeholder dissatisfaction."
+        typical_probability: 3
+        typical_impact: 3
+        typical_score: 9
+        zone: "yellow"
+        mitigation_patterns:
+          - strategy: "avoid"
+            action: "Apply Wiegers 7 quality criteria to all requirements"
+            cost: "Review time"
+          - strategy: "mitigate"
+            action: "Given-When-Then acceptance criteria for every story"
+            cost: "Writing time"
+
+      - id: "RSC-003"
+        name: "Gold plating"
+        description: "Team adds unrequested features or over-engineers solutions"
+        metalanguage: "Due to desire for technical excellence without business justification, unnecessary features may be built, leading to wasted effort and delayed delivery of essential features."
+        typical_probability: 3
+        typical_impact: 2
+        typical_score: 6
+        zone: "yellow"
+        mitigation_patterns:
+          - strategy: "avoid"
+            action: "Strict adherence to acceptance criteria"
+            cost: "Discipline"
+          - strategy: "mitigate"
+            action: "Code review focused on scope compliance"
+            cost: "Review time"
+
+      - id: "RSC-004"
+        name: "Missing requirements discovered late"
+        description: "Critical requirements discovered during development or testing"
+        metalanguage: "Due to incomplete discovery and elicitation, essential requirements may be discovered late, leading to significant rework and schedule delays."
+        typical_probability: 3
+        typical_impact: 4
+        typical_score: 12
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Thorough discovery phase with multiple stakeholder groups"
+            cost: "Discovery time"
+          - strategy: "mitigate"
+            action: "Prototype/mockup validation before development"
+            cost: "1-2 weeks"
+
+  # ===================================================================
+  # EXTERNAL — Market, vendor, and environment risks
+  # ===================================================================
+  external:
+    id: "RE"
+    description: "Market conditions, vendor reliability, and external environment risks"
+    color: "#1ABC9C"
+    common_risks:
+
+      - id: "RE-001"
+        name: "Market shift"
+        description: "Market conditions change, invalidating product assumptions"
+        metalanguage: "Due to rapid market evolution, product assumptions may become invalid, leading to building a product that no longer fits market needs."
+        typical_probability: 2
+        typical_impact: 5
+        typical_score: 10
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Continuous market monitoring and validation"
+            cost: "Ongoing"
+          - strategy: "mitigate"
+            action: "MVP approach — validate before full build"
+            cost: "Phased investment"
+
+      - id: "RE-002"
+        name: "Vendor lock-in"
+        description: "Critical dependency on a single vendor with no alternative"
+        metalanguage: "Due to deep integration with a single vendor, switching costs may become prohibitive, leading to price vulnerability and reduced negotiating power."
+        typical_probability: 3
+        typical_impact: 3
+        typical_score: 9
+        zone: "yellow"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Abstraction layer for vendor-specific code"
+            cost: "Architecture effort"
+          - strategy: "mitigate"
+            action: "Evaluate alternative vendors before commitment"
+            cost: "Research time"
+
+      - id: "RE-003"
+        name: "Regulatory change"
+        description: "New regulations affect product requirements or viability"
+        metalanguage: "Due to evolving regulatory landscape, new compliance requirements may emerge, leading to mandatory rework and potential market restrictions."
+        typical_probability: 2
+        typical_impact: 5
+        typical_score: 10
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Regulatory monitoring and legal advisory"
+            cost: "Legal fees"
+          - strategy: "mitigate"
+            action: "Design for compliance extensibility"
+            cost: "Architecture effort"
+
+      - id: "RE-004"
+        name: "Competitor preemption"
+        description: "Competitor launches similar product before us"
+        metalanguage: "Due to competitive market dynamics, a competitor may launch a similar product first, leading to reduced differentiation and market share."
+        typical_probability: 3
+        typical_impact: 3
+        typical_score: 9
+        zone: "yellow"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Focus on unique differentiators, not feature parity"
+            cost: "Strategic focus"
+          - strategy: "mitigate"
+            action: "Accelerate time-to-market for core value proposition"
+            cost: "Scope reduction"
+
+      - id: "RE-005"
+        name: "Third-party API deprecation"
+        description: "Critical API dependency is deprecated or discontinued"
+        metalanguage: "Due to third-party API lifecycle decisions, a critical integration may be deprecated, leading to forced migration and feature disruption."
+        typical_probability: 2
+        typical_impact: 4
+        typical_score: 8
+        zone: "yellow"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Monitor API changelogs and sunset notices"
+            cost: "Minimal"
+          - strategy: "mitigate"
+            action: "Adapter pattern for all third-party integrations"
+            cost: "Architecture effort"
+
+  # ===================================================================
+  # ORGANIZATIONAL — Internal politics and process risks
+  # ===================================================================
+  organizational:
+    id: "RO"
+    description: "Organizational culture, politics, and process risks"
+    color: "#F39C12"
+    common_risks:
+
+      - id: "RO-001"
+        name: "Sponsor disengagement"
+        description: "Executive sponsor loses interest or availability"
+        metalanguage: "Due to competing priorities, the project sponsor may disengage, leading to loss of organizational support, blocked decisions, and potential project cancellation."
+        typical_probability: 3
+        typical_impact: 5
+        typical_score: 15
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Regular sponsor updates with clear value metrics"
+            cost: "Communication effort"
+          - strategy: "mitigate"
+            action: "Identify deputy sponsor as backup"
+            cost: "Relationship building"
+
+      - id: "RO-002"
+        name: "Priority conflict"
+        description: "Project competes with other organizational priorities for resources"
+        metalanguage: "Due to multiple competing initiatives, project resources may be reallocated, leading to reduced team capacity and schedule delays."
+        typical_probability: 4
+        typical_impact: 3
+        typical_score: 12
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Formal resource commitment agreement"
+            cost: "Governance"
+          - strategy: "mitigate"
+            action: "Portfolio-level prioritization visibility"
+            cost: "Process"
+
+      - id: "RO-003"
+        name: "Organizational change"
+        description: "Restructuring, M&A, or leadership change affects the project"
+        metalanguage: "Due to organizational restructuring, project governance and priorities may shift, leading to scope changes, stakeholder turnover, and strategic misalignment."
+        typical_probability: 2
+        typical_impact: 5
+        typical_score: 10
+        zone: "orange"
+        mitigation_patterns:
+          - strategy: "accept_active"
+            action: "Document project value proposition independently of sponsors"
+            cost: "Documentation"
+          - strategy: "mitigate"
+            action: "Build relationships with multiple stakeholders"
+            cost: "Relationship building"
+
+      - id: "RO-004"
+        name: "Process resistance"
+        description: "Team or stakeholders resist new processes or methodologies"
+        metalanguage: "Due to comfort with existing processes, team may resist adopting new methodologies, leading to low adoption, inconsistent practices, and reduced effectiveness."
+        typical_probability: 3
+        typical_impact: 2
+        typical_score: 6
+        zone: "yellow"
+        mitigation_patterns:
+          - strategy: "mitigate"
+            action: "Incremental change with quick wins"
+            cost: "Change management"
+          - strategy: "mitigate"
+            action: "Training and coaching"
+            cost: "Training budget"
+
+      - id: "RO-005"
+        name: "Budget cut"
+        description: "Project budget is reduced after approval"
+        metalanguage: "Due to organizational financial pressures, the project budget may be reduced, leading to scope reduction, team downsizing, or quality compromises."
+        typical_probability: 2
+        typical_impact: 4
+        typical_score: 8
+        zone: "yellow"
+        mitigation_patterns:
+          - strategy: "accept_active"
+            action: "MoSCoW prioritization with clear cut lines"
+            cost: "Prioritization effort"
+          - strategy: "mitigate"
+            action: "Phased delivery plan showing value at each phase"
+            cost: "Planning effort"
+
+# ===================================================================
+# OPPORTUNITIES — Positive risks (David Hillson dual approach)
+# ===================================================================
+opportunities:
+
+  - id: "OP-001"
+    name: "Early market entry"
+    description: "Opportunity to be first-to-market in a new segment"
+    metalanguage: "Due to competitor delays and market readiness, early launch may capture first-mover advantage, leading to higher market share and brand recognition."
+    typical_probability: 3
+    typical_impact: 5
+    typical_score: 15
+    enhancement_strategies:
+      - strategy: "exploit"
+        action: "Accelerate MVP with reduced scope to launch early"
+      - strategy: "enhance"
+        action: "Increase marketing budget for launch window"
+
+  - id: "OP-002"
+    name: "Technology reuse"
+    description: "Components built for this project can be reused in other products"
+    metalanguage: "Due to modular architecture design, shared components may be reused across products, leading to reduced development cost for future projects."
+    typical_probability: 4
+    typical_impact: 3
+    typical_score: 12
+    enhancement_strategies:
+      - strategy: "enhance"
+        action: "Design components with reusability in mind (APIs, SDKs)"
+      - strategy: "share"
+        action: "Open-source shared components to build community"
+
+  - id: "OP-003"
+    name: "Partnership opportunity"
+    description: "Integration partner wants to co-develop or co-market"
+    metalanguage: "Due to complementary product offerings, a partnership may emerge, leading to shared development costs and expanded market reach."
+    typical_probability: 2
+    typical_impact: 4
+    typical_score: 8
+    enhancement_strategies:
+      - strategy: "exploit"
+        action: "Proactively approach potential partners during development"
+      - strategy: "share"
+        action: "Joint development agreement with shared IP"
+
+  - id: "OP-004"
+    name: "Team capability growth"
+    description: "Project builds team skills that benefit future projects"
+    metalanguage: "Due to challenging project requirements, team may develop new skills and expertise, leading to increased capability and reduced risk on future projects."
+    typical_probability: 4
+    typical_impact: 2
+    typical_score: 8
+    enhancement_strategies:
+      - strategy: "enhance"
+        action: "Allocate time for knowledge sharing and documentation"
+      - strategy: "enhance"
+        action: "Rotate team members through different components"
+
+  - id: "OP-005"
+    name: "User community formation"
+    description: "Early adopters form an engaged community around the product"
+    metalanguage: "Due to solving a real pain point, early users may become advocates, leading to organic growth, valuable feedback, and reduced marketing costs."
+    typical_probability: 2
+    typical_impact: 4
+    typical_score: 8
+    enhancement_strategies:
+      - strategy: "enhance"
+        action: "Build community features (forums, feedback channels) early"
+      - strategy: "exploit"
+        action: "Beta program with community access and engagement"
+
+# ===================================================================
+# Risk Assessment Quick Reference
+# ===================================================================
+quick_reference:
+  probability_scale:
+    1: "Rare (<10%)"
+    2: "Unlikely (10-40%)"
+    3: "Possible (40-70%)"
+    4: "Likely (70-90%)"
+    5: "Almost certain (>90%)"
+  impact_scale:
+    1: "Negligible (minor inconvenience, <1 day delay)"
+    2: "Minor (workaround available, 1-3 day delay)"
+    3: "Moderate (significant effort to resolve, 1-2 week delay)"
+    4: "Major (substantial impact, 2-4 week delay)"
+    5: "Critical (project threatening, >1 month delay or failure)"
+  response_decision_matrix:
+    green: "Accept and monitor — review at regular intervals"
+    yellow: "Active mitigation — assign owner, track in risk register"
+    orange: "Aggressive response — multiple mitigation strategies, escalate visibility"
+    red: "Escalate to sponsor — contingency plan required, consider project pause"

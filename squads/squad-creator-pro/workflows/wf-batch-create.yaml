@@ -1,0 +1,171 @@
+# Batch Create — Create multiple squads sequentially
+name: wf-batch-create
+version: 1.0.0
+description: |
+  Criação em batch de múltiplos squads. Executa YOLO Full para cada domínio
+  na lista, com relatório consolidado no final.
+
+type: sequential
+max_squads: 10
+
+phases:
+  - name: "validate_input"
+    description: "Validar lista de domínios"
+    model: haiku
+    actions:
+      - "Parse domain list from user input"
+      - "Check for duplicates"
+      - "Check for existing squads (brownfield detection)"
+      - "Estimate total cost"
+    elicit: true
+    prompt: |
+      ## Batch Creation Plan
+
+      Domains requested: {domain_list}
+      Existing squads found: {existing}
+
+      Estimated cost: ~{tokens} tokens ({savings}% with routing)
+      Estimated duration: ~{duration}
+
+      Options:
+      1. ✅ Start batch (all domains)
+      2. 📝 Remove some domains
+      3. ❌ Cancel
+    checkpoint:
+      gate: "QG-PRO-BC-1"
+      condition: "domains validated, no conflicts"
+
+  - name: "execute_batch"
+    description: "Criar cada squad sequencialmente"
+    model: opus
+    actions:
+      - "For each domain in list:"
+      - "  Execute create-squad-pro in YOLO Full mode"
+      - "  Log result (success/warning/fail)"
+      - "  Continue to next domain"
+    abort_conditions:
+      - "3 consecutive failures → ABORT remaining"
+      - "Token budget exceeded → PAUSE and ask"
+
+  - name: "consolidated_report"
+    description: "Relatório final consolidado"
+    model: haiku
+    output: |
+      ## Batch Creation Report
+
+      | # | Squad | Agents | Fidelity | Status | Duration |
+      |---|-------|--------|----------|--------|----------|
+      {squad_rows}
+
+      **Summary:**
+      - Total squads: {total}
+      - Successful: {success}
+      - Warnings: {warnings}
+      - Failed: {failed}
+
+      **Total Tokens:** {tokens} (saved {savings}% via routing)
+      **Total Duration:** {duration}
+
+      **Issues requiring attention:**
+      {issues}
+
+      ---
+
+      ### Squad Valuations
+
+      | # | Squad | Fidelity | Value (BRL) | Tier |
+      |---|-------|----------|-------------|------|
+      {valuation_rows}
+
+      **Total Portfolio Value:** {total_value}
+      *Run `*valuation {squad} --uses X --hours Y` for custom scenarios per squad.*
+
+# --- Resume Capability ---
+resume_capability:
+  enabled: true
+  storage: ".aiox/sessions/batch-{id}.yaml"
+  format:
+    batch_id: "{id}"
+    started_at: "{timestamp}"
+    completed_domains:
+      - name: "{domain}"
+        status: "SUCCESS | FAILED | SKIPPED"
+        squad_path: "{path}"
+        duration: "{duration}"
+    remaining_domains:
+      - "{domain}"
+    current_index: "{index}"
+    total_domains: "{total}"
+  behavior:
+    save_after_each: true  # Save progress after each squad creation
+    resume_from: "last_successful"  # Resume from the last successfully created squad
+    command: "*batch-create --resume {batch_id}"
+
+# --- Error Recovery ---
+error_recovery:
+  on_squad_failure:
+    - "Log error with domain name, error type, and stack trace"
+    - "Mark domain as FAILED in session file"
+    - "Skip to next domain in list"
+    - "Include FAILED domain in consolidated report with error details"
+  on_abort:
+    - "Save current progress to session file"
+    - "Report partial results for completed domains"
+    - "Provide resume command for remaining domains"
+  retry_policy:
+    max_retries_per_domain: 1
+    retry_delay: "5s"
+    retryable_errors:
+      - "timeout"
+      - "rate_limit"
+
+# --- Veto Conditions ---
+veto_conditions:
+  - condition: "len(domain_list) > 10"
+    severity: BLOCK
+    message: "Batch creation limited to 10 domains max. Split into multiple batches."
+    gate: "VETO-BC-1"
+
+  - condition: "duplicate domain in domain_list"
+    severity: WARN
+    message: "Duplicate domain '{domain}' detected. Removing duplicate and continuing."
+    action: "deduplicate_and_continue"
+    gate: "VETO-BC-2"
+
+  - condition: "no research sources available for domain"
+    severity: SKIP
+    message: "No research sources found for '{domain}'. Skipping — squad quality would be insufficient."
+    action: "skip_domain"
+    gate: "VETO-BC-3"
+
+# --- Quality Gates ---
+quality_gates:
+  QG-PRO-BC-1:
+    phase: "validate_input"
+    description: "Input fully validated"
+    checks:
+      - "All domains are non-empty strings"
+      - "No duplicates after deduplication"
+      - "Domain count <= 10"
+      - "Token budget estimated and within limits"
+    on_fail: "BLOCK — fix input before proceeding"
+
+  QG-PRO-BC-2:
+    phase: "execute_batch"
+    description: "Each created squad passes health check"
+    checks:
+      - "Squad directory structure is valid"
+      - "All required files present (config, agents, tasks)"
+      - "Fidelity score >= 0.70"
+      - "No critical warnings in creation log"
+    on_fail: "Mark squad as WARNING, continue batch, flag in report"
+
+  QG-PRO-BC-3:
+    phase: "consolidated_report"
+    description: "Consolidated report generated with all results"
+    checks:
+      - "Report includes all domains (SUCCESS + FAILED + SKIPPED)"
+      - "Token usage and savings calculated"
+      - "Duration per squad recorded"
+      - "Issues section populated for non-SUCCESS domains"
+    on_fail: "WARN — report incomplete, manual review needed"

@@ -1,0 +1,101 @@
+# Task: Sprint Planning
+# Squad: squad-produto-core
+# Version: 0.1.0
+
+task:
+  id: sprint-planning
+  name: "Planejamento de Sprint"
+  version: "0.1.0"
+  purpose: "Planejar um sprint de desenvolvimento baseado no backlog priorizado do GardenGreen"
+  executor: "@garden-product-chief"
+  collaborators:
+    - "@garden-fullstack-dev"    # Estimativas técnicas
+    - "@garden-ux-mobile"        # Confirma design ready
+    - "@garden-domain-expert"    # Valida prioridades
+  elicit: true
+  execution_type: interactive
+
+pre_conditions:
+  - "Backlog com features definidas e priorizadas"
+  - "Capacidade do sprint conhecida (story points ou horas)"
+
+inputs:
+  - name: sprint_number
+    type: number
+    prompt: "Número do sprint:"
+  - name: sprint_duration
+    type: select
+    prompt: "Duração do sprint:"
+    options: ["1 semana", "2 semanas"]
+    default: "2 semanas"
+  - name: capacity
+    type: number
+    prompt: "Capacidade (story points ou horas disponíveis):"
+  - name: focus_module
+    type: select
+    prompt: "Módulo foco (ou 'mixed'):"
+    options: ["Agenda/Scheduling", "CRM Clientes", "Financeiro", "App Mobile", "Dashboard", "Mixed"]
+
+steps:
+  - id: step_1_backlog_review
+    name: "Review do Backlog"
+    action: |
+      1. Listar top 15 items do backlog por RICE score
+      2. Filtrar por módulo foco (se não mixed)
+      3. Verificar dependências entre items
+      4. Marcar items que estão "design ready" vs "needs design"
+      5. Consultar @garden-domain-expert: alguma urgência sazonal?
+
+  - id: step_2_estimation
+    name: "Estimativas Técnicas"
+    action: |
+      Com @garden-fullstack-dev:
+      1. Story points (Fibonacci: 1, 2, 3, 5, 8, 13)
+      2. Identificar complexidade: schema, offline, UI, API
+      3. Identificar riscos técnicos por item
+      4. Flag: precisa de spike/pesquisa antes?
+      5. Flag: precisa de migration (risco de breaking change)?
+
+  - id: step_3_selection
+    name: "Seleção de Items"
+    action: |
+      Selecionar items respeitando:
+      1. Capacidade total do sprint
+      2. Mix saudável: 70% features, 20% bugs/debt, 10% spike
+      3. Dependências respeitadas (A antes de B)
+      4. Pelo menos 1 item que melhora UX existente
+      5. Buffer de 15% para imprevistos
+
+  - id: step_4_sprint_board
+    name: "Montar Sprint Board"
+    action: |
+      Para cada item selecionado:
+      1. Story ID e título
+      2. Story points
+      3. Assignee (se equipe) ou ordem de execução (se solo)
+      4. Critérios de "Done"
+      5. Dependências
+      6. Riscos identificados
+
+  - id: step_5_sprint_goal
+    name: "Definir Sprint Goal"
+    action: |
+      1. Sprint goal em 1 frase (o que entregamos ao jardineiro)
+      2. Métricas de sucesso do sprint
+      3. Riscos do sprint e mitigações
+      4. Comunicar plano para o squad
+
+output:
+  format: markdown
+  sections:
+    - sprint_goal
+    - selected_items_table
+    - capacity_allocation
+    - risks_and_mitigations
+    - definition_of_done
+
+quality_gate:
+  capacity_not_exceeded: true
+  dependencies_respected: true
+  sprint_goal_defined: true
+  all_items_estimated: true

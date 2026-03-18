@@ -1,0 +1,94 @@
+name: create-retention-playbook
+version: 1.0.0
+description: "Criar playbook de retenção completo com triggers comportamentais, ações automáticas e manuais, e critérios de sucesso para cada intervenção."
+
+agent: garden-cs-chief
+command: "*retention-strategy"
+
+inputs:
+  - name: contexto
+    type: string
+    required: false
+    description: "Contexto específico (ex: novo-usuario, risco-alto, sazonal)"
+    default: "completo"
+
+  - name: segmento
+    type: string
+    required: false
+    description: "Segmento alvo (solo, equipe, all)"
+    default: "all"
+
+outputs:
+  - name: playbook
+    type: object
+    description: "Playbook completo com plays, triggers e ações"
+
+  - name: automation_specs
+    type: object
+    description: "Especificações para automação de cada play"
+
+steps:
+  - id: map-lifecycle
+    action: analyze-lifecycle
+    description: >
+      Mapear o ciclo de vida do jardineiro no GardenGreen:
+      1. Ativação (0-7 dias) — primeiro valor percebido
+      2. Adoção (7-30 dias) — uso regular estabelecido
+      3. Habituação (30-90 dias) — hábito formado
+      4. Maturidade (90+ dias) — usuário power
+      5. Risco (qualquer momento) — sinais de churn
+      Para cada fase, identificar comportamentos esperados e riscos.
+
+  - id: define-plays
+    action: create-plays
+    description: >
+      Definir "plays" de retenção para cada situação:
+      - Play 1: "Primeiro Valor" — garantir momento de valor em 48h
+      - Play 2: "Adoção de Features" — guiar para 3+ features core
+      - Play 3: "Hábito Matinal" — estabelecer rotina de checagem
+      - Play 4: "Re-engagement Suave" — para risco médio
+      - Play 5: "Intervenção Urgente" — para risco alto
+      - Play 6: "Win-back" — para churned (< 30 dias)
+      - Play 7: "Upgrade Natural" — para power users (solo → equipe)
+      Cada play: trigger, ação, canal, timing, critério de sucesso.
+    depends_on: [map-lifecycle]
+
+  - id: define-triggers
+    action: create-trigger-matrix
+    description: >
+      Para cada play, definir triggers precisos:
+      - Trigger baseado em evento (ex: primeiro serviço registrado)
+      - Trigger baseado em ausência (ex: não abriu app em 3 dias)
+      - Trigger baseado em tempo (ex: 7 dias após signup)
+      - Trigger baseado em padrão (ex: uso declinante por 2 semanas)
+      Cada trigger deve ser mensurável e automatizável.
+    depends_on: [define-plays]
+
+  - id: define-actions
+    action: create-action-catalog
+    description: >
+      Catálogo de ações disponíveis para cada play:
+      - Push notification personalizada
+      - In-app message/tooltip
+      - Email (para comunicações mais longas)
+      - WhatsApp (para intervenções urgentes — via integração)
+      - Feature unlock/highlight
+      - Oferta especial (desconto, trial estendido)
+      - Contato humano (CS team)
+    depends_on: [define-triggers]
+
+  - id: compile-playbook
+    action: generate-playbook
+    description: >
+      Compilar playbook final com:
+      - Visão geral do ciclo de vida
+      - Cada play documentada (trigger → ação → sucesso)
+      - Fluxogramas de decisão
+      - Métricas de sucesso por play
+      - Cronograma de implementação
+    depends_on: [define-actions]
+
+error_handling:
+  on_validation_error: "Contexto inválido: {{error.message}}"
+  on_process_error: "Erro ao gerar playbook: {{error.message}}"
+  retry_count: 1

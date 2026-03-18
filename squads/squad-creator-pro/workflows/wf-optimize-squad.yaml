@@ -1,0 +1,158 @@
+# Squad Optimization — Multi-dimensional optimization
+name: wf-optimize-squad
+version: 1.0.0
+description: |
+  Otimização multi-dimensional de squad existente.
+  6 dimensões: tokens, qualidade, velocidade, cobertura, fidelidade, manutenibilidade.
+
+type: sequential
+
+phases:
+  - name: "analysis"
+    description: "Analisar estado atual do squad"
+    model: sonnet
+    actions:
+      - "Load squad config and all components"
+      - "Calculate current metrics for each dimension"
+      - "Identify optimization opportunities"
+    output: "current_metrics, opportunities"
+    checkpoint:
+      gate: "QG-PRO-OPT-1"
+      condition: "metrics calculated for all 6 dimensions"
+
+  - name: "token_optimization"
+    description: "Otimizar custo de tokens via model routing"
+    model: sonnet
+    actions:
+      - "Review model assignments for all tasks"
+      - "Identify tasks that could be downgraded (Opus→Sonnet→Haiku)"
+      - "Run qualify-model-tier for candidates"
+      - "Calculate potential savings"
+    output: "routing_changes, estimated_savings"
+    checkpoint:
+      gate: "QG-PRO-OPT-2"
+      condition: "no quality degradation from routing changes"
+
+  - name: "quality_optimization"
+    description: "Melhorar qualidade sem aumentar custo"
+    model: opus
+    actions:
+      - "Review agents with lowest fidelity scores"
+      - "Identify low-cost improvements (better prompts, more examples)"
+      - "Suggest structural improvements"
+    output: "quality_improvements"
+    checkpoint:
+      gate: "QG-PRO-OPT-3"
+      condition: "improvements don't increase token cost > 10%"
+
+  - name: "coverage_optimization"
+    description: "Identificar gaps de cobertura"
+    model: sonnet
+    actions:
+      - "Map all use cases the squad should handle"
+      - "Identify uncovered scenarios"
+      - "Suggest new tasks or workflow paths"
+    output: "coverage_gaps, suggestions"
+
+  - name: "speed_optimization"
+    description: "Otimizar velocidade de execução"
+    model: sonnet
+    actions:
+      - "Analyze execution time of each task and workflow phase"
+      - "Identify slow phases (> 30s per step)"
+      - "Detect sequential tasks that could run in parallel"
+      - "Suggest parallelization opportunities with dependency analysis"
+      - "Estimate time savings from parallel execution"
+    output: "speed_improvements, parallelization_map"
+    checkpoint:
+      gate: "QG-PRO-OPT-4"
+      condition: "parallelization suggestions don't violate task dependencies"
+
+  - name: "maintainability_optimization"
+    description: "Otimizar manutenibilidade do squad"
+    model: sonnet
+    actions:
+      - "Scan for dead code and unused tasks (defined but never referenced)"
+      - "Detect orphaned dependencies (imported but not used)"
+      - "Find outdated references (paths, versions, deprecated patterns)"
+      - "Check for duplicated logic across tasks/workflows"
+      - "Suggest cleanup actions with estimated effort"
+    output: "cleanup_recommendations, dead_code_list, orphaned_deps"
+    checkpoint:
+      gate: "QG-PRO-OPT-5"
+      condition: "cleanup suggestions verified as safe to remove"
+
+  - name: "report"
+    description: "Gerar relatório de otimização"
+    model: haiku
+    actions:
+      - "Compile all findings"
+      - "Generate before/after comparison"
+      - "Prioritize recommendations by impact/effort"
+    output: "optimization_report"
+
+output_format: |
+  ## Optimization Report: {squad_name}
+
+  ### Current State
+  | Dimension | Score | Trend |
+  |-----------|-------|-------|
+  | Token Efficiency | {score} | {trend} |
+  | Quality | {score} | {trend} |
+  | Speed | {score} | {trend} |
+  | Coverage | {score} | {trend} |
+  | Fidelity | {score} | {trend} |
+  | Maintainability | {score} | {trend} |
+
+  ### Recommendations (Priority Order)
+  | # | Action | Impact | Effort | Savings |
+  |---|--------|--------|--------|---------|
+  | 1 | {action} | {impact} | {effort} | {savings} |
+
+  ### Quick Wins (< 5 min each)
+  {quick_wins}
+
+  ### Medium Term (< 1 hour)
+  {medium_term}
+
+# --- YOLO Auto-Apply ---
+yolo_auto_apply:
+  yolo_full:
+    description: "Automatically apply all quick wins without asking"
+    behavior:
+      - "Filter recommendations where effort < 5 min"
+      - "Apply each quick win automatically"
+      - "Log each applied change with before/after"
+      - "Report all changes in final output"
+    safety:
+      - "Create backup of modified files before applying"
+      - "Validate squad health after each change"
+      - "Rollback individual change if health degrades"
+
+  yolo_light:
+    description: "Show all recommendations and ask which to apply"
+    behavior:
+      - "Display numbered list of all recommendations"
+      - "Group by category: quick wins, medium term, long term"
+      - "Ask user to select which ones to apply (comma-separated numbers or 'all')"
+      - "Apply selected recommendations sequentially"
+      - "Report applied vs skipped"
+
+# --- Veto Conditions ---
+veto_conditions:
+  - condition: "target squad directory does not exist"
+    severity: BLOCK
+    message: "Squad '{squad_name}' not found in squads/. Cannot optimize a non-existent squad."
+    gate: "VETO-OPT-1"
+
+  - condition: "optimization would break existing functionality"
+    severity: WARN
+    message: "Proposed changes may break: {affected_components}. Review before applying."
+    action: "present_impact_analysis_and_confirm"
+    gate: "VETO-OPT-2"
+
+  - condition: "no baseline metrics available for squad"
+    severity: SKIP
+    message: "No baseline metrics found for '{squad_name}'. Skipping token optimization — run observatory first."
+    action: "skip_token_optimization_phase"
+    gate: "VETO-OPT-3"

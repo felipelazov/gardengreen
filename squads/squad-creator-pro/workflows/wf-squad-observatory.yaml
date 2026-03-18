@@ -1,0 +1,151 @@
+# Squad Observatory — Continuous health monitoring
+name: wf-squad-observatory
+version: 2.0.0
+description: |
+  Monitoramento contínuo de saúde de squads. Coleta métricas, detecta drift,
+  gera alertas e recomendações. Implementado como state machine com transições
+  explícitas e scheduling configurável.
+
+type: state_machine
+
+# --- Scheduling ---
+scheduling:
+  triggers:
+    - command: "*observatory"
+    - event: "on_squad_activation"  # Run health check on every squad activation
+    - manual: true  # Can be invoked manually at any time
+  cooldown: "5m"  # Minimum interval between automatic runs
+
+# --- Veto Conditions ---
+veto_conditions:
+  - condition: "no squads found in squads/ directory"
+    severity: BLOCK
+    message: "No squads found. Create at least one squad before running observatory."
+    gate: "VETO-OBS-1"
+
+  - condition: "observatory dir .aiox/observatory/ missing"
+    severity: AUTO_FIX
+    message: "Observatory directory missing. Auto-creating .aiox/observatory/"
+    action: "mkdir -p .aiox/observatory/"
+    gate: "VETO-OBS-2"
+
+# --- State Machine ---
+initial_state: initialize
+
+states:
+  initialize:
+    description: "Verificar pré-condições e inicializar observatory"
+    model: haiku
+    actions:
+      - "Check if .aiox/observatory/ directory exists"
+      - "Create directory if missing (auto-fix)"
+      - "Verify at least one squad exists in squads/"
+      - "Load previous observatory state if available"
+    transitions:
+      - to: collect
+        condition: "prerequisites met"
+      - to: report
+        condition: "veto BLOCK triggered"
+        metadata: { reason: "no_squads" }
+
+  collect:
+    description: "Coletar métricas de uso"
+    model: haiku
+    actions:
+      - "Read observatory logs from .aiox/observatory/"
+      - "Aggregate metrics by period"
+      - "Calculate trends"
+    output: "collected_metrics, trend_data"
+    transitions:
+      - to: analyze
+        condition: "metrics collected successfully"
+      - to: report
+        condition: "no metrics available (first run)"
+        metadata: { partial: true }
+
+  analyze:
+    description: "Health check e detecção de drift"
+    model: sonnet
+    actions:
+      # Health check (from original health_check)
+      - "For each squad in squads/:"
+      - "  Run structural validation"
+      - "  Check dependency health"
+      - "  Verify config validity"
+      - "  Check staleness (days since last update)"
+      # Fidelity drift (from original fidelity_drift)
+      - "Compare current fidelity scores vs baseline"
+      - "Flag squads with > 0.10 drop"
+      - "Recommend re-evaluation"
+    output: "health_results, drift_analysis"
+    transitions:
+      - to: dashboard
+        condition: "analysis complete"
+
+  dashboard:
+    description: "Gerar dashboard consolidado"
+    model: haiku
+    output: |
+      ## Observatory Dashboard
+      **Generated:** {date}
+
+      ### Ecosystem Health
+      | Squad | Health | Fidelity | Last Active | Activations (30d) |
+      |-------|--------|----------|-------------|-------------------|
+      {squad_rows}
+
+      ### Alerts
+      {active_alerts}
+
+      ### Trends
+      {trend_analysis}
+
+      ### Recommendations
+      {recommendations}
+    transitions:
+      - to: alert
+        condition: "dashboard generated"
+
+  alert:
+    description: "Verificar condições de alerta com escalação de severidade"
+    model: haiku
+    alert_rules:
+      - condition: "squad inactive > 30 days"
+        severity: INFO
+        message: "Squad {name} hasn't been used in 30 days"
+      - condition: "fidelity_drop > 0.10"
+        severity: WARNING
+        message: "Fidelity drift detected in {name}"
+        escalation:
+          after: "2 consecutive checks"
+          to: ERROR
+      - condition: "health_check CRITICAL"
+        severity: ERROR
+        message: "Critical health issues in {name}"
+        escalation:
+          after: "immediate"
+          to: CRITICAL
+          action: "notify_user_immediately"
+      - condition: "error_rate > 20%"
+        severity: WARNING
+        message: "High error rate in {name}"
+        escalation:
+          after: "3 consecutive checks"
+          to: ERROR
+      - condition: "multiple squads degraded simultaneously"
+        severity: CRITICAL
+        message: "Ecosystem-wide degradation detected: {affected_squads}"
+        action: "notify_user_immediately"
+    transitions:
+      - to: report
+        condition: "alerts processed"
+
+  report:
+    description: "Estado terminal — consolidar output final"
+    terminal: true
+    model: haiku
+    actions:
+      - "Consolidate dashboard + alerts into final report"
+      - "Save observatory state to .aiox/observatory/last-run.yaml"
+      - "Write metrics snapshot for trend comparison"
+    output: "observatory_report"

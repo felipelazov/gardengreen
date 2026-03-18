@@ -1,0 +1,42 @@
+name: "squad-produto-core"
+version: 0.1.0
+description: "Squad responsável por construir e manter a plataforma GardenGreen — SaaS de gestão para jardineiros. Mobile-first, ultra-simples, solo-first com upgrade path para empresas."
+author: "GardenGreen"
+license: MIT
+
+aiox:
+  minVersion: "2.1.0"
+  type: squad
+
+ecosystem:
+  position: ENTREGAR
+  revenue_role: GERA
+  priority: P0
+  handoffs:
+    receives_from:
+      - squad: squad-vendas-conversao
+        data: "cliente ativo, plano selecionado, conta criada"
+    sends_to:
+      - squad: squad-sucesso-cliente
+        data: "dados de uso, health score, feature adoption"
+
+components:
+  agents:
+    - agents/*.yaml
+  tasks:
+    - tasks/*.yaml
+  workflows:
+    - workflows/*.yaml
+  templates:
+    - templates/*.md
+
+dependencies: []
+
+keywords:
+  - aiox
+  - squad
+  - gardengreen
+  - saas
+  - jardinagem
+  - field-service
+  - mobile-first

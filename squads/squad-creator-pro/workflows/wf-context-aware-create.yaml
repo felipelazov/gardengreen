@@ -1,0 +1,168 @@
+# Context-Aware Squad Creation — Auto-detects greenfield/brownfield/resume
+name: wf-context-aware-create
+version: 1.0.0
+description: |
+  Wrapper inteligente que detecta contexto automaticamente antes de criar squad.
+  Elimina a necessidade do usuário saber se é greenfield, brownfield ou resume.
+
+type: state_machine
+
+states:
+  detect_context:
+    description: "Auto-detect creation context"
+    model: haiku
+    actions:
+      - "Check squads/ for existing squad with matching domain"
+      - "Check .aiox/observatory/ for interrupted sessions"
+      - "Check .aiox/sessions/ for resume data"
+    transitions:
+      - condition: "existing_squad_found"
+        to: brownfield_confirm
+      - condition: "interrupted_session_found"
+        to: resume_confirm
+      - condition: "no_matches"
+        to: greenfield_create
+
+  brownfield_confirm:
+    description: "Confirm brownfield approach"
+    elicit: true
+    prompt: |
+      Found existing squad: {squad_name} (v{version})
+
+      Options:
+      1. Upgrade existing squad (preserve + enhance)
+      2. Create new squad (different focus)
+      3. Replace existing squad (destructive)
+    transitions:
+      - condition: "option_1"
+        to: brownfield_upgrade
+      - condition: "option_2"
+        to: greenfield_create
+      - condition: "option_3"
+        to: replace_confirm
+
+  resume_confirm:
+    description: "Confirm resume from interrupted session"
+    elicit: true
+    prompt: |
+      Found interrupted session from {date}:
+      - Domain: {domain}
+      - Phase: {phase} of {total_phases}
+      - Completed: {agents_done}/{agents_total} agents
+
+      Options:
+      1. Resume from where we stopped
+      2. Start fresh (discard progress)
+    transitions:
+      - condition: "option_1"
+        to: resume_session
+      - condition: "option_2"
+        to: greenfield_create
+
+  greenfield_create:
+    description: "Fresh squad creation via Pro smart flow"
+    task: create-squad-pro
+    transitions:
+      - condition: "squad_created"
+        to: valuation_report
+
+  brownfield_upgrade:
+    description: "Upgrade existing squad"
+    workflow: wf-brownfield-upgrade
+    transitions:
+      - condition: "upgrade_complete"
+        to: valuation_report
+
+  replace_confirm:
+    description: "Confirm destructive replace"
+    elicit: true
+    prompt: |
+      ⚠️ WARNING: This will DELETE the existing squad and create from scratch.
+      All existing agents, workflows, and data will be lost.
+
+      Type 'CONFIRM' to proceed, or 'CANCEL' to abort.
+    transitions:
+      - condition: "confirmed"
+        to: greenfield_create
+      - condition: "cancelled"
+        to: brownfield_confirm
+
+  resume_session:
+    description: "Resume from saved state"
+    actions:
+      - "Load session state from .aiox/sessions/{session_id}"
+      - "Restore phase context"
+      - "Continue from last completed phase"
+    transitions:
+      - condition: "squad_created"
+        to: valuation_report
+
+  valuation_report:
+    description: "Calculate and present squad monetary value"
+    script: "scripts/squad-valuation.py squads/{squad_name}/ --currency BRL"
+    model: haiku
+    terminal: true
+    actions:
+      - "Run squad-valuation.py on the created/upgraded squad"
+      - "Present valuation as final output to user"
+      - "Log valuation to observatory"
+    output: |
+      --- SQUAD VALUATION ---
+      The squad valuation report is displayed above.
+      This is auto-generated at the end of every squad creation.
+      Run *valuation {squad} --uses X --hours Y for custom scenarios.
+
+# Veto conditions
+veto_conditions:
+  - condition: "domain_empty"
+    message: "Domain parameter is empty or not provided — cannot detect context"
+    severity: BLOCK
+  - condition: "session_data_corrupted"
+    message: "Session file exists but is corrupted or has invalid schema — cannot resume"
+    severity: BLOCK
+    fallback: "Offer fresh start (greenfield_create)"
+
+# Error handling
+error_handling:
+  brownfield_upgrade_fails:
+    description: "wf-brownfield-upgrade fails during execution"
+    actions:
+      - "Brownfield workflow handles its own rollback"
+      - "After rollback completes → offer greenfield as alternative"
+    prompt: |
+      Upgrade failed and was rolled back. Options:
+      1. Create fresh squad (greenfield)
+      2. Retry upgrade with different plan
+      3. Cancel
+  session_restore_fails:
+    description: "Cannot load or restore session state"
+    actions:
+      - "Log corrupted session to .aiox/logs/session-errors.log"
+      - "Offer fresh start with context preserved from session metadata"
+    prompt: |
+      Session restore failed. We can start fresh — domain and basic config were preserved.
+      1. Start fresh (greenfield)
+      2. Cancel
+  context_detection_ambiguous:
+    description: "Multiple matches found (existing squad + interrupted session)"
+    actions:
+      - "Present all options to user"
+      - "Let user choose between upgrade, resume, or fresh"
+
+# Session management
+session_management:
+  storage_path: ".aiox/sessions/"
+  file_format: "squad-create-{domain}-{timestamp}.yaml"
+  saved_on:
+    - "After detect_context completes"
+    - "After each user confirmation (brownfield_confirm, resume_confirm, replace_confirm)"
+    - "After greenfield_create starts (for resume capability)"
+  fields:
+    - session_id
+    - domain
+    - detected_context
+    - user_choice
+    - current_state
+    - timestamp
+  cleanup: "Sessions older than 30 days are auto-purged"
+  max_sessions: 10

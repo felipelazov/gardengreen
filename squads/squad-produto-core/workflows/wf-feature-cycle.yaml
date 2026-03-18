@@ -1,0 +1,156 @@
+# Workflow: Feature Cycle
+# Squad: squad-produto-core
+# Version: 0.1.0
+
+workflow:
+  id: wf-feature-cycle
+  name: "Ciclo Completo de Feature"
+  version: "0.1.0"
+  purpose: "Ciclo completo de uma feature: definir → design → implementar → review → ship"
+  orchestrator: "@garden-product-chief"
+  mode: quality
+
+# ═══════════════════════════════════════════════════════════════════
+# PHASES
+# ═══════════════════════════════════════════════════════════════════
+
+phases:
+  - id: phase_1_define
+    name: "Definir Feature"
+    agent: "@garden-product-chief"
+    task: "tasks/define-feature.yaml"
+    description: |
+      Product Chief define a feature com user story, acceptance criteria,
+      RICE score, e mobile-first checklist. Domain Expert valida a necessidade real.
+    inputs:
+      - module
+      - feature_name
+      - pain_point
+    outputs:
+      - user_story
+      - rice_score
+      - recommendation
+    gate:
+      condition: "recommendation != REJECT"
+      on_fail: "Feature rejeitada. Documentar motivo e arquivar."
+
+  - id: phase_2_validate_domain
+    name: "Validar com Domínio"
+    agent: "@garden-domain-expert"
+    description: |
+      Seu Manoel valida: isso é uma dor real? O jardineiro solo precisa disso?
+      Funciona na rotina diária? Considera sazonalidade?
+    inputs:
+      - user_story (from phase_1)
+    outputs:
+      - domain_verdict  # APROVADO | AJUSTAR | REJEITAR
+      - adjustments     # se AJUSTAR
+    gate:
+      condition: "domain_verdict != REJEITAR"
+      on_fail: "Retorna para phase_1 com feedback do domínio."
+
+  - id: phase_3_design
+    name: "Design UX/UI"
+    agent: "@garden-ux-mobile"
+    task: "tasks/design-screen.yaml"
+    description: |
+      Sol projeta as telas/fluxos considerando condições de campo.
+      Wireframes descritivos, interaction flow, field validation checklist.
+    inputs:
+      - user_story (from phase_1)
+      - domain_adjustments (from phase_2)
+    outputs:
+      - wireframes
+      - interaction_flow
+      - component_list
+      - field_validation_checklist
+    gate:
+      condition: "field_validation_checklist all_passed"
+      on_fail: "Redesenha telas que falharam no field validation."
+
+  - id: phase_4_schema
+    name: "Schema Design (se necessário)"
+    agent: "@garden-fullstack-dev"
+    task: "tasks/schema-design.yaml"
+    description: |
+      Raiz projeta o schema PostgreSQL no Supabase, incluindo RLS policies,
+      indexes, e WatermelonDB models para offline.
+    inputs:
+      - user_story (from phase_1)
+      - wireframes (from phase_3)
+    outputs:
+      - migration_sql
+      - rls_policies
+      - watermelondb_models
+    gate:
+      condition: "rls_policies defined for all tables"
+      on_fail: "BLOCKED. RLS obrigatório."
+    skip_if: "Feature não envolve dados persistidos"
+
+  - id: phase_5_implement
+    name: "Implementação"
+    agent: "@garden-fullstack-dev"
+    task: "tasks/implement-feature.yaml"
+    description: |
+      Raiz implementa a feature seguindo design, schema, e padrões de qualidade.
+      Inclui testes, offline support, e conventional commits.
+    inputs:
+      - wireframes (from phase_3)
+      - migration_sql (from phase_4)
+      - acceptance_criteria (from phase_1)
+    outputs:
+      - code_files
+      - test_results
+      - lint_results
+      - typecheck_results
+    gate:
+      condition: "tests_pass AND lint_pass AND typecheck_pass"
+      on_fail: "Fix issues antes de prosseguir."
+
+  - id: phase_6_review
+    name: "Code Review"
+    agent: "@garden-fullstack-dev"
+    task: "tasks/code-review.yaml"
+    description: |
+      Self-review ou peer review cobrindo: clean code, performance mobile,
+      offline support, e segurança.
+    inputs:
+      - code_files (from phase_5)
+    outputs:
+      - review_verdict  # APPROVED | CHANGES_REQUESTED | BLOCKED
+      - action_items
+    gate:
+      condition: "review_verdict == APPROVED or review_verdict == APPROVED_WITH_NOTES"
+      on_fail: "Retorna para phase_5 com action items."
+
+  - id: phase_7_ship
+    name: "Ship (preparar para deploy)"
+    agent: "@garden-fullstack-dev"
+    description: |
+      Preparar para deploy:
+      1. Atualizar story file (marcar tasks como done)
+      2. Criar commit final com conventional message
+      3. Delegar push para @devops
+    outputs:
+      - commit_hash
+      - story_updated
+      - ready_for_push
+    gate:
+      condition: "story_updated AND commit_created"
+      on_fail: "Completar documentação antes de ship."
+
+# ═══════════════════════════════════════════════════════════════════
+# FLOW SUMMARY
+# ═══════════════════════════════════════════════════════════════════
+
+flow_summary: |
+  Flora define → Seu Manoel valida → Sol desenha → Raiz projeta schema →
+  Raiz implementa → Raiz revisa → Ship
+
+  Duração típica: 3-10 dias dependendo da complexidade
+  Iterações: max 2 por phase antes de escalar
+
+rollback:
+  strategy: "Cada phase produz artefatos independentes. Rollback = refazer phase."
+  max_iterations_per_phase: 2
+  escalation: "Se 2 iterações falham, escalar para @garden-product-chief para re-scope."

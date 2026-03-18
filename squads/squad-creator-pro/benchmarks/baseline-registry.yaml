@@ -1,0 +1,44 @@
+# Baseline Registry — Pro Golden Baselines
+# Tracks all generated baselines for regression testing
+
+baselines:
+  fidelity-score:
+    created: "2026-03-11"
+    model: opus
+    scenario: "Score expert agent with complete DNA"
+    quality_score: 0.95
+    path: golden-baselines/fidelity-score-baseline.md
+
+  squad-health-check:
+    created: "2026-03-11"
+    model: haiku
+    scenario: "Health check of complete healthy squad"
+    quality_score: 0.96
+    path: golden-baselines/health-check-baseline.md
+
+  cost-estimator:
+    created: "2026-03-11"
+    model: haiku
+    scenario: "Cost estimate for full create-squad pipeline"
+    quality_score: 0.94
+    path: golden-baselines/cost-estimator-baseline.md
+
+  export-squad:
+    created: "2026-03-11"
+    model: haiku
+    scenario: "Export squad as portable package"
+    quality_score: 0.93
+    path: golden-baselines/export-squad-baseline.md
+
+  squad-diff:
+    created: "2026-03-11"
+    model: haiku
+    scenario: "Compare base vs pro squad structures"
+    quality_score: 0.95
+    path: golden-baselines/squad-diff-baseline.md
+
+metadata:
+  total_baselines: 5
+  last_updated: "2026-03-11"
+  baseline_model: opus
+  regression_threshold: 0.05

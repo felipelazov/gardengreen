@@ -1,0 +1,123 @@
+# Task: Define Feature
+# Squad: squad-produto-core
+# Version: 0.1.0
+
+task:
+  id: define-feature
+  name: "Definir Feature do Produto"
+  version: "0.1.0"
+  purpose: "Definir uma feature completa com user story, acceptance criteria, e considerações mobile-first para o GardenGreen"
+  executor: "@garden-product-chief"
+  collaborators:
+    - "@garden-domain-expert"  # Valida necessidade real
+    - "@garden-ux-mobile"      # Valida viabilidade UX
+  elicit: true
+  execution_type: interactive
+
+# ═══════════════════════════════════════════════════════════════════
+# PRE-CONDITIONS
+# ═══════════════════════════════════════════════════════════════════
+
+pre_conditions:
+  - "Módulo alvo identificado (Agenda, CRM, Financeiro, Mobile, Dashboard)"
+  - "Contexto do jardineiro entendido (solo vs equipe, frequência de uso)"
+
+# ═══════════════════════════════════════════════════════════════════
+# INPUTS (elicitar do usuário)
+# ═══════════════════════════════════════════════════════════════════
+
+inputs:
+  - name: module
+    type: select
+    prompt: "Qual módulo?"
+    options: ["Agenda/Scheduling", "CRM Clientes", "Financeiro", "App Mobile", "Dashboard"]
+  - name: feature_name
+    type: text
+    prompt: "Nome da feature (breve):"
+  - name: pain_point
+    type: text
+    prompt: "Qual dor do jardineiro essa feature resolve?"
+  - name: persona
+    type: select
+    prompt: "Persona primária:"
+    options: ["Jardineiro Solo", "Gestor de Equipe", "Cliente do Jardineiro"]
+
+# ═══════════════════════════════════════════════════════════════════
+# STEPS
+# ═══════════════════════════════════════════════════════════════════
+
+steps:
+  - id: step_1_context
+    name: "Entender Contexto"
+    action: |
+      1. Identificar o módulo e a dor que a feature resolve
+      2. Validar com @garden-domain-expert: "Isso é uma dor real?"
+      3. Definir quando o jardineiro usaria (no campo, entre clientes, fim do dia, fim do mês)
+      4. Identificar se funciona offline (obrigatório para uso no campo)
+
+  - id: step_2_user_story
+    name: "Escrever User Story"
+    action: |
+      Usar template templates/user-story-tmpl.md:
+      1. Definir persona (jardineiro solo é default)
+      2. Descrever ação em linguagem simples
+      3. Explicar benefício em termos de tempo/dinheiro/stress
+      4. Preencher contexto do jardineiro
+      5. Definir acceptance criteria (máximo 8, mínimo 3)
+      6. Completar mobile-first checklist
+
+  - id: step_3_rice_score
+    name: "Calcular RICE Score"
+    action: |
+      RICE adaptado para GardenGreen:
+      - Reach: Quantos jardineiros usariam? (1-10)
+      - Impact: Quanto tempo/dinheiro economiza? (1-5: 0.25, 0.5, 1, 2, 3)
+      - Confidence: Temos certeza da necessidade? (0.5, 0.8, 1.0)
+      - Effort: Quanto tempo de dev? (em person-weeks)
+      Score = (Reach * Impact * Confidence) / Effort
+
+  - id: step_4_mobile_considerations
+    name: "Considerações Mobile-First"
+    action: |
+      Checklist obrigatório:
+      1. [ ] Funciona 100% offline?
+      2. [ ] Completa em 3 toques ou menos?
+      3. [ ] Texto legível ao sol (contraste AAA)?
+      4. [ ] Botões acessíveis com luvas (56px+)?
+      5. [ ] Não requer digitação extensiva?
+      6. [ ] Funciona em Android médio (2GB RAM)?
+      7. [ ] Sync automático quando volta online?
+
+  - id: step_5_output
+    name: "Gerar Output"
+    action: |
+      Produzir documento com:
+      1. User Story completa (template preenchido)
+      2. RICE Score calculado
+      3. Mobile-First checklist completado
+      4. Dependências identificadas
+      5. Estimativa rough de esforço
+      6. Recomendação: BUILD / DEFER / REJECT
+
+# ═══════════════════════════════════════════════════════════════════
+# OUTPUT
+# ═══════════════════════════════════════════════════════════════════
+
+output:
+  format: markdown
+  sections:
+    - user_story
+    - rice_score
+    - mobile_checklist
+    - dependencies
+    - recommendation
+
+# ═══════════════════════════════════════════════════════════════════
+# QUALITY GATE
+# ═══════════════════════════════════════════════════════════════════
+
+quality_gate:
+  min_acceptance_criteria: 3
+  mobile_checklist_required: true
+  domain_validation_required: true
+  offline_strategy_required: true

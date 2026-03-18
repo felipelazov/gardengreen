@@ -1,0 +1,116 @@
+id: design-pricing
+name: "Desenhar e Testar Tiers de Pricing"
+squad: squad-vendas-conversao
+version: 0.1.0
+type: task
+
+description: |
+  Desenhar a estrutura de pricing do GardenGreen com 3 tiers:
+  Free Trial (14 dias), Solo (R$29-49/mês), e Equipe (R$99-199/mês).
+  Definir features por tier, preço ideal, e copy de pricing page.
+
+owner: garden-growth-chief
+collaborators:
+  - garden-conversion-copy
+
+inputs:
+  - name: competitor_pricing
+    type: document
+    description: "Análise de pricing dos concorrentes"
+    required: false
+  - name: willingness_to_pay
+    type: document
+    description: "Dados de pesquisa de willingness-to-pay"
+    required: false
+
+outputs:
+  - name: pricing_spec
+    type: document
+    description: "Especificação completa de pricing"
+    path: "docs/specs/pricing-spec.md"
+  - name: pricing_page_copy
+    type: document
+    description: "Copy da pricing page"
+    path: "docs/copy/pricing-page-copy.md"
+  - name: pricing_test_plan
+    type: document
+    description: "Plano de teste de pricing"
+    path: "docs/plans/pricing-test-plan.md"
+
+steps:
+  - id: 1
+    name: "Definir value metrics"
+    agent: garden-growth-chief
+    action: |
+      Identificar a value metric de cada plano:
+      - Solo: número de clientes? Funcionalidade? Flat fee?
+      - Equipe: número de membros da equipe?
+      Recomendação: flat fee para Solo (simplicidade),
+      per-seat para Equipe (escalável).
+
+  - id: 2
+    name: "Mapear features por tier"
+    agent: garden-growth-chief
+    action: |
+      Distribuir features entre os tiers:
+      - Free Trial (14 dias): TUDO liberado — sem limitações
+      - Solo (R$29-49/mês): agenda, clientes (ilimitados), orçamentos,
+        cobrança PIX, relatório mensal, lembrete automático
+      - Equipe (R$99-199/mês): tudo do Solo + gestão de equipe,
+        dispatch de serviços, relatórios por jardineiro, dashboard empresa
+      Princípio: Solo deve ser completo. Equipe adiciona gestão de time.
+
+  - id: 3
+    name: "Definir preço ideal"
+    agent: garden-growth-chief
+    action: |
+      Análise de pricing:
+      - Willingness-to-pay do jardineiro autônomo
+      - Comparação: "Menos que um almoço por mês" (R$29)
+      - Comparação: "1 hora de trabalho por mês" (R$40-50)
+      - Análise de elasticidade: R$29 vs R$39 vs R$49
+      - Para Equipe: R$99 base + R$29 por jardineiro adicional?
+      - Desconto anual: 2 meses grátis (R$290/ano vs R$348)
+
+  - id: 4
+    name: "Escrever copy de pricing page"
+    agent: garden-conversion-copy
+    action: |
+      Escrever toda a copy da pricing page:
+      - Headline: "Quanto custa não perder clientes?"
+      - Subheadline com valor, não feature
+      - Nome de cada plano (simples, reconhecível)
+      - 3 benefícios por plano (não features)
+      - CTA de cada plano
+      - FAQ de pricing (5 perguntas)
+      - Social proof: "X jardineiros já usam"
+      - Garantia: "7 dias pra cancelar, sem burocracia"
+
+  - id: 5
+    name: "Desenhar upgrade path"
+    agent: garden-growth-chief
+    action: |
+      Definir como e quando sugerir upgrade Solo→Equipe:
+      - Trigger natural: "Você adicionou seu primeiro ajudante?"
+      - In-app prompt quando detectar padrão de uso multi-pessoa
+      - Sem hard sell, sem popup agressivo
+      - Trial de Equipe por 7 dias quando detectar necessidade
+
+  - id: 6
+    name: "Planejar teste de pricing"
+    agent: garden-growth-chief
+    action: |
+      Desenhar teste A/B de pricing:
+      - Variação A: R$29/mês (Solo)
+      - Variação B: R$39/mês (Solo)
+      - Métrica primária: conversion rate
+      - Métrica secundária: ARPU, churn M1
+      - Sample size e duração
+      - Segmentação geográfica (se aplicável)
+
+postconditions:
+  - "3 tiers definidos com features claras"
+  - "Preço de cada tier justificado"
+  - "Copy de pricing page completa"
+  - "Upgrade path Solo→Equipe desenhado"
+  - "Plano de teste A/B de pricing pronto"

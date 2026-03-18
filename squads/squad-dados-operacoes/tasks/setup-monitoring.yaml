@@ -1,0 +1,129 @@
+# Task: Setup Monitoring & Alerting
+# Squad: squad-dados-operacoes
+# Version: 0.1.0
+
+task:
+  id: setup-monitoring
+  name: "Configurar Monitoramento e Alertas"
+  version: "0.1.0"
+  purpose: "Configurar monitoramento completo da plataforma com alertas inteligentes para detectar problemas antes dos usuarios"
+  executor: "@garden-devops"
+  collaborators:
+    - "@garden-data-chief"       # Metricas de produto (PostHog)
+  elicit: true
+  execution_type: hybrid
+
+pre_conditions:
+  - "Supabase project em producao"
+  - "Vercel deployment ativo"
+  - "PostHog configurado"
+
+inputs:
+  - name: monitoring_scope
+    type: multiselect
+    prompt: "O que monitorar:"
+    options: ["Uptime/Health", "Performance", "Errors", "Business Metrics", "Security", "Costs"]
+  - name: alert_channels
+    type: multiselect
+    prompt: "Canais de alerta:"
+    options: ["Email", "Slack/Discord", "PagerDuty/OpsGenie", "SMS"]
+  - name: on_call_setup
+    type: boolean
+    prompt: "Configurar on-call rotation?"
+    default: false
+
+steps:
+  - id: step_1_health_checks
+    name: "Health Checks"
+    action: |
+      1. Criar endpoint /api/health no Next.js:
+         - Database connectivity (Supabase ping)
+         - Auth service status
+         - Storage service status
+         - Edge Functions status
+         - Return: { status: "healthy", services: {...}, timestamp }
+      2. Configurar uptime monitor (Vercel/BetterUptime/UptimeRobot):
+         - Check interval: 1 min
+         - Alerta: 2 falhas consecutivas
+         - Status page publica (opcional)
+      3. Configurar health check para EAS Update service
+
+  - id: step_2_error_tracking
+    name: "Error Tracking (Sentry)"
+    action: |
+      1. Instalar Sentry SDK:
+         - Next.js: @sentry/nextjs
+         - React Native: @sentry/react-native
+      2. Configurar source maps (web + mobile)
+      3. Definir alertas:
+         - New error type: notify immediately
+         - Error rate > 1%: CRITICAL alert
+         - Error spike (2x baseline): WARNING alert
+      4. Configurar release tracking (commits vinculados)
+      5. Configurar performance monitoring (transactions)
+
+  - id: step_3_performance_monitoring
+    name: "Performance Monitoring"
+    action: |
+      1. Vercel Analytics (web):
+         - Core Web Vitals tracking automatico
+         - Alerta se LCP > 4s (degraded)
+         - Alerta se CLS > 0.25 (degraded)
+      2. Supabase Dashboard:
+         - Query performance (pg_stat_statements)
+         - Connection count monitoring
+         - Alerta se connections > 80% do pool
+      3. Custom metrics (PostHog):
+         - API response time tracking
+         - Mobile sync duration
+         - Offline queue depth
+
+  - id: step_4_business_monitoring
+    name: "Business Metrics Monitoring"
+    action: |
+      1. PostHog dashboards:
+         - Daily Active Users (DAU)
+         - Signup rate vs churn rate
+         - Feature adoption rates
+         - Conversion funnel completion
+      2. Stripe webhooks monitoring:
+         - Failed payment alerts
+         - Subscription churn alerts
+         - Revenue anomaly detection (MRR drop > 5%)
+      3. Custom alerts:
+         - Signup rate drops > 30% vs previous week
+         - Churn spike > 2x baseline
+         - Feature adoption < 10% after 30 days of launch
+
+  - id: step_5_alerting_config
+    name: "Configuracao de Alertas"
+    action: |
+      Definir severidade e routing:
+      | Severidade | Tempo de Resposta | Canal | Exemplo |
+      |------------|-------------------|-------|---------|
+      | CRITICAL | < 15 min | PagerDuty + SMS | Site down, DB unreachable |
+      | HIGH | < 1 hora | Slack + Email | Error rate > 1%, payment failures |
+      | MEDIUM | < 4 horas | Slack | Performance degradation, high latency |
+      | LOW | Next business day | Email | Cost anomaly, minor warnings |
+
+      Anti-patterns:
+      - NAO alerte em tudo (alert fatigue)
+      - NAO use threshold fixo para metricas sazonais
+      - Agrupar alertas relacionados (nao 50 alertas para 1 incidente)
+
+output:
+  format: markdown
+  sections:
+    - health_check_endpoints
+    - monitoring_tools_configured
+    - alert_rules_defined
+    - escalation_policy
+    - runbook_references
+
+quality_gate:
+  health_endpoint_exists: true
+  error_tracking_configured: true
+  uptime_monitoring_active: true
+  alert_channels_configured: true
+  severity_levels_defined: true
+  no_alert_fatigue: true

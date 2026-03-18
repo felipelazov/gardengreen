@@ -1,0 +1,125 @@
+# Task: Setup CI/CD Pipeline
+# Squad: squad-dados-operacoes
+# Version: 0.1.0
+
+task:
+  id: setup-ci-cd
+  name: "Configurar Pipeline CI/CD"
+  version: "0.1.0"
+  purpose: "Configurar pipeline completo de CI/CD com GitHub Actions para test, build, deploy em staging/production"
+  executor: "@garden-devops"
+  collaborators:
+    - "@garden-fullstack-dev"    # Contexto de testes e build (squad-produto-core)
+  elicit: true
+  execution_type: hybrid
+
+pre_conditions:
+  - "Repositorio GitHub configurado"
+  - "Supabase projects criados (staging + production)"
+  - "Vercel project configurado"
+  - "EAS project configurado (se mobile)"
+
+inputs:
+  - name: pipeline_scope
+    type: select
+    prompt: "Escopo do pipeline:"
+    options: ["Web only (Next.js + Vercel)", "Mobile only (Expo + EAS)", "Full Stack (Web + Mobile + Supabase)", "Backend only (Supabase migrations)"]
+  - name: environments
+    type: multiselect
+    prompt: "Ambientes:"
+    options: ["staging", "production"]
+  - name: triggers
+    type: multiselect
+    prompt: "Triggers:"
+    options: ["Push to main", "Pull Request", "Manual dispatch", "Release tag"]
+
+steps:
+  - id: step_1_ci_checks
+    name: "CI — Quality Checks"
+    action: |
+      GitHub Actions workflow (.github/workflows/ci.yml):
+      1. Trigger: PR opened/updated, push to main
+      2. Jobs (paralelos):
+         - lint: npm run lint (ESLint + Prettier)
+         - typecheck: npm run typecheck (TypeScript strict)
+         - test: npm run test (Jest — unit + integration)
+         - build: npm run build (verificar que compila)
+      3. Branch protection: todos os jobs DEVEM passar
+      4. Caching: node_modules, .next/cache, turbo cache
+
+  - id: step_2_staging_deploy
+    name: "CD — Deploy Staging"
+    action: |
+      Web (Vercel):
+      1. Preview deployment automatico em PRs
+      2. Staging deployment em push to main
+      3. Verificar ISR/caching esta funcionando
+
+      Mobile (EAS):
+      1. EAS Build com profile staging
+      2. Internal distribution para testers
+      3. OTA update via EAS Update para builds existentes
+
+      Supabase:
+      1. Migration check (supabase db diff)
+      2. Apply migrations to staging (supabase db push)
+      3. Seed data update se necessario
+
+  - id: step_3_production_deploy
+    name: "CD — Deploy Production"
+    action: |
+      Trigger: manual dispatch ou release tag
+      1. Require: staging tests passed
+      2. Require: QA approval (manual gate)
+
+      Web (Vercel):
+      1. Production deployment
+      2. Health check pos-deploy
+      3. Rollback automatico se health check falhar
+
+      Mobile (EAS):
+      1. EAS Build com profile production
+      2. EAS Submit para App Store / Google Play
+      3. OTA update para patches (sem app store review)
+
+      Supabase:
+      1. Backup antes de migration
+      2. Apply migration com rollback script pronto
+      3. Verificar RLS policies pos-migration
+
+  - id: step_4_monitoring
+    name: "Post-Deploy Monitoring"
+    action: |
+      1. Health check endpoint: /api/health (web), Edge Function (backend)
+      2. Error rate monitoring (Sentry): alerta se > 1% error rate
+      3. Response time monitoring: alerta se p95 > 2s
+      4. Rollback trigger: automatico se health check falha 3x consecutivas
+      5. Notification: Slack/Discord channel para deploy status
+
+  - id: step_5_documentation
+    name: "Documentacao"
+    action: |
+      1. Documentar todos os workflows criados
+      2. Documentar secrets necessarias (SUPABASE_URL, VERCEL_TOKEN, EAS_TOKEN, etc)
+      3. Documentar processo de rollback manual
+      4. Documentar como adicionar novo job ao pipeline
+      5. Criar runbook para incidentes comuns
+
+output:
+  format: markdown
+  sections:
+    - workflows_created
+    - environment_config
+    - secrets_required
+    - rollback_procedures
+    - monitoring_setup
+
+quality_gate:
+  lint_job: true
+  typecheck_job: true
+  test_job: true
+  build_job: true
+  staging_deploy: true
+  health_check: true
+  rollback_plan: true
+  secrets_documented: true

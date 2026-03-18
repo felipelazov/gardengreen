@@ -1,0 +1,95 @@
+name: create-value-report
+version: 1.0.0
+description: "Desenhar o relatório de valor mensal do jardineiro — o momento em que ele VÊ quanto o GardenGreen vale. Deve ser visual, rápido de consumir e gerar orgulho."
+
+agent: garden-cs-chief
+command: "*value-report"
+
+inputs:
+  - name: tipo
+    type: string
+    required: false
+    description: "Tipo de relatório (mensal, semanal, anual)"
+    default: "mensal"
+
+  - name: segmento
+    type: string
+    required: false
+    description: "Segmento (solo, equipe)"
+    default: "solo"
+
+outputs:
+  - name: report_design
+    type: object
+    description: "Design completo do relatório com seções e dados"
+
+  - name: template
+    type: string
+    description: "Template renderizável do relatório"
+
+  - name: trigger_rules
+    type: object
+    description: "Quando e como enviar o relatório"
+
+steps:
+  - id: define-sections
+    action: design-report-sections
+    description: >
+      Definir seções do relatório mensal de valor:
+      1. **Headline de Impacto** — "Você ganhou R$X.XXX em [mês]!"
+      2. **Resumo Financeiro** — faturamento, serviços, ticket médio
+      3. **Tempo Economizado** — horas poupadas com agendamento/cobrança
+      4. **Crescimento** — clientes novos, comparação mês anterior
+      5. **Destaques** — melhor dia, cliente mais frequente
+      6. **Próximo Mês** — agenda pré-preenchida, meta sugerida
+      Tudo visual, numbers-first, zero texto longo.
+
+  - id: define-data-sources
+    action: map-data-requirements
+    description: >
+      Mapear dados necessários de squad-produto-core:
+      - Serviços registrados no período
+      - Faturamento total e por cliente
+      - Novos clientes cadastrados
+      - Features utilizadas
+      - Tempo estimado economizado (vs manual)
+      - Comparativo com período anterior
+    depends_on: [define-sections]
+
+  - id: design-visual
+    action: create-visual-spec
+    description: >
+      Especificação visual:
+      - Mobile-first (tela do jardineiro é o celular)
+      - Scrollável em 30 segundos (jardineiro é ocupado)
+      - Números grandes, cores claras
+      - Verde = positivo, laranja = atenção
+      - Compartilhável (screenshot-friendly)
+      - Modo escuro opcional (jardineiro checa à noite)
+    depends_on: [define-sections]
+
+  - id: define-triggers
+    action: create-delivery-rules
+    description: >
+      Regras de entrega:
+      - Dia 1 de cada mês às 08:00 (momento café)
+      - Push: "Seu relatório de [mês] está pronto!"
+      - In-app: card destacado na home
+      - Email: versão resumida com link para app
+      - Se não abrir em 3 dias: lembrete gentil
+    depends_on: [design-visual]
+
+  - id: create-template
+    action: generate-template
+    description: >
+      Gerar template em templates/value-report-tmpl.md com:
+      - Estrutura HTML/markdown do relatório
+      - Variáveis dinâmicas ({{faturamento}}, {{servicos}}, etc)
+      - Textos alternativos por performance (bom/neutro/preocupante)
+      - Exemplos renderizados para jardineiro solo e equipe
+    depends_on: [define-triggers]
+
+error_handling:
+  on_validation_error: "Tipo de relatório inválido: {{error.message}}"
+  on_process_error: "Erro ao desenhar relatório: {{error.message}}"
+  retry_count: 1

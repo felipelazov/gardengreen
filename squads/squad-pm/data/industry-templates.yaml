@@ -1,0 +1,714 @@
+# Industry Templates
+# Squad: squad-pm | Version: 1.0.0
+# Used by: @pm-chief (Atlax) during intake customization
+# Last updated: 2026-03-08
+#
+# Purpose: Pre-configured intake adaptations for different industries.
+# When @pm-chief identifies the industry during intake, the corresponding
+# template enriches the intake questionnaire, risk focus, compliance
+# requirements, and key metrics.
+
+industries:
+
+  # ===================================================================
+  # SaaS / Software
+  # ===================================================================
+  saas:
+    name: "SaaS / Software"
+    description: "Software as a Service, cloud-based products, subscription models"
+    icon: "☁️"
+
+    intake_additions:
+      - "Modelo de pricing (free / freemium / paid / enterprise)"
+      - "MRR/ARR atual e target"
+      - "Churn rate atual (se existente)"
+      - "Numero de usuarios ativos (DAU/MAU)"
+      - "Stack tecnologico atual (se brownfield)"
+      - "Integrações essenciais (Stripe, Auth0, etc.)"
+      - "Self-service vs sales-led vs product-led growth"
+
+    compliance:
+      required: []
+      conditional:
+        - name: "LGPD"
+          condition: "Usuarios no Brasil"
+        - name: "GDPR"
+          condition: "Usuarios na UE"
+        - name: "SOC 2"
+          condition: "Clientes enterprise"
+        - name: "ISO 27001"
+          condition: "Clientes enterprise / governo"
+
+    risk_focus:
+      primary: ["technical", "schedule"]
+      secondary: ["resource", "external"]
+      industry_specific_risks:
+        - "Churn rate acima do esperado"
+        - "Custo de aquisicao (CAC) insustentavel"
+        - "Escalabilidade tecnica nao atende crescimento"
+        - "Vendor lock-in em infraestrutura cloud"
+
+    key_metrics:
+      north_star: "MRR (Monthly Recurring Revenue)"
+      primary:
+        - name: "MRR"
+          description: "Receita recorrente mensal"
+          target: "Crescimento MoM >= 10% (early stage)"
+        - name: "CAC"
+          description: "Custo de aquisicao de cliente"
+          target: "LTV/CAC >= 3:1"
+        - name: "LTV"
+          description: "Lifetime value do cliente"
+          target: "LTV >= 3x CAC"
+        - name: "Churn"
+          description: "Taxa de cancelamento mensal"
+          target: "<= 5% mensal (SMB), <= 1% mensal (enterprise)"
+        - name: "NPS"
+          description: "Net Promoter Score"
+          target: ">= 40"
+      secondary:
+        - "DAU/MAU ratio"
+        - "Time to value"
+        - "Feature adoption rate"
+        - "Support ticket volume"
+
+    estimation_adjustments:
+      velocity_modifier: 1.0  # baseline
+      complexity_bias: "technical"
+      typical_timeline: "3-6 months for MVP"
+
+  # ===================================================================
+  # Fintech / Financial Services
+  # ===================================================================
+  fintech:
+    name: "Fintech / Financial Services"
+    description: "Financial technology, banking, payments, lending, insurance"
+    icon: "🏦"
+
+    intake_additions:
+      - "Regulador principal (BACEN, CVM, SUSEP, etc.)"
+      - "Compliance requirements especificos"
+      - "Tipo de operacao financeira (pagamentos, credito, investimentos, seguros)"
+      - "Volume transacional esperado (TPV)"
+      - "Requisitos de auditoria e rastreabilidade"
+      - "KYC/AML requirements"
+      - "Integrações bancarias (Open Banking, PIX, SWIFT)"
+      - "Requisitos de criptografia e HSM"
+
+    compliance:
+      required:
+        - name: "LGPD"
+          description: "Lei Geral de Protecao de Dados"
+        - name: "PCI-DSS"
+          description: "Payment Card Industry Data Security Standard"
+          condition: "Se processa cartoes"
+      conditional:
+        - name: "BACEN"
+          condition: "Operacoes reguladas pelo Banco Central"
+        - name: "CVM"
+          condition: "Operacoes de valores mobiliarios"
+        - name: "SUSEP"
+          condition: "Operacoes de seguros"
+        - name: "SOX"
+          condition: "Empresa listada em bolsa"
+        - name: "GDPR"
+          condition: "Usuarios na UE"
+        - name: "PSD2"
+          condition: "Operacoes na UE"
+
+    risk_focus:
+      primary: ["external", "technical"]
+      secondary: ["organizational", "scope"]
+      industry_specific_risks:
+        - "Mudanca regulatoria inesperada"
+        - "Fraude e seguranca de transacoes"
+        - "Indisponibilidade de sistema critico"
+        - "Vazamento de dados financeiros"
+        - "Falha em integracao com instituicoes financeiras"
+        - "Risco de compliance (multas, sancoes)"
+
+    key_metrics:
+      north_star: "TPV (Total Payment Volume)"
+      primary:
+        - name: "TPV"
+          description: "Volume total de transacoes processadas"
+          target: "Crescimento consistente MoM"
+        - name: "Take rate"
+          description: "Percentual de receita sobre TPV"
+          target: "1-3% (pagamentos), 5-15% (credito)"
+        - name: "Default rate"
+          description: "Taxa de inadimplencia"
+          target: "<= 5% (credito)"
+        - name: "Uptime"
+          description: "Disponibilidade do sistema"
+          target: ">= 99.99%"
+        - name: "Fraud rate"
+          description: "Taxa de fraude"
+          target: "<= 0.1% das transacoes"
+      secondary:
+        - "Time to settle"
+        - "KYC completion rate"
+        - "Compliance audit score"
+        - "Cost per transaction"
+
+    estimation_adjustments:
+      velocity_modifier: 0.7  # compliance overhead reduces velocity
+      complexity_bias: "external + technical"
+      typical_timeline: "6-12 months for MVP (compliance-dependent)"
+
+  # ===================================================================
+  # HealthTech
+  # ===================================================================
+  healthtech:
+    name: "HealthTech"
+    description: "Health technology, telemedicine, EHR, medical devices, wellness"
+    icon: "🏥"
+
+    intake_additions:
+      - "Tipo de aplicacao (telemedicina, EHR, dispositivo medico, wellness)"
+      - "Classificacao regulatoria (SaMD class, ANVISA)"
+      - "Dados de saude envolvidos (PHI, prontuario, diagnostico)"
+      - "Integrações com sistemas de saude (HL7/FHIR, DICOM)"
+      - "Profissionais de saude como usuarios?"
+      - "Requisitos de interoperabilidade"
+      - "Ambiente de uso (hospital, clinica, domicilio, mobile)"
+
+    compliance:
+      required:
+        - name: "LGPD"
+          description: "Dados de saude sao sensiveis por definicao"
+      conditional:
+        - name: "ANVISA"
+          condition: "Software como dispositivo medico (SaMD)"
+        - name: "HIPAA"
+          condition: "Usuarios nos EUA"
+        - name: "CFM"
+          condition: "Telemedicina no Brasil"
+        - name: "IEC 62304"
+          condition: "Software de dispositivo medico"
+        - name: "ISO 13485"
+          condition: "Gestao de qualidade para dispositivos medicos"
+
+    risk_focus:
+      primary: ["external", "scope"]
+      secondary: ["technical", "resource"]
+      industry_specific_risks:
+        - "Classificacao regulatoria muda durante desenvolvimento"
+        - "Dados de saude comprometidos (breach)"
+        - "Erro em funcionalidade critica para diagnostico"
+        - "Resistencia de profissionais de saude a adocao"
+        - "Integracao com sistemas legados hospitalares"
+
+    key_metrics:
+      north_star: "Patient outcomes improvement"
+      primary:
+        - name: "Patient engagement"
+          description: "Taxa de engajamento dos pacientes"
+          target: ">= 60% MAU/total patients"
+        - name: "Clinical accuracy"
+          description: "Precisao de diagnosticos/recomendacoes"
+          target: ">= 95%"
+        - name: "Time to care"
+          description: "Tempo ate atendimento"
+          target: "Reducao >= 30% vs baseline"
+        - name: "NPS"
+          description: "Net Promoter Score (pacientes e medicos)"
+          target: ">= 50"
+      secondary:
+        - "Appointment no-show rate"
+        - "EHR data completeness"
+        - "System uptime"
+        - "Regulatory audit findings"
+
+    estimation_adjustments:
+      velocity_modifier: 0.6  # regulatory + clinical validation overhead
+      complexity_bias: "external + scope"
+      typical_timeline: "9-18 months (regulatory-dependent)"
+
+  # ===================================================================
+  # EdTech
+  # ===================================================================
+  edtech:
+    name: "EdTech"
+    description: "Education technology, LMS, e-learning, assessment, tutoring"
+    icon: "📚"
+
+    intake_additions:
+      - "Publico alvo (K-12, ensino superior, corporativo, lifelong learning)"
+      - "Modalidade (sincrono, assincrono, hibrido)"
+      - "Modelo pedagogico (instrucional, construtivista, gamificado)"
+      - "Integrações LMS (Moodle, Canvas, Google Classroom)"
+      - "Certificacao/credenciamento necessario?"
+      - "Acessibilidade (WCAG 2.1 level)"
+      - "Conteudo proprio ou marketplace?"
+
+    compliance:
+      required: []
+      conditional:
+        - name: "LGPD"
+          condition: "Dados de menores de idade"
+        - name: "COPPA"
+          condition: "Criancas <13 anos (EUA)"
+        - name: "FERPA"
+          condition: "Dados educacionais (EUA)"
+        - name: "WCAG 2.1 AA"
+          condition: "Instituicoes publicas ou acessibilidade obrigatoria"
+        - name: "MEC"
+          condition: "Cursos com certificacao oficial (Brasil)"
+
+    risk_focus:
+      primary: ["scope", "resource"]
+      secondary: ["technical", "external"]
+      industry_specific_risks:
+        - "Conteudo pedagogico nao engaja o publico alvo"
+        - "Baixa taxa de conclusao de cursos"
+        - "Acessibilidade insuficiente para publico diverso"
+        - "Escalabilidade em periodos de pico (inicio de semestre)"
+        - "Integracao com ecossistema educacional existente"
+
+    key_metrics:
+      north_star: "Course completion rate"
+      primary:
+        - name: "Completion rate"
+          description: "Taxa de conclusao de cursos/modulos"
+          target: ">= 30% (MOOC), >= 70% (corporate)"
+        - name: "Engagement"
+          description: "Tempo medio de uso semanal"
+          target: ">= 3h/semana (active learners)"
+        - name: "Learning outcomes"
+          description: "Melhoria mensuravel em avaliacoes"
+          target: ">= 20% improvement vs baseline"
+        - name: "NPS"
+          description: "Net Promoter Score"
+          target: ">= 40"
+      secondary:
+        - "DAU/MAU ratio"
+        - "Content creation rate"
+        - "Assessment pass rate"
+        - "Support ticket volume"
+
+    estimation_adjustments:
+      velocity_modifier: 0.9
+      complexity_bias: "scope"
+      typical_timeline: "4-8 months for MVP"
+
+  # ===================================================================
+  # E-commerce / Retail
+  # ===================================================================
+  ecommerce:
+    name: "E-commerce / Retail"
+    description: "Online retail, marketplaces (seller-side), D2C, omnichannel"
+    icon: "🛒"
+
+    intake_additions:
+      - "Modelo (D2C, marketplace seller, omnichannel)"
+      - "Catalogo de produtos (SKUs estimados)"
+      - "Gateway de pagamento (Stripe, PagSeguro, Mercado Pago)"
+      - "Logistica e fulfillment (propria, 3PL, dropship)"
+      - "Plataforma atual (Shopify, VTEX, custom)"
+      - "Sazonalidade (Black Friday, datas comemorativas)"
+      - "Canais de venda (web, app, social commerce)"
+
+    compliance:
+      required:
+        - name: "CDC"
+          description: "Codigo de Defesa do Consumidor"
+      conditional:
+        - name: "LGPD"
+          condition: "Coleta dados pessoais"
+        - name: "PCI-DSS"
+          condition: "Processa pagamentos com cartao"
+        - name: "INMETRO"
+          condition: "Produtos regulados"
+
+    risk_focus:
+      primary: ["technical", "schedule"]
+      secondary: ["external", "scope"]
+      industry_specific_risks:
+        - "Sistema nao suporta pico de Black Friday"
+        - "Integracao de pagamentos falha em producao"
+        - "Estoque desincronizado entre canais"
+        - "SEO e performance impactam conversao"
+        - "Fraude em transacoes online"
+
+    key_metrics:
+      north_star: "GMV (Gross Merchandise Value)"
+      primary:
+        - name: "GMV"
+          description: "Volume bruto de mercadorias vendidas"
+          target: "Crescimento MoM consistente"
+        - name: "Conversion rate"
+          description: "Visitantes que completam compra"
+          target: ">= 2% (geral), >= 5% (retornantes)"
+        - name: "AOV"
+          description: "Average Order Value"
+          target: "Crescimento constante"
+        - name: "Cart abandonment"
+          description: "Taxa de abandono de carrinho"
+          target: "<= 70%"
+        - name: "CAC"
+          description: "Custo de aquisicao de cliente"
+          target: "CAC < AOV * margem"
+      secondary:
+        - "Return rate"
+        - "Customer satisfaction (CSAT)"
+        - "Delivery time (SLA compliance)"
+        - "Inventory turnover"
+
+    estimation_adjustments:
+      velocity_modifier: 0.9
+      complexity_bias: "technical + schedule"
+      typical_timeline: "3-6 months for MVP"
+
+  # ===================================================================
+  # Logistics / Supply Chain
+  # ===================================================================
+  logistics:
+    name: "Logistics / Supply Chain"
+    description: "Transportation, warehousing, fleet management, supply chain optimization"
+    icon: "🚛"
+
+    intake_additions:
+      - "Tipo de operacao (transporte, armazenagem, last-mile, full supply chain)"
+      - "Volume de entregas/operacoes por dia"
+      - "Integrações com ERPs (SAP, Oracle, TOTVS)"
+      - "Rastreamento em tempo real necessario?"
+      - "Frota propria vs terceirizada"
+      - "Cobertura geografica"
+      - "Integrações com correios/transportadoras"
+
+    compliance:
+      required: []
+      conditional:
+        - name: "ANTT"
+          condition: "Transporte rodoviario de cargas"
+        - name: "LGPD"
+          condition: "Dados de motoristas/clientes"
+        - name: "NF-e / CT-e"
+          condition: "Emissao de documentos fiscais"
+        - name: "ANVISA"
+          condition: "Transporte de produtos controlados"
+
+    risk_focus:
+      primary: ["technical", "external"]
+      secondary: ["scope", "resource"]
+      industry_specific_risks:
+        - "GPS/tracking falha em areas sem cobertura"
+        - "Integracao com ERP legado instavel"
+        - "Picos sazonais sobrecarregam sistema"
+        - "Dados de localizacao com latencia alta"
+        - "Compliance fiscal complexo por regiao"
+
+    key_metrics:
+      north_star: "On-time delivery rate"
+      primary:
+        - name: "OTD"
+          description: "On-time delivery rate"
+          target: ">= 95%"
+        - name: "Cost per delivery"
+          description: "Custo medio por entrega"
+          target: "Reducao continua"
+        - name: "Route optimization"
+          description: "% de reducao em km rodados"
+          target: ">= 15% vs manual"
+        - name: "Fleet utilization"
+          description: "Taxa de utilizacao da frota"
+          target: ">= 85%"
+      secondary:
+        - "Fuel efficiency"
+        - "Damage rate"
+        - "Driver satisfaction"
+        - "Warehouse throughput"
+
+    estimation_adjustments:
+      velocity_modifier: 0.8
+      complexity_bias: "technical + external"
+      typical_timeline: "6-12 months for MVP"
+
+  # ===================================================================
+  # Marketplace
+  # ===================================================================
+  marketplace:
+    name: "Marketplace"
+    description: "Two-sided or multi-sided platforms connecting buyers and sellers"
+    icon: "🏪"
+
+    intake_additions:
+      - "Tipo (B2C, B2B, C2C, servicos, produtos)"
+      - "Chicken-and-egg strategy (qual lado atrai primeiro?)"
+      - "Modelo de revenue (comissao, assinatura, listing fee)"
+      - "Take rate target"
+      - "Curadoria vs open marketplace"
+      - "Resolucao de disputas e policies"
+      - "Pagamento split (escrow, repasse)"
+
+    compliance:
+      required:
+        - name: "CDC"
+          description: "Responsabilidade solidaria do marketplace"
+      conditional:
+        - name: "LGPD"
+          condition: "Dados de compradores e vendedores"
+        - name: "PCI-DSS"
+          condition: "Processamento de pagamentos"
+        - name: "BACEN"
+          condition: "Split payment / escrow"
+
+    risk_focus:
+      primary: ["scope", "external"]
+      secondary: ["technical", "schedule"]
+      industry_specific_risks:
+        - "Chicken-and-egg: nao consegue atrair um dos lados"
+        - "Qualidade dos sellers/providers inconsistente"
+        - "Disputas entre compradores e vendedores"
+        - "Fraude por parte de sellers ou buyers"
+        - "Desintermediacao (transacoes fora da plataforma)"
+        - "Split payment complexo com regulacao BACEN"
+
+    key_metrics:
+      north_star: "GMV (Gross Merchandise Value)"
+      primary:
+        - name: "GMV"
+          description: "Volume total transacionado na plataforma"
+          target: "Crescimento MoM >= 15%"
+        - name: "Take rate"
+          description: "Revenue / GMV"
+          target: "10-25% (servicos), 5-15% (produtos)"
+        - name: "Liquidity"
+          description: "% de listings que resultam em transacao"
+          target: ">= 15%"
+        - name: "Supply/Demand ratio"
+          description: "Equilibrio entre oferta e demanda"
+          target: "Monitorar continuamente"
+      secondary:
+        - "Repeat transaction rate"
+        - "Time to first transaction (new user)"
+        - "Seller satisfaction (NPS)"
+        - "Buyer satisfaction (NPS)"
+        - "Dispute resolution time"
+
+    estimation_adjustments:
+      velocity_modifier: 0.85
+      complexity_bias: "scope + external"
+      typical_timeline: "4-9 months for MVP (one side first)"
+
+  # ===================================================================
+  # Enterprise (Internal Tools)
+  # ===================================================================
+  enterprise_internal:
+    name: "Enterprise (Internal Tools)"
+    description: "Internal enterprise applications, ERP extensions, workflow automation"
+    icon: "🏢"
+
+    intake_additions:
+      - "Numero de usuarios internos"
+      - "Sistemas existentes para integrar (ERP, CRM, AD)"
+      - "Requisitos de SSO/LDAP"
+      - "Nivel de acesso e permissoes (RBAC)"
+      - "Ambientes (dev, staging, prod) — on-premise vs cloud?"
+      - "Politica de deploy e change management"
+      - "SLA de disponibilidade interna"
+
+    compliance:
+      required: []
+      conditional:
+        - name: "LGPD"
+          condition: "Dados de funcionarios/clientes"
+        - name: "SOX"
+          condition: "Empresa listada em bolsa"
+        - name: "ISO 27001"
+          condition: "Politica interna de seguranca"
+        - name: "ITIL"
+          condition: "Governanca de TI formalizada"
+
+    risk_focus:
+      primary: ["organizational", "resource"]
+      secondary: ["technical", "scope"]
+      industry_specific_risks:
+        - "Resistencia a mudanca dos usuarios internos"
+        - "Integracao com sistemas legados complexa"
+        - "Dependencia de TI interna para infraestrutura"
+        - "Politica interna atrasa decisoes e aprovacoes"
+        - "Shadow IT concorre com a solucao oficial"
+
+    key_metrics:
+      north_star: "User adoption rate"
+      primary:
+        - name: "Adoption rate"
+          description: "% de usuarios ativos vs total de usuarios"
+          target: ">= 80% em 3 meses"
+        - name: "Process efficiency"
+          description: "Reducao de tempo em processos automatizados"
+          target: ">= 40% reducao"
+        - name: "Error reduction"
+          description: "Reducao de erros em processos"
+          target: ">= 50% reducao"
+        - name: "User satisfaction"
+          description: "CSAT interno"
+          target: ">= 4.0/5"
+      secondary:
+        - "Help desk tickets"
+        - "Training completion rate"
+        - "System uptime"
+        - "Data accuracy"
+
+    estimation_adjustments:
+      velocity_modifier: 0.75  # enterprise bureaucracy
+      complexity_bias: "organizational + technical"
+      typical_timeline: "4-9 months"
+
+  # ===================================================================
+  # IoT / Hardware-Software
+  # ===================================================================
+  iot:
+    name: "IoT / Hardware-Software"
+    description: "Internet of Things, connected devices, embedded systems with cloud"
+    icon: "📡"
+
+    intake_additions:
+      - "Tipo de dispositivo (sensor, atuador, gateway, wearable)"
+      - "Protocolo de comunicacao (MQTT, CoAP, HTTP, BLE, LoRa)"
+      - "Volume de dispositivos esperado"
+      - "Frequencia de transmissao de dados"
+      - "Edge computing vs cloud processing"
+      - "Firmware update OTA (over-the-air)"
+      - "Alimentacao (bateria, rede, solar)"
+
+    compliance:
+      required: []
+      conditional:
+        - name: "ANATEL"
+          condition: "Dispositivo de radiofrequencia no Brasil"
+        - name: "FCC"
+          condition: "Dispositivo de radiofrequencia nos EUA"
+        - name: "CE"
+          condition: "Dispositivo na UE"
+        - name: "LGPD"
+          condition: "Coleta dados pessoais via sensores"
+        - name: "IEC 62443"
+          condition: "Seguranca de sistemas industriais"
+
+    risk_focus:
+      primary: ["technical", "schedule"]
+      secondary: ["external", "resource"]
+      industry_specific_risks:
+        - "Hardware prototyping atrasa software"
+        - "Conectividade instavel em campo"
+        - "Seguranca de dispositivos IoT (botnet, hijack)"
+        - "Bateria insuficiente para frequencia de transmissao"
+        - "Escala de producao de hardware"
+        - "Firmware update falha em campo"
+
+    key_metrics:
+      north_star: "Device uptime"
+      primary:
+        - name: "Device uptime"
+          description: "% de dispositivos online e reportando"
+          target: ">= 99%"
+        - name: "Data freshness"
+          description: "Latencia media dos dados"
+          target: "<= SLA definido por caso"
+        - name: "OTA success rate"
+          description: "Taxa de sucesso de updates OTA"
+          target: ">= 99.5%"
+        - name: "Battery life"
+          description: "Vida util da bateria em campo"
+          target: ">= especificacao"
+      secondary:
+        - "Data accuracy"
+        - "Network coverage"
+        - "Manufacturing yield"
+        - "Field failure rate"
+
+    estimation_adjustments:
+      velocity_modifier: 0.6  # hardware dependency
+      complexity_bias: "technical + schedule"
+      typical_timeline: "9-18 months (hardware + software)"
+
+  # ===================================================================
+  # AI / Machine Learning
+  # ===================================================================
+  ai_ml:
+    name: "AI / Machine Learning"
+    description: "AI-powered products, ML pipelines, data products, LLM applications"
+    icon: "🤖"
+
+    intake_additions:
+      - "Tipo de AI (ML classico, deep learning, LLM, computer vision)"
+      - "Dados disponiveis (volume, qualidade, acesso)"
+      - "Modelo proprio vs API (OpenAI, Anthropic, etc.)"
+      - "Requisitos de latencia de inferencia"
+      - "Requisitos de explicabilidade (XAI)"
+      - "Human-in-the-loop necessario?"
+      - "GPU/compute requirements"
+
+    compliance:
+      required: []
+      conditional:
+        - name: "LGPD"
+          condition: "Dados pessoais no treinamento ou inferencia"
+        - name: "EU AI Act"
+          condition: "Usuarios na UE, risco alto"
+        - name: "Bias audit"
+          condition: "Decisoes automatizadas que afetam pessoas"
+        - name: "GDPR Art. 22"
+          condition: "Decisoes automatizadas na UE"
+
+    risk_focus:
+      primary: ["technical", "scope"]
+      secondary: ["resource", "external"]
+      industry_specific_risks:
+        - "Dados insuficientes ou de baixa qualidade para treinar modelo"
+        - "Modelo nao atinge acuracia necessaria"
+        - "Bias no modelo gera resultados discriminatorios"
+        - "Custo de inferencia inviabiliza o modelo de negocios"
+        - "Alucinacoes de LLM em contextos criticos"
+        - "Dependencia de APIs de terceiros (OpenAI, etc.)"
+
+    key_metrics:
+      north_star: "Model accuracy (or task-specific metric)"
+      primary:
+        - name: "Model performance"
+          description: "Metrica primaria do modelo (accuracy, F1, BLEU, etc.)"
+          target: "Definido por caso de uso"
+        - name: "Inference latency"
+          description: "Tempo de resposta do modelo"
+          target: "<= SLA definido"
+        - name: "Cost per inference"
+          description: "Custo medio por chamada"
+          target: "Sustentavel para o modelo de negocios"
+        - name: "User trust"
+          description: "Confianca do usuario nas recomendacoes"
+          target: ">= 80% acceptance rate"
+      secondary:
+        - "Data pipeline freshness"
+        - "Model drift detection"
+        - "Bias metrics"
+        - "Fallback rate (human-in-the-loop)"
+
+    estimation_adjustments:
+      velocity_modifier: 0.7  # experimentation overhead
+      complexity_bias: "technical + scope"
+      typical_timeline: "3-9 months (data-dependent)"
+
+# -------------------------------------------------------------------
+# Industry Detection Logic
+# -------------------------------------------------------------------
+detection:
+  method: "keyword_matching + explicit_selection"
+  keywords:
+    saas: ["SaaS", "subscription", "cloud", "recurring revenue", "MRR", "ARR"]
+    fintech: ["fintech", "payment", "banking", "lending", "insurance", "financial"]
+    healthtech: ["health", "medical", "telemedicine", "EHR", "clinical", "patient"]
+    edtech: ["education", "learning", "LMS", "course", "student", "teaching"]
+    ecommerce: ["e-commerce", "retail", "shop", "store", "product catalog", "cart"]
+    logistics: ["logistics", "delivery", "fleet", "warehouse", "shipping", "supply chain"]
+    marketplace: ["marketplace", "two-sided", "buyers and sellers", "platform"]
+    enterprise_internal: ["internal tool", "enterprise", "ERP", "workflow", "backoffice"]
+    iot: ["IoT", "sensor", "device", "connected", "embedded", "firmware"]
+    ai_ml: ["AI", "machine learning", "ML", "LLM", "model training", "neural"]
+
+  fallback: "saas"
+  fallback_reason: "SaaS is the most common project type and provides safe defaults"
+  allow_multiple: true
+  multiple_description: "Projects can combine industries (e.g., fintech + marketplace)"

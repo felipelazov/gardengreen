@@ -1,0 +1,643 @@
+# ═══════════════════════════════════════════════════════════════════════
+# PRD Template v1.0
+# ═══════════════════════════════════════════════════════════════════════
+# Squad: squad-pm | Task: write-prd
+# Usado por: @pm-chief (Atlax), @requirements-engineer (Sofia)
+# Validador: @prd-validator (Checker) + prd-validator.py
+#
+# INSTRUCOES DE PREENCHIMENTO:
+# ----------------------------
+# 1. Este template e preenchido por Atlax com apoio de Sofia.
+# 2. Cada secao possui instrucoes em comentarios — leia antes de preencher.
+# 3. Campos com [AUTO] sao preenchidos automaticamente pelo sistema.
+# 4. Campos com [VALIDATOR] sao verificados por Checker na validacao.
+# 5. IDs seguem o padrao: FR-001, NFR-PERF-001, EPIC-001, US-001, RISK-001.
+# 6. Acceptance Criteria usam formato Gherkin: GIVEN...WHEN...THEN.
+# 7. Prioridades seguem MoSCoW: must, should, could, wont.
+# 8. Apos preenchido, rode: *validate-prd para quality gate.
+#
+# QUALITY GATE (Checker):
+#   O PRD precisa passar no prd-quality-gate.md com score >= 7/10
+#   para ser considerado "approved". Dimensoes avaliadas:
+#   - Completude, Clareza, Consistencia, Rastreabilidade,
+#   - Testabilidade, Viabilidade, Priorizacao
+#
+# CONSTITUTIONAL COMPLIANCE (Article IV — No Invention):
+#   Todo statement neste PRD DEVE ser rastreavel a:
+#   - FR-*, NFR-*, CON-* do intake/discovery
+#   - Achados de research (@analyst)
+#   - Decisoes documentadas de stakeholders
+#   NAO invente features que nao vieram de requisitos validados.
+#
+# ═══════════════════════════════════════════════════════════════════════
+
+metadata:
+  # ID unico do PRD
+  # Formato: PRD-{PROJECT}-{SEQ}
+  # Exemplo: PRD-ACME-001
+  # [OBRIGATORIO]
+  prd_id: "PRD-{PROJECT}-001"
+
+  # Versao do documento (Semantic Versioning)
+  # 0.x.x = draft, 1.0.0 = first approved version
+  # [AUTO] - incrementado automaticamente
+  version: "0.1.0"
+
+  # Status do PRD
+  # Valores: draft | review | approved | deprecated | superseded
+  # Transicoes: draft -> review -> approved
+  #             approved -> deprecated (projeto cancelado)
+  #             approved -> superseded (nova versao substitui)
+  # [AUTO] - atualizado por Checker apos validacao
+  status: "draft"
+
+  # Autor principal
+  # [OBRIGATORIO]
+  author: ""
+
+  # Revisores (quem precisa aprovar)
+  # Minimo: 1 reviewer tecnico + 1 stakeholder
+  # [OBRIGATORIO]
+  reviewers: []
+
+  # Datas de ciclo de vida
+  # [AUTO]
+  created_at: ""
+  updated_at: ""
+  approved_at: ""
+
+  # Referencia ao intake que originou este PRD
+  # [OBRIGATORIO]
+  intake_ref: ""
+
+  # Project profile determinado no diagnostic
+  # Valores: simple | standard | enterprise
+  # [AUTO] - preenchido pelo project-diagnostic
+  project_profile: ""
+
+  # Tags para busca e categorizacao
+  # [OPCIONAL]
+  tags: []
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 1. VISAO GERAL
+# ═══════════════════════════════════════════════════════════════════════
+# Esta secao deve comunicar o "o que" e o "por que" do projeto
+# de forma que qualquer stakeholder entenda em 2 minutos.
+# [VALIDATOR] - Checker verifica se todos os campos estao preenchidos.
+# ═══════════════════════════════════════════════════════════════════════
+
+overview:
+  # Nome do projeto (consistente com intake)
+  # [OBRIGATORIO]
+  project_name: ""
+
+  # Pitch de elevador: 1-2 frases que resumem o projeto
+  # Formato sugerido: "Um [tipo de produto] para [publico] que
+  #   [resolve problema] atraves de [abordagem unica]."
+  # Exemplo: "Um SaaS de gestao de ponto para PMEs que elimina
+  #   planilhas manuais atraves de app mobile com geolocalizacao."
+  # [OBRIGATORIO] [VALIDATOR]
+  elevator_pitch: ""
+
+  # Declaracao do problema (vem do intake, bloco 2)
+  # Formato: "[Persona] enfrenta [problema] que causa [impacto]."
+  # [OBRIGATORIO] [VALIDATOR]
+  problem_statement: ""
+
+  # Usuario-alvo principal
+  # [OBRIGATORIO]
+  target_user: ""
+
+  # Contexto de negocio: por que agora? qual a oportunidade?
+  # [OBRIGATORIO]
+  business_context: ""
+
+  # Escopo em alto nivel (1 paragrafo)
+  # [OBRIGATORIO]
+  scope_summary: ""
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 2. GOALS & SUCCESS METRICS
+# ═══════════════════════════════════════════════════════════════════════
+# Define o que significa "sucesso" em termos mensuravelis.
+# OKRs sao gerenciados pelo @okr-tracker (Focus).
+# [VALIDATOR] - Checker verifica se ha pelo menos 1 business goal,
+#   1 user goal e 1 non-goal.
+# ═══════════════════════════════════════════════════════════════════════
+
+goals:
+  # Objetivos de negocio (por que a empresa quer isso?)
+  # Exemplo: "Reduzir custo operacional de gestao de ponto em 60%"
+  # [OBRIGATORIO - minimo 1]
+  business_goals:
+    - ""
+
+  # Objetivos do usuario (por que o usuario quer isso?)
+  # Exemplo: "Bater ponto em <5 segundos pelo celular"
+  # [OBRIGATORIO - minimo 1]
+  user_goals:
+    - ""
+
+  # O que NAO e escopo (explicitar evita scope creep)
+  # Exemplo: "Folha de pagamento — usaremos integracao com sistema existente"
+  # [OBRIGATORIO - minimo 1] [VALIDATOR]
+  non_goals:
+    - ""
+
+  # OKRs (Objectives & Key Results)
+  # Gerenciados por @okr-tracker (Focus)
+  # [OBRIGATORIO - minimo 1 objective com 2+ key results]
+  okrs:
+    - objective: ""
+      key_results:
+        - ""
+        # - ""
+
+  # Metricas de sucesso quantitativas
+  # [OBRIGATORIO - minimo 2]
+  success_metrics:
+    - metric: ""
+      baseline: ""  # valor atual
+      target: ""    # valor desejado
+      timeframe: "" # prazo para atingir
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 3. FUNCTIONAL REQUIREMENTS
+# ═══════════════════════════════════════════════════════════════════════
+# Requisitos funcionais detalhados. Cada FR deve ser:
+# - Unico (sem duplicatas)
+# - Rastreavel (vem de intake, discovery ou research)
+# - Testavel (tem acceptance criteria claros)
+# - Priorizado (P0 a P3)
+#
+# Responsavel: @requirements-engineer (Sofia)
+# [VALIDATOR] - Checker verifica: IDs unicos, ACs em formato Gherkin,
+#   prioridades validas, pelo menos 1 FR-P0.
+#
+# Prioridades:
+#   P0 - Critical: sem isso o produto nao funciona
+#   P1 - High: essencial para o MVP
+#   P2 - Medium: importante mas pode ser v1.1
+#   P3 - Low: nice-to-have, backlog futuro
+# ═══════════════════════════════════════════════════════════════════════
+
+functional_requirements:
+  - id: "FR-001"
+    # Titulo curto e descritivo
+    # Exemplo: "Login com email e senha"
+    # [OBRIGATORIO]
+    title: ""
+
+    # Descricao detalhada do requisito
+    # Inclua: o que, quem, quando, onde (nao o como)
+    # [OBRIGATORIO]
+    description: ""
+
+    # Prioridade MoSCoW + nivel P0-P3
+    # [OBRIGATORIO]
+    priority: ""  # P0-critical | P1-high | P2-medium | P3-low
+
+    # Criterios de aceitacao em formato Gherkin
+    # [OBRIGATORIO - minimo 1 por FR]
+    acceptance_criteria:
+      - "GIVEN ... WHEN ... THEN ..."
+      # - "GIVEN ... WHEN ... THEN ..."
+
+    # Dependencias com outros FRs ou sistemas
+    # Exemplo: ["FR-002", "API-externa-pagamento"]
+    # [OPCIONAL]
+    dependencies: []
+
+    # Rastreabilidade: de onde veio este requisito?
+    # Valores: intake (bloco X), discovery, research, stakeholder
+    # [OBRIGATORIO] [VALIDATOR - Article IV]
+    source: ""
+
+    # Notas adicionais
+    # [OPCIONAL]
+    notes: ""
+
+  # Adicione mais FRs conforme necessario:
+  # - id: "FR-002"
+  #   title: ""
+  #   description: ""
+  #   priority: ""
+  #   acceptance_criteria:
+  #     - "GIVEN ... WHEN ... THEN ..."
+  #   dependencies: []
+  #   source: ""
+  #   notes: ""
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 4. NON-FUNCTIONAL REQUIREMENTS
+# ═══════════════════════════════════════════════════════════════════════
+# NFRs definem qualidades do sistema (performance, seguranca, etc.)
+# Cada NFR deve ser mensuravel com threshold definido.
+#
+# Responsavel: @requirements-engineer (Sofia) + @architect (Aria)
+# [VALIDATOR] - Checker verifica: IDs unicos, thresholds numericos,
+#   pelo menos 1 NFR em performance e security.
+# ═══════════════════════════════════════════════════════════════════════
+
+non_functional_requirements:
+  # --- Performance ---
+  # Requisitos de velocidade, throughput, latencia
+  performance:
+    - id: "NFR-PERF-001"
+      # Descricao do requisito de performance
+      # Exemplo: "Tempo de resposta da API"
+      requirement: ""
+      # Metrica mensuravel
+      # Exemplo: "p95 response time"
+      metric: ""
+      # Threshold aceitavel
+      # Exemplo: "<200ms"
+      threshold: ""
+
+  # --- Security ---
+  # Requisitos de seguranca e protecao de dados
+  security:
+    - id: "NFR-SEC-001"
+      # Exemplo: "Autenticacao com MFA obrigatorio para admins"
+      requirement: ""
+      # Compliance associada (LGPD, SOC2, etc.)
+      compliance_ref: ""
+
+  # --- Scalability ---
+  # Requisitos de crescimento e elasticidade
+  scalability:
+    - id: "NFR-SCALE-001"
+      # Exemplo: "Suportar 10x crescimento de usuarios em 12 meses"
+      requirement: ""
+      # Metrica e threshold
+      metric: ""
+      threshold: ""
+
+  # --- Usability ---
+  # Requisitos de experiencia do usuario
+  usability:
+    - id: "NFR-UX-001"
+      # Exemplo: "Onboarding completo em <3 minutos sem tutorial"
+      requirement: ""
+      # Metrica (SUS score, task completion rate, etc.)
+      metric: ""
+      threshold: ""
+
+  # --- Reliability ---
+  # Requisitos de disponibilidade e recuperacao
+  reliability:
+    - id: "NFR-REL-001"
+      # Exemplo: "Uptime de 99.9% (exceto manutencao programada)"
+      requirement: ""
+      metric: ""
+      threshold: ""
+
+  # --- Accessibility ---
+  # Requisitos de acessibilidade
+  accessibility:
+    - id: "NFR-A11Y-001"
+      # Exemplo: "WCAG 2.1 Level AA compliance"
+      requirement: ""
+      standard: ""  # WCAG 2.1 AA, Section 508, etc.
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 5. USER STORIES & STORY MAP
+# ═══════════════════════════════════════════════════════════════════════
+# Story Map estruturado conforme Jeff Patton.
+# Backbone = atividades de alto nivel (fluxo do usuario)
+# Releases = agrupamento de stories por entrega
+#
+# Responsavel: @requirements-engineer (Sofia)
+# Priorizacao: @prioritization-engine (Sage)
+# ═══════════════════════════════════════════════════════════════════════
+
+story_map:
+  # Backbone: atividades principais do usuario (esquerda -> direita)
+  # Exemplo: ["Cadastro", "Login", "Dashboard", "Gestao", "Relatorios"]
+  backbone: []
+
+  # Stories organizadas por release
+  releases:
+    # MVP: minimo viavel para primeiro lancamento
+    mvp:
+      # Nome descritivo da release
+      name: "MVP"
+      # Data alvo
+      target_date: ""
+      # Stories incluidas
+      stories:
+        - id: "US-001"
+          title: ""
+          as_a: ""       # Como [persona]
+          i_want: ""     # Eu quero [acao]
+          so_that: ""    # Para que [beneficio]
+          points: 0      # Story points (fibonacci: 1,2,3,5,8,13)
+          fr_refs: []    # FRs relacionados: ["FR-001", "FR-002"]
+          acceptance_criteria:
+            - "GIVEN ... WHEN ... THEN ..."
+
+    # v1.0: primeira versao completa
+    v1:
+      name: "v1.0"
+      target_date: ""
+      stories: []
+
+    # v1.1+: evolucoes futuras
+    future:
+      name: "Future"
+      target_date: ""
+      stories: []
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 6. UI/UX GOALS
+# ═══════════════════════════════════════════════════════════════════════
+# Diretrizes de alto nivel para UI/UX.
+# NAO sao wireframes — sao principios e fluxos-chave.
+# Wireframes ficam com @ux-design-expert se necessario.
+# ═══════════════════════════════════════════════════════════════════════
+
+ux_goals:
+  # Principios de design que devem guiar toda a UI
+  # Exemplo: ["Mobile-first", "Minimalista", "Acessivel"]
+  # [OBRIGATORIO - minimo 2]
+  design_principles: []
+
+  # Fluxos-chave do usuario (os mais importantes)
+  # Descreva o caminho feliz de cada fluxo critico
+  # [OBRIGATORIO - minimo 1]
+  key_flows:
+    - name: ""
+      description: ""
+      steps:
+        - ""
+      # success_criteria: ""
+
+  # Requisitos de acessibilidade (alto nivel)
+  # Exemplo: "WCAG 2.1 AA, suporte a leitor de tela"
+  # [OBRIGATORIO]
+  accessibility: ""
+
+  # Referencias visuais / brand guidelines
+  # [OPCIONAL]
+  brand_guidelines: ""
+
+  # Plataformas alvo
+  # Exemplo: ["Web (Chrome, Firefox, Safari)", "iOS 15+", "Android 12+"]
+  # [OBRIGATORIO]
+  target_platforms: []
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 7. TECHNICAL ASSUMPTIONS & CONSTRAINTS
+# ═══════════════════════════════════════════════════════════════════════
+# Premissas e restricoes tecnicas que afetam a arquitetura.
+# Alimenta as decisoes de @architect (Aria).
+#
+# IMPORTANTE: Assumptions sao coisas que acreditamos ser verdade
+# mas que precisam ser validadas. Constraints sao limitacoes reais.
+# ═══════════════════════════════════════════════════════════════════════
+
+technical:
+  # Visao arquitetural de alto nivel
+  # Exemplo: "Monolito modular com API REST, migracao futura para microservices"
+  # [OBRIGATORIO]
+  architecture: ""
+
+  # Stack tecnologica proposta ou existente
+  # [OBRIGATORIO]
+  stack:
+    frontend: []    # Exemplo: ["React", "Next.js", "TailwindCSS"]
+    backend: []     # Exemplo: ["Node.js", "Express", "TypeScript"]
+    database: []    # Exemplo: ["PostgreSQL", "Supabase"]
+    infrastructure: []  # Exemplo: ["Vercel", "AWS S3", "CloudFlare"]
+    other: []       # Exemplo: ["Stripe", "SendGrid"]
+
+  # Integracoes com sistemas externos
+  # [OBRIGATORIO se houver integracoes]
+  integrations:
+    - name: ""
+      type: ""       # api | webhook | file | database | oauth
+      direction: ""  # inbound | outbound | bidirectional
+      priority: ""   # must | should | could
+      notes: ""
+
+  # Restricoes tecnicas inegociaveis
+  # Exemplo: "Deve rodar em infraestrutura on-premise do cliente"
+  # [OBRIGATORIO - minimo 1]
+  constraints:
+    - ""
+
+  # Premissas tecnicas (precisam ser validadas)
+  # Exemplo: "API do parceiro suporta webhook em tempo real"
+  # [OBRIGATORIO - minimo 1]
+  assumptions:
+    - ""
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 8. EPIC STRUCTURE
+# ═══════════════════════════════════════════════════════════════════════
+# Estrutura de epics para execucao.
+# Cada epic agrupa stories relacionadas e define escopo de entrega.
+# Epics alimentam o *execute-epic do @pm (Morgan).
+#
+# Responsavel: @pm-chief (Atlax)
+# Priorizacao: @prioritization-engine (Sage) com WSJF ou RICE
+# ═══════════════════════════════════════════════════════════════════════
+
+epics:
+  - id: "EPIC-001"
+    # Titulo do epic
+    # Formato: verbo + objeto. Exemplo: "Implementar autenticacao"
+    # [OBRIGATORIO]
+    title: ""
+
+    # Descricao com contexto de negocio
+    # [OBRIGATORIO]
+    description: ""
+
+    # Prioridade do epic
+    # [OBRIGATORIO]
+    priority: ""  # P0 | P1 | P2 | P3
+
+    # Stories que compoem este epic
+    # Referencia as stories da secao 5 (story_map)
+    stories:
+      - id: "US-001"
+        title: ""
+        points: 0
+        acceptance_criteria: []
+
+    # Dependencias com outros epics
+    # [OPCIONAL]
+    depends_on: []
+
+    # Estimativa total em story points
+    # [AUTO] - soma dos points das stories
+    total_points: 0
+
+  # Adicione mais epics conforme necessario:
+  # - id: "EPIC-002"
+  #   title: ""
+  #   description: ""
+  #   priority: ""
+  #   stories: []
+  #   depends_on: []
+  #   total_points: 0
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 9. RISKS & MITIGATIONS
+# ═══════════════════════════════════════════════════════════════════════
+# Riscos identificados com probabilidade, impacto e plano de mitigacao.
+# Responsavel: @risk-strategist (Risco) usando ATOM Methodology.
+# Alimenta o risk-dashboard-tmpl.md
+#
+# [VALIDATOR] - Checker verifica: pelo menos 3 riscos,
+#   todos com mitigacao definida.
+# ═══════════════════════════════════════════════════════════════════════
+
+risks:
+  - id: "RISK-001"
+    # Descricao clara do risco
+    # Formato: "Se [condicao], entao [consequencia]"
+    # Exemplo: "Se a API do parceiro mudar sem aviso, o modulo de
+    #   integracao para de funcionar."
+    # [OBRIGATORIO]
+    description: ""
+
+    # Categoria do risco
+    # Valores: technical, schedule, scope, resource, external,
+    #   business, compliance
+    # [OBRIGATORIO]
+    category: ""
+
+    # Probabilidade de ocorrencia
+    # Valores: very-low | low | medium | high | very-high
+    # [OBRIGATORIO]
+    probability: ""
+
+    # Impacto se ocorrer
+    # Valores: negligible | minor | moderate | major | critical
+    # [OBRIGATORIO]
+    impact: ""
+
+    # Plano de mitigacao (como reduzir probabilidade ou impacto)
+    # [OBRIGATORIO]
+    mitigation: ""
+
+    # Plano de contingencia (o que fazer SE o risco se materializar)
+    # [OPCIONAL]
+    contingency: ""
+
+    # Responsavel pelo monitoramento
+    # [OBRIGATORIO]
+    owner: ""
+
+  # Adicione mais riscos (minimo 3 recomendado):
+  # - id: "RISK-002"
+  #   description: ""
+  #   category: ""
+  #   probability: ""
+  #   impact: ""
+  #   mitigation: ""
+  #   contingency: ""
+  #   owner: ""
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# 10. TIMELINE & MILESTONES
+# ═══════════════════════════════════════════════════════════════════════
+# Cronograma macro com milestones.
+# Responsavel: @schedule-planner (Tempo)
+# Metodologia: Critical Chain (CCPM) + Cone of Uncertainty
+#
+# NOTA: Estimativas neste estagio tem +/- 50% de variacao
+# (Cone of Uncertainty). Refinamento ocorre a cada epic.
+# ═══════════════════════════════════════════════════════════════════════
+
+timeline:
+  # Milestones do projeto
+  # [OBRIGATORIO - minimo 3: kickoff, mvp, launch]
+  milestones:
+    - name: "Kickoff"
+      date: ""
+      deliverables: []
+    - name: "MVP Release"
+      date: ""
+      deliverables: []
+    - name: "v1.0 Launch"
+      date: ""
+      deliverables: []
+
+  # Duracao total estimada
+  # Formato: "X semanas" ou "X meses"
+  # [OBRIGATORIO]
+  estimated_duration: ""
+
+  # Cone of Uncertainty range
+  # [AUTO] - calculado por cost-estimator.py
+  uncertainty:
+    optimistic: ""   # melhor caso
+    most_likely: ""  # caso mais provavel
+    pessimistic: ""  # pior caso
+
+  # Fases macro do projeto
+  # [OBRIGATORIO]
+  phases:
+    - name: "Discovery & Planning"
+      duration: ""
+      epics: []
+    - name: "MVP Development"
+      duration: ""
+      epics: []
+    - name: "Testing & QA"
+      duration: ""
+      epics: []
+    - name: "Launch & Stabilization"
+      duration: ""
+      epics: []
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# VALIDATION (preenchido por @prd-validator / Checker)
+# ═══════════════════════════════════════════════════════════════════════
+# Esta secao e preenchida AUTOMATICAMENTE pelo prd-validator.py
+# NAO edite manualmente.
+# ═══════════════════════════════════════════════════════════════════════
+
+validation:
+  # Score geral (0-10)
+  # [AUTO]
+  score: 0
+
+  # Scores por dimensao (0-10 cada)
+  # [AUTO]
+  dimensions:
+    completeness: 0    # Todos os campos obrigatorios preenchidos?
+    clarity: 0         # Linguagem clara e sem ambiguidade?
+    consistency: 0     # Sem contradicoes internas?
+    traceability: 0    # FRs rastreaveis a intake/discovery?
+    testability: 0     # ACs claros e verificaveis?
+    feasibility: 0     # Tecnicamente viavel com as restricoes?
+    prioritization: 0  # Priorizacao coerente (MoSCoW + P0-P3)?
+
+  # Status da validacao
+  # Valores: not-validated | passed | failed | needs-revision
+  # [AUTO]
+  status: "not-validated"
+
+  # Findings do validador
+  # [AUTO]
+  findings: []
+
+  # Data da ultima validacao
+  # [AUTO]
+  validated_at: ""

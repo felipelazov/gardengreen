@@ -1,0 +1,52 @@
+name: "squad-dados-operacoes"
+version: 0.1.0
+description: "Squad responsavel por business intelligence, infraestrutura, performance e integracoes do GardenGreen. Habilita decisoes data-driven e escala a plataforma."
+author: "GardenGreen"
+license: MIT
+
+aiox:
+  minVersion: "2.1.0"
+  type: squad
+
+ecosystem:
+  position: ESCALAR
+  revenue_role: AMPLIFICA
+  priority: P2
+  wave: 3
+  handoffs:
+    receives_from:
+      - squad: squad-sucesso-cliente
+        data: "metricas de retencao, sinais de churn, feedback qualitativo"
+      - squad: squad-produto-core
+        data: "dados de uso, metricas de performance, logs de erro"
+    sends_to:
+      - squad: squad-marketing-growth
+        data: "perfil de usuario, melhores canais, dados de ICP, insights de comportamento"
+
+components:
+  agents:
+    - agents/*.yaml
+  tasks:
+    - tasks/*.yaml
+  workflows:
+    - workflows/*.yaml
+  templates:
+    - templates/*.md
+
+dependencies:
+  - squad-produto-core
+  - squad-sucesso-cliente
+
+keywords:
+  - aiox
+  - squad
+  - gardengreen
+  - data
+  - analytics
+  - devops
+  - integrations
+  - business-intelligence
+  - infrastructure
+  - posthog
+  - supabase
+  - vercel

@@ -1,0 +1,80 @@
+name: "squad-sucesso-cliente"
+version: 0.1.0
+description: "Squad responsável por reter jardineiros na plataforma GardenGreen. Protege receita através de health scoring, engajamento inteligente, value reinforcement e construção de comunidade. O jardineiro tem ZERO custo de troca — retenção vem de HÁBITO + VALOR percebido, não lock-in."
+author: "GardenGreen"
+license: MIT
+
+aiox:
+  minVersion: "2.1.0"
+  type: squad
+
+ecosystem:
+  position: RETER
+  revenue_role: PROTEGE
+  priority: P0
+  description: >
+    Protege a receita recorrente garantindo que jardineiros permaneçam,
+    se tornem usuários habituais e percebam valor claro no GardenGreen.
+    Custo de troca é ZERO — o jardineiro pode desinstalar e voltar pro
+    WhatsApp + caderninho a qualquer momento. Retenção deve vir de
+    HÁBITO e VALOR percebido, nunca de lock-in.
+  handoffs:
+    receives_from:
+      - squad: squad-produto-core
+        data: "usuário ativo, dados de uso, health score, feature adoption, value events"
+    sends_to:
+      - squad: squad-dados-operacoes
+        data: "métricas de retenção, sinais de churn, feedback coletado, NPS scores"
+
+value_chain:
+  stage: Retain
+  funnel_position: "Active User → Engaged → Habitual → Advocate"
+  key_metric: "Monthly Retention Rate"
+  target: ">= 85% em 90 dias"
+  secondary_metrics:
+    - "Net Promoter Score >= 50"
+    - "DAU/MAU ratio >= 40%"
+    - "Churn rate < 5% mensal"
+
+target_user:
+  primary:
+    persona: "Jardineiro autônomo"
+    tech_level: LOW
+    daily_routine: "Manhã cedo no jardim, celular no bolso, checa agenda entre clientes"
+    pain: "Não percebe valor, esquece de usar, volta pro WhatsApp"
+    retention_risk: HIGH
+    budget: "R$29-49/mês"
+  secondary:
+    persona: "Empresa de jardinagem (2-10 jardineiros)"
+    tech_level: LOW-MEDIUM
+    pain: "Equipe não adota, gestão fragmentada"
+    retention_risk: MEDIUM
+    budget: "R$99-199/mês"
+
+components:
+  agents:
+    - agents/*.yaml
+  tasks:
+    - tasks/*.yaml
+  workflows:
+    - workflows/*.yaml
+  templates:
+    - templates/*.md
+  config:
+    - config/*.md
+
+dependencies: []
+
+keywords:
+  - aiox
+  - squad
+  - gardengreen
+  - retention
+  - customer-success
+  - churn
+  - engagement
+  - health-score
+  - nps
+  - community
+  - habit-loop
+  - gamification

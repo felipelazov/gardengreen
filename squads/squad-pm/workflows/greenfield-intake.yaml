@@ -1,0 +1,765 @@
+# =============================================================================
+# GREENFIELD INTAKE — New Project from Scratch (3 Phases)
+# =============================================================================
+# Optimized workflow for brand new projects where nothing exists yet.
+# Faster than the full PM cycle — focuses on getting from zero to a
+# development-ready MVP PRD as quickly as possible.
+#
+# This workflow is ideal for:
+#   - Solo founders with an idea
+#   - Startups at ideation/validation stage
+#   - Hackathon-style rapid prototyping
+#   - MVPs where speed matters more than exhaustive planning
+#
+# Output: Ready-to-develop MVP PRD + Lean Canvas
+# Next step: full-pm-cycle (phases 3-6) if project grows in scope
+#
+# Author: Synkra AIOX — Squad PM
+# Version: 1.0.0
+# Last updated: 2026-03-08
+# =============================================================================
+
+name: Greenfield Intake
+id: greenfield-intake
+version: 1.0.0
+description: >-
+  Fast intake para projetos novos: intake → discovery rapido → PRD minimo.
+  Otimizado para ir de zero a um MVP PRD pronto para desenvolvimento no
+  menor tempo possivel, sem sacrificar qualidade nos artefatos criticos.
+trigger: "*greenfield {project_name}"
+executor: pm-chief
+
+# =============================================================================
+# GLOBAL CONFIGURATION
+# =============================================================================
+
+config:
+  # This workflow assumes simple/standard profile
+  target_profiles: [simple, standard]
+  not_recommended_for: enterprise
+
+  # Quality thresholds (relaxed compared to full cycle)
+  quality:
+    minimum_prd_score: 6.0          # Lower than full cycle (7.0)
+    minimum_dimension_score: 4.0    # Lower than full cycle (5.0)
+    audit_max_retries: 2            # Fewer retries for speed
+
+  # Execution preferences
+  execution:
+    default_mode: interactive
+    parallel_enabled: true
+    auto_advance_on_simple: true    # Auto-advance for simple profile
+    estimated_total_time: "4-8 horas"
+
+  # Output directories
+  paths:
+    intake: "docs/intake/"
+    discovery: "docs/discovery/"
+    prd: "docs/prd/"
+
+  # Error handling — more lenient for speed
+  error_handling:
+    on_task_failure: "retry_once"
+    on_gate_failure: "warn_and_suggest"
+    on_worker_failure: "fallback_to_agent"
+    max_task_retries: 1
+
+# =============================================================================
+# PHASE 0: SMART INTAKE
+# =============================================================================
+# Full intake questionnaire (5 blocks) adapted for greenfield projects.
+# Since nothing exists, we need to extract maximum information from the
+# founder/product owner's vision.
+#
+# Key difference from full-pm-cycle intake:
+#   - More emphasis on problem/solution fit
+#   - Less emphasis on existing constraints
+#   - Faster classification (defaults to simple/standard)
+#   - Automatic lean canvas seed from intake data
+# =============================================================================
+
+phases:
+  phase_0_intake:
+    name: "Smart Intake"
+    description: >-
+      Intake inteligente para projetos greenfield. Executa o questionario
+      completo de 5 blocos (negocio, problema, solucao, restricoes, sucesso)
+      com adaptacoes para projetos novos. Classifica automaticamente e
+      gera seed data para discovery rapido.
+    order: 0
+    estimated_duration: "1-2 horas"
+
+    agents:
+      primary: pm-chief
+      support: []
+
+    tasks:
+      - id: intake-prep
+        name: "Intake Preparation"
+        agent: pm-chief
+        description: >-
+          Gerar roteiro de reuniao adaptado para greenfield. Perguntas
+          focam em visao, problema e MVP — menos enfase em restricoes
+          existentes (pois nada existe ainda).
+        inputs:
+          - industry_context: "{project.industry}"
+          - client_name: "{project.founder_name}"
+        outputs:
+          - "docs/intake/roteiro-reuniao-{date}.md"
+        greenfield_adaptations:
+          block_1_negocio:
+            emphasis: "medium"
+            extra_questions:
+              - "Qual e a sua experiencia com o dominio do problema?"
+              - "Ja validou a ideia com potenciais usuarios?"
+          block_2_problema:
+            emphasis: "high"
+            extra_questions:
+              - "Quantas pessoas voce entrevistou sobre esse problema?"
+              - "Qual a alternativa mais proxima que as pessoas usam hoje?"
+              - "O problema e frequente o suficiente para justificar um produto?"
+          block_3_solucao:
+            emphasis: "high"
+            extra_questions:
+              - "Qual a MENOR versao da solucao que resolveria o problema? (MVP)"
+              - "O que voce NAO faria na primeira versao?"
+              - "Se tivesse que lancar em 2 semanas, o que teria?"
+          block_4_restricoes:
+            emphasis: "low"
+            note: "Projetos greenfield tem menos restricoes tecnicas"
+            simplified_questions:
+              - "Orcamento disponivel (range)?"
+              - "Prazo ideal para MVP?"
+              - "Alguma preferencia tecnica forte?"
+          block_5_sucesso:
+            emphasis: "medium"
+            extra_questions:
+              - "Como saberia que o MVP deu certo em 30 dias?"
+              - "Qual metrica voce olharia primeiro?"
+        on_error:
+          action: "warn_and_continue"
+          message: "Roteiro nao gerado. Intake parser pode funcionar com input direto."
+
+      - id: intake-parser
+        name: "Intake Parser"
+        agent: pm-chief
+        worker: intake-parser.py
+        execution_type: hybrid
+        description: >-
+          Parsear dados coletados em estrutura YAML. Para greenfield,
+          o parser tambem extrai seed data para o Lean Canvas (problema,
+          solucao, segmento de clientes, proposta de valor unica).
+        inputs:
+          - raw_intake_data: "docs/intake/roteiro-reuniao-{date}.md OR direct user input"
+        outputs:
+          - "docs/intake/parsed-intake.yaml"
+          - "docs/intake/lean-canvas-seed.yaml"
+        greenfield_extras:
+          lean_canvas_seed:
+            description: >-
+              Extrair automaticamente do intake os campos iniciais do
+              Lean Canvas: problema (bloco 2), solucao (bloco 3),
+              segmento (bloco 1), proposta de valor (inferido),
+              metricas-chave (bloco 5).
+            fields_extracted:
+              - problem: "from block 2 — dor principal"
+              - solution: "from block 3 — solucao ideal (MVP version)"
+              - customer_segments: "from block 1 — quem sao os clientes"
+              - unique_value_proposition: "inferred from problem + solution"
+              - key_metrics: "from block 5 — como medir sucesso"
+              - channels: "inferred from customer segments"
+              - cost_structure: "from block 4 — orcamento"
+              - revenue_streams: "from block 1 — modelo de receita"
+        on_error:
+          action: "retry_once"
+          fallback: "pm-chief parses manually"
+
+      - id: project-diagnostic
+        name: "Project Diagnostic (Greenfield)"
+        agent: pm-chief
+        description: >-
+          Classificar projeto greenfield. Para greenfield, o diagnostico
+          e simplificado: assume-se que integracao e infraestrutura sao
+          baixas (projeto novo), foco em scope e risk.
+        inputs:
+          - "docs/intake/parsed-intake.yaml"
+        outputs:
+          - "docs/project-brief.yaml"
+          - "docs/intake/diagnostic-report.md"
+        greenfield_defaults:
+          integration_score: 1       # No existing integrations
+          infrastructure_score: 1    # Starting from scratch
+          knowledge_score: "from intake (domain familiarity)"
+          scope_score: "from intake (number of features)"
+          risk_score: "from intake (criticality)"
+        forced_profile_cap: "standard"
+        note: >-
+          Projetos greenfield nunca sao classificados como 'enterprise'
+          neste workflow. Se o diagnostico indicar enterprise, sugerir
+          usar full-pm-cycle em vez de greenfield-intake.
+        on_enterprise_detected:
+          action: "warn_and_redirect"
+          message: >-
+            Projeto classificado como enterprise. O workflow greenfield-intake
+            nao e recomendado para projetos enterprise. Recomendacao: usar
+            *full-cycle {project_name} para o ciclo completo.
+          allow_override: true
+        on_error:
+          action: "halt_and_report"
+          message: "Diagnostico falhou. Necessario para prosseguir."
+
+    quality_gate:
+      name: "Smart Intake Complete"
+      type: standard
+      criteria:
+        - id: "gate_0_1"
+          name: "project_brief_generated"
+          description: "Project brief existe com classificacao"
+          check: "file_exists('docs/project-brief.yaml') AND file_not_empty"
+        - id: "gate_0_2"
+          name: "problem_clearly_defined"
+          description: "Problema principal esta claramente articulado no brief"
+          check: "project_brief.problem_statement IS NOT NULL AND length >= 50"
+        - id: "gate_0_3"
+          name: "mvp_scope_identified"
+          description: "Escopo de MVP foi discutido e ha indicacoes iniciais"
+          check: "project_brief.mvp_scope IS NOT NULL"
+        - id: "gate_0_4"
+          name: "lean_canvas_seed_generated"
+          description: "Seed data para Lean Canvas foi extraido do intake"
+          check: "file_exists('docs/intake/lean-canvas-seed.yaml')"
+      on_pass:
+        action: "log_and_advance"
+        message: "Smart Intake completo. Problema definido, MVP delineado. Avancando para Quick Discovery."
+      on_fail:
+        action: "block_and_fix"
+        message: "Intake incompleto. Faltam: {failed_criteria}. Re-executar intake com mais detalhes."
+        fix_suggestions:
+          - "Se problema nao claro: perguntar ao usuario 'Qual a DOR PRINCIPAL que o produto resolve?'"
+          - "Se MVP nao definido: perguntar 'Se tivesse que lancar em 2 semanas, o que teria?'"
+          - "Se lean canvas seed nao gerado: re-executar intake-parser"
+
+    outputs:
+      - path: "docs/project-brief.yaml"
+        description: "Brief do projeto com classificacao greenfield"
+      - path: "docs/intake/diagnostic-report.md"
+        description: "Diagnostico simplificado para greenfield"
+      - path: "docs/intake/parsed-intake.yaml"
+        description: "Dados do intake parseados em YAML"
+      - path: "docs/intake/lean-canvas-seed.yaml"
+        description: "Seed data para Lean Canvas extraido do intake"
+
+    rollback:
+      trigger: "intake data insufficient"
+      steps:
+        - "Preservar dados parciais coletados"
+        - "Identificar quais blocos do questionario faltam"
+        - "Re-executar intake-prep com foco nos blocos faltantes"
+        - "Se usuario nao tem respostas: sugerir pesquisa antes de prosseguir"
+
+  # =============================================================================
+  # PHASE 1: QUICK DISCOVERY
+  # =============================================================================
+  # Abbreviated discovery focused on MVP. No full market analysis.
+  # Produces a Lean Canvas and minimal OST (enough for traceability).
+  #
+  # Key differences from full discovery:
+  #   - No competitive landscape analysis (market-analysis task skipped)
+  #   - Lean Canvas driven by intake seed data (faster)
+  #   - OST is minimal (1 outcome, 3-5 opportunities, solutions = MVP features)
+  #   - JTBD limited to top 3 jobs
+  # =============================================================================
+
+  phase_1_quick_discovery:
+    name: "Quick Discovery"
+    description: >-
+      Discovery abreviado focado em MVP. Sem analise de mercado completa.
+      Produz Lean Canvas e OST minimo (suficiente para rastreabilidade
+      de requisitos conforme Article IV). Otimizado para velocidade.
+    order: 1
+    estimated_duration: "1-3 horas"
+
+    agents:
+      primary: discovery-lead
+      support:
+        - market-analyst
+
+    tasks:
+      - id: discovery-session
+        name: "Discovery Session (Abbreviated)"
+        agent: discovery-lead
+        description: >-
+          Sessao de discovery reduzida focada em MVP. Produz OST minimo
+          com 1 desired outcome, 3-5 oportunidades e solucoes mapeadas
+          para features do MVP. JTBD limitado aos top 3 jobs.
+          Usa dados do intake para acelerar — nao comeca do zero.
+        inputs:
+          - "docs/project-brief.yaml"
+          - "docs/intake/parsed-intake.yaml"
+          - "docs/intake/lean-canvas-seed.yaml"
+        outputs:
+          - "docs/discovery/opportunity-tree.md"
+          - "docs/discovery/jtbd-analysis.md"
+        preconditions:
+          - "phase_0_intake.quality_gate PASSED"
+        greenfield_simplifications:
+          ost_requirements:
+            desired_outcomes: 1       # Just the primary outcome
+            min_opportunities: 3      # Minimum 3 opportunities
+            max_opportunities: 5      # Cap at 5 for MVP focus
+            solutions_per_opportunity: "1-2 (MVP features only)"
+          jtbd_requirements:
+            min_jobs: 3               # Top 3 JTBD only
+            max_jobs: 5               # Cap at 5
+            format: "When [situation], I want to [motivation], so I can [outcome]"
+          elicit_points:
+            - "Validar desired outcome principal com usuario"
+            - "Confirmar que oportunidades identificadas refletem a visao do usuario"
+            - "Verificar se top 3 JTBD cobrem os casos de uso mais importantes"
+        time_box: "45-60 minutes"
+        on_error:
+          action: "halt_and_report"
+          message: "Discovery session falhou. OST e JTBD sao criticos mesmo para MVP."
+
+      - id: lean-canvas
+        name: "Lean Canvas (Seed-Accelerated)"
+        agent: market-analyst
+        description: >-
+          Gerar Lean Canvas usando seed data extraido do intake.
+          O canvas e pre-populado com dados do intake e refinado
+          pelo agente market-analyst com insights de discovery.
+          Todos os 9 blocos devem ser preenchidos.
+        inputs:
+          - "docs/intake/lean-canvas-seed.yaml"
+          - "docs/discovery/opportunity-tree.md"
+          - "docs/discovery/jtbd-analysis.md"
+          - "docs/project-brief.yaml"
+        outputs:
+          - "docs/discovery/lean-canvas.md"
+        template: "lean-canvas-tmpl.md"
+        preconditions:
+          - "discovery-session completed"
+        seed_acceleration:
+          description: >-
+            O lean-canvas-seed.yaml contem dados pre-extraidos do intake.
+            O agente deve usar esses dados como base e enriquecer com
+            insights do OST e JTBD. Isso reduz o tempo de geracao
+            de ~1h para ~15-20 minutos.
+          pre_populated_fields:
+            - problem
+            - solution
+            - customer_segments
+            - key_metrics
+          fields_to_complete:
+            - unique_value_proposition
+            - unfair_advantage
+            - channels
+            - cost_structure
+            - revenue_streams
+        nine_blocks_validation:
+          - problem: "Top 3 problemas, alternativas existentes"
+          - solution: "Top 3 features do MVP"
+          - key_metrics: "Metricas de sucesso para 30/60/90 dias"
+          - unique_value_proposition: "Frase unica de posicionamento"
+          - unfair_advantage: "O que nao pode ser copiado facilmente"
+          - channels: "Como alcancara os primeiros usuarios"
+          - customer_segments: "Early adopters + segmento principal"
+          - cost_structure: "Custos fixos e variaveis iniciais"
+          - revenue_streams: "Modelo de monetizacao"
+        on_error:
+          action: "retry_once"
+          message: "Lean Canvas falhou. Retentando com seed data."
+
+    quality_gate:
+      name: "Quick Discovery Complete"
+      type: standard
+      criteria:
+        - id: "gate_1_1"
+          name: "ost_minimal_created"
+          description: "OST minimo com 1 outcome e 3+ oportunidades"
+          check: "file_exists('docs/discovery/opportunity-tree.md') AND opportunities >= 3"
+        - id: "gate_1_2"
+          name: "jtbd_top3_documented"
+          description: "Top 3 JTBD statements documentados"
+          check: "file_exists('docs/discovery/jtbd-analysis.md') AND jtbd_count >= 3"
+        - id: "gate_1_3"
+          name: "lean_canvas_complete"
+          description: "Lean Canvas com todos os 9 blocos preenchidos"
+          check: "file_exists('docs/discovery/lean-canvas.md') AND all_9_blocks_filled"
+      on_pass:
+        action: "log_and_advance"
+        message: "Quick Discovery completo. OST, JTBD e Lean Canvas prontos. Avancando para MVP PRD."
+      on_fail:
+        action: "block_and_fix"
+        message: "Discovery incompleto. Faltam: {failed_criteria}."
+        fix_suggestions:
+          - "Se OST incompleto: re-executar discovery-session focando em oportunidades"
+          - "Se JTBD insuficientes: derivar jobs adicionais do OST"
+          - "Se Lean Canvas incompleto: verificar quais blocos estao vazios"
+
+    outputs:
+      - path: "docs/discovery/opportunity-tree.md"
+        description: "OST minimo focado em MVP"
+      - path: "docs/discovery/jtbd-analysis.md"
+        description: "Top 3-5 JTBD statements"
+      - path: "docs/discovery/lean-canvas.md"
+        description: "Lean Canvas completo (9 blocos)"
+
+    rollback:
+      trigger: "discovery artifacts contradictory"
+      steps:
+        - "Verificar se seed data do intake esta consistente"
+        - "Se seed inconsistente: re-executar intake-parser"
+        - "Se discovery inconsistente: re-executar discovery-session"
+
+  # =============================================================================
+  # PHASE 2: MVP PRD
+  # =============================================================================
+  # Focused on MVP requirements only. Produces a lean PRD that is sufficient
+  # for a development team to start building the first version.
+  #
+  # Key differences from full PRD:
+  #   - Scope limited to MVP features only
+  #   - NFRs limited to critical ones (security, basic performance)
+  #   - Epic list is shorter (1-3 epics for MVP)
+  #   - Validation threshold is lower (6.0 vs 7.0)
+  #   - Story mapping is optional (stories in PRD are sufficient)
+  # =============================================================================
+
+  phase_2_mvp_prd:
+    name: "MVP PRD"
+    description: >-
+      PRD focado em requisitos de MVP apenas. Produz um PRD lean que e
+      suficiente para o time de desenvolvimento comecar a construir a
+      primeira versao. Escopo limitado, NFRs criticos apenas, 1-3 epics.
+    order: 2
+    estimated_duration: "2-4 horas"
+
+    agents:
+      primary: pm-chief
+      support:
+        - requirements-engineer
+        - prd-validator
+
+    tasks:
+      - id: gather-requirements
+        name: "Gather Requirements (MVP-Scoped)"
+        agent: requirements-engineer
+        description: >-
+          Extrair requisitos focados em MVP. Apenas Must-Have e Should-Have
+          criticos. Nice-to-have sao documentados como "future" mas nao
+          detalhados. NFRs limitados a seguranca, performance basica e
+          usabilidade minima.
+        inputs:
+          - "docs/discovery/opportunity-tree.md"
+          - "docs/discovery/jtbd-analysis.md"
+          - "docs/discovery/lean-canvas.md"
+          - "docs/project-brief.yaml"
+        outputs:
+          - "docs/prd/requirements.yaml"
+          - "docs/prd/requirements.md"
+        preconditions:
+          - "phase_1_quick_discovery.quality_gate PASSED"
+        mvp_scoping_rules:
+          functional_requirements:
+            must_have: "All — fully detailed with AC"
+            should_have: "Critical only — detailed with AC"
+            could_have: "Listed but not detailed"
+            wont_have: "Listed as future scope"
+          non_functional_requirements:
+            always_include:
+              - "NFR-SEC-*: Basic security (auth, input validation)"
+              - "NFR-PERF-*: Basic performance (page load < 3s)"
+              - "NFR-USA-*: Basic usability (responsive, accessible)"
+            skip_unless_critical:
+              - "NFR-SCAL-*: Scalability (premature for MVP)"
+              - "NFR-REL-*: Reliability (basic uptime sufficient)"
+              - "NFR-MAINT-*: Maintainability (nice but not blocking)"
+          max_functional_requirements: 15
+          max_epics: 3
+        wiegers_check:
+          applied: true
+          strictness: "relaxed"
+          note: "Wiegers criteria applied but with more tolerance for MVP"
+        on_error:
+          action: "halt_and_report"
+          message: "Requisitos nao coletados. PRD nao pode ser escrito."
+
+      - id: write-prd
+        name: "Write MVP PRD"
+        agent: pm-chief
+        description: >-
+          Escrever PRD focado em MVP. Todas as 10 secoes presentes mas
+          com profundidade reduzida. Foco em clareza e acionabilidade
+          sobre completude exaustiva. O PRD deve ser consumivel por
+          um desenvolvedor em 30 minutos.
+        inputs:
+          - "docs/prd/requirements.yaml"
+          - "docs/prd/requirements.md"
+          - "docs/discovery/opportunity-tree.md"
+          - "docs/discovery/jtbd-analysis.md"
+          - "docs/discovery/lean-canvas.md"
+          - "docs/project-brief.yaml"
+        outputs:
+          - "docs/prd.md"
+        template: "prd-tmpl.yaml"
+        preconditions:
+          - "gather-requirements completed"
+        mvp_prd_guidelines:
+          length: "Target 5-10 pages (vs 15-30 for full PRD)"
+          sections:
+            goals_and_context:
+              depth: "concise"
+              max_words: 300
+              focus: "problem-solution fit, not market analysis"
+            discovery_summary:
+              depth: "abbreviated"
+              max_words: 200
+              focus: "top 3 insights only"
+            requirements_functional:
+              depth: "full for Must-Have, abbreviated for others"
+              focus: "MVP features with clear AC"
+            requirements_nonfunctional:
+              depth: "critical only"
+              focus: "security, basic performance"
+            ui_design_goals:
+              depth: "principles only"
+              focus: "usability over aesthetics for MVP"
+            technical_assumptions:
+              depth: "concise"
+              focus: "stack decision, major risks"
+            epic_list:
+              depth: "full"
+              max_epics: 3
+              focus: "MVP scope only"
+            epic_details:
+              depth: "full with stories and AC"
+              focus: "each story actionable for dev"
+            checklist_results:
+              depth: "abbreviated"
+            next_steps:
+              depth: "full"
+              focus: "immediate dev handoff steps"
+        constitutional_check:
+          article_iv: >-
+            NO INVENTION applies even for MVP. Every feature must trace
+            to a JTBD or opportunity. No gold-plating in MVP.
+        on_error:
+          action: "halt_and_report"
+          message: "MVP PRD nao escrito. Verificar inputs."
+
+      - id: validate-prd
+        name: "Validate MVP PRD"
+        agent: prd-validator
+        worker: prd-validator.py
+        execution_type: hybrid
+        description: >-
+          Validar MVP PRD com thresholds relaxados. Score minimo 6.0
+          (vs 7.0 para full PRD). Dimensoes avaliadas com tolerancia
+          para escopo reduzido e profundidade menor.
+        inputs:
+          - "docs/prd.md"
+          - "docs/prd/requirements.md"
+          - "docs/discovery/opportunity-tree.md"
+          - "docs/discovery/jtbd-analysis.md"
+        outputs:
+          - "docs/prd/prd-validation-report.md"
+        preconditions:
+          - "write-prd completed"
+        mvp_validation_thresholds:
+          overall_minimum: 6.0           # Relaxed from 7.0
+          dimension_minimum: 4.0         # Relaxed from 5.0
+          structure_tolerance: "missing sections scored 3.0 instead of 0"
+          traceability_tolerance: "backward trace to JTBD is sufficient (no OPP-ID required)"
+          scope_tolerance: "out-of-scope can reference 'future MVP iterations'"
+        verdicts:
+          PASS: "Overall >= 6.0 AND min dimension >= 4.0"
+          CONDITIONAL_PASS: "Overall >= 6.0 BUT some dimension < 4.0"
+          NEEDS_REVISION: "Overall 4.0-5.9"
+          FAIL: "Overall < 4.0"
+        on_pass:
+          action: "mark_mvp_prd_approved"
+          message: >-
+            MVP PRD aprovado (score: {score}). Pronto para desenvolvimento!
+            Para planejamento completo (schedule, cost, risk), executar:
+            *full-cycle {project_name} --start-phase 3
+        on_fail:
+          action: "generate_fix_list_and_return"
+          return_to: "write-prd"
+          max_iterations: 2
+          message: "MVP PRD reprovado (score: {score}). Fix list gerada."
+        on_error:
+          action: "retry_once"
+          fallback: "Agent validates manually"
+
+    quality_gate:
+      name: "MVP PRD Approved"
+      type: blocking
+      blocking: true
+      criteria:
+        - id: "gate_2_1"
+          name: "requirements_documented"
+          description: "Requisitos MVP documentados com IDs"
+          check: "file_exists('docs/prd/requirements.yaml') AND has_FR_entries"
+        - id: "gate_2_2"
+          name: "prd_score_sufficient"
+          description: "MVP PRD validation score >= 6.0"
+          check: "prd_validation_report.overall_score >= 6.0"
+        - id: "gate_2_3"
+          name: "no_dimension_below_4"
+          description: "Nenhuma dimensao abaixo de 4.0"
+          check: "prd_validation_report.min_dimension_score >= 4.0"
+        - id: "gate_2_4"
+          name: "mvp_scope_clear"
+          description: "Escopo de MVP explicitamente definido (in/out)"
+          check: "prd.mvp_scope_defined == true"
+        - id: "gate_2_5"
+          name: "stories_have_ac"
+          description: "Todas as stories de MVP tem acceptance criteria"
+          check: "all_mvp_stories_have_ac"
+      on_pass:
+        action: "present_results"
+        message: >-
+          Greenfield Intake completo!
+
+          Artefatos gerados:
+          - Project Brief: docs/project-brief.yaml
+          - Lean Canvas: docs/discovery/lean-canvas.md
+          - OST (minimal): docs/discovery/opportunity-tree.md
+          - JTBD: docs/discovery/jtbd-analysis.md
+          - MVP PRD: docs/prd.md
+          - Requirements: docs/prd/requirements.yaml
+          - Validation Report: docs/prd/prd-validation-report.md
+
+          Proximo passo:
+          O MVP PRD esta pronto para desenvolvimento. Para planejamento
+          completo (schedule, cost, risk, OKRs), executar:
+          *full-cycle {project_name} --start-phase 3
+      on_fail:
+        action: "block_and_fix"
+        message: "MVP PRD nao aprovado. Corrigir issues e re-validar."
+        escalation:
+          after_retries: 2
+          escalate_to: "pm-chief"
+          message: "MVP PRD falhou 2x. Verificar se escopo de MVP esta adequado."
+
+    outputs:
+      - path: "docs/prd/requirements.yaml"
+        description: "Requisitos MVP estruturados"
+      - path: "docs/prd/requirements.md"
+        description: "Requisitos MVP em Markdown"
+      - path: "docs/prd.md"
+        description: "MVP PRD completo (lean)"
+      - path: "docs/prd/prd-validation-report.md"
+        description: "Relatorio de validacao do MVP PRD"
+
+    rollback:
+      trigger: "MVP PRD fails validation 2+ times"
+      steps:
+        - "Analisar fix lists para identificar problema raiz"
+        - "Se problema e escopo: MVP esta muito grande, reduzir features"
+        - "Se problema e qualidade: requisitos precisam mais detalhe"
+        - "Se problema e rastreabilidade: JTBD ou OST precisam revisao"
+        - "Considerar voltar para phase_1_quick_discovery se artefatos base sao fracos"
+
+# =============================================================================
+# WORKFLOW COMPLETION
+# =============================================================================
+
+completion:
+  output_summary: "Ready-to-develop MVP PRD + Lean Canvas"
+  next_workflow:
+    recommended: "full-pm-cycle (phases 3-6)"
+    trigger: "*full-cycle {project_name} --start-phase 3"
+    description: >-
+      Se o projeto cresce alem do MVP inicial, o full-pm-cycle pode
+      ser executado a partir da fase 3 (Prioritization) para adicionar
+      planejamento completo: schedule, cost, risk, stakeholders, OKRs,
+      audit e deliverables.
+  alternative_next_steps:
+    - action: "Start development directly"
+      command: "@dev *develop-story"
+      when: "Simple project, MVP PRD is sufficient"
+    - action: "Run full PM cycle from planning"
+      command: "*full-cycle {project_name} --start-phase 3"
+      when: "Project needs schedule, cost, risk planning"
+    - action: "Deep discovery before scaling"
+      command: "*full-cycle {project_name} --start-phase 1"
+      when: "Need full market analysis before scaling beyond MVP"
+
+# =============================================================================
+# LIFECYCLE HOOKS
+# =============================================================================
+
+lifecycle_hooks:
+  on_workflow_start:
+    - action: "create_project_directories"
+      directories:
+        - "docs/intake/"
+        - "docs/discovery/"
+        - "docs/prd/"
+    - action: "log_greenfield_start"
+      message: "Greenfield Intake iniciado para projeto: {project_name}"
+
+  on_phase_complete:
+    - action: "checkpoint_save"
+    - action: "show_progress"
+      format: "Phase {N}/{total} complete. Next: {next_phase_name}"
+
+  on_workflow_complete:
+    - action: "generate_summary"
+      description: "Resumo do greenfield intake com links para artefatos"
+    - action: "suggest_next_steps"
+      description: "Sugerir proximos passos baseado no perfil do projeto"
+
+  on_workflow_failure:
+    - action: "save_state"
+    - action: "suggest_recovery"
+      options:
+        - "*resume-greenfield": "Retomar do ultimo checkpoint"
+        - "*restart-greenfield": "Reiniciar do zero"
+        - "*full-cycle {project_name}": "Mudar para ciclo completo"
+
+# =============================================================================
+# STATE MANAGEMENT
+# =============================================================================
+
+state_management:
+  persistence_file: "docs/.greenfield-state.yaml"
+  checkpoint_frequency: "after_each_phase"
+  resume_command: "*resume-greenfield"
+
+# =============================================================================
+# ERROR HANDLING
+# =============================================================================
+
+error_handling:
+  global_rules:
+    - rule: "task_failure"
+      action: "Retry once. If fails, fallback to agent-only execution."
+      escalation: "After 1 retry, notify user with options"
+
+    - rule: "gate_failure"
+      action: "Generate fix list. Max 2 iterations for speed."
+      escalation: "After 2 failures, suggest using full-pm-cycle instead"
+
+    - rule: "scope_creep_detected"
+      description: "MVP scope growing beyond greenfield boundaries"
+      action: >-
+        Warn user: 'O escopo esta crescendo alem do recomendado para
+        greenfield intake. Considere usar *full-cycle para projetos
+        com escopo maior.'
+      threshold: "more than 15 FRs OR more than 3 epics"
+
+    - rule: "enterprise_complexity_detected"
+      description: "Project complexity exceeds greenfield limits"
+      action: >-
+        Redirect: 'Complexidade enterprise detectada. Recomendacao:
+        *full-cycle {project_name} para o ciclo completo com discovery,
+        stakeholders e risk management.'
+
+  recovery_options:
+    - "*resume-greenfield": "Retomar do ultimo checkpoint"
+    - "*restart-greenfield": "Reiniciar greenfield intake"
+    - "*full-cycle {project_name}": "Escalar para ciclo completo"
+    - "*abort-greenfield": "Abortar e salvar artefatos parciais"

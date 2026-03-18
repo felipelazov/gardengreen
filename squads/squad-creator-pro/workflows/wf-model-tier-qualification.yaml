@@ -1,0 +1,69 @@
+workflow:
+  id: wf-model-tier-qualification
+  name: Model Tier Qualification
+  version: 1.0.0
+  description: Orchestrates the qualify-model-tier task as a formal workflow with golden baseline comparison
+  trigger: manual
+
+phases:
+  - id: load-baseline
+    name: Load Golden Baseline
+    actions:
+      - Load golden baseline results from benchmarks/golden-baseline.yaml
+      - Validate baseline integrity (checksum, version)
+      - Extract threshold criteria per model tier
+    outputs:
+      - golden_baseline
+      - tier_thresholds
+
+  - id: benchmark-opus
+    name: Benchmark Opus Tier
+    depends_on: [load-baseline]
+    actions:
+      - Execute qualification tasks using claude-opus-4-6
+      - Record quality scores, token usage, latency, cost
+      - Compare against golden baseline opus thresholds
+    outputs:
+      - opus_results
+
+  - id: benchmark-sonnet
+    name: Benchmark Sonnet Tier
+    depends_on: [load-baseline]
+    actions:
+      - Execute qualification tasks using claude-sonnet-4-6
+      - Record quality scores, token usage, latency, cost
+      - Compare against golden baseline sonnet thresholds
+    outputs:
+      - sonnet_results
+
+  - id: benchmark-haiku
+    name: Benchmark Haiku Tier
+    depends_on: [load-baseline]
+    actions:
+      - Execute qualification tasks using claude-haiku-4-5-20251001
+      - Record quality scores, token usage, latency, cost
+      - Compare against golden baseline haiku thresholds
+    outputs:
+      - haiku_results
+
+  - id: qualify
+    name: Qualify Model Tiers
+    depends_on: [benchmark-opus, benchmark-sonnet, benchmark-haiku]
+    actions:
+      - Compare each tier result against golden baseline
+      - Calculate quality delta percentage per tier
+      - Apply qualification criteria (pass if delta <= threshold)
+      - Determine tier assignments (promote, maintain, demote)
+    outputs:
+      - qualification_verdicts
+
+  - id: report
+    name: Generate Qualification Report
+    depends_on: [qualify]
+    actions:
+      - Compile tier comparison table (baseline vs actual)
+      - Generate cost-efficiency analysis per tier
+      - Produce recommendation summary with tier assignments
+    template: model-tier-qualification-report-tmpl.md
+    outputs:
+      - model-tier-qualification-report.md

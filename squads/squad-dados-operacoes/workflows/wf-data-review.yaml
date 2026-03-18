@@ -1,0 +1,169 @@
+# Workflow: Weekly Data Review
+# Squad: squad-dados-operacoes
+# Version: 0.1.0
+
+workflow:
+  id: wf-data-review
+  name: "Revisao Semanal de Dados"
+  version: "0.1.0"
+  purpose: "Ciclo semanal: coletar metricas → analisar → gerar relatorio → recomendar acoes para o negocio"
+  orchestrator: "@garden-data-chief"
+  mode: quality
+  cadence: weekly  # Toda segunda-feira
+
+# ===================================================================
+# PHASES
+# ===================================================================
+
+phases:
+  - id: phase_1_collect
+    name: "Coletar Metricas"
+    agent: "@garden-data-chief"
+    description: |
+      Coletar todas as metricas da semana anterior:
+      1. Business metrics (Stripe):
+         - MRR atual e variacao
+         - Novos assinantes
+         - Churn (cancelamentos)
+         - Revenue por plano
+         - Failed payments
+      2. Product metrics (PostHog):
+         - WAG (Weekly Active Gardeners)
+         - DAU/WAU/MAU
+         - Feature adoption rates
+         - Funnel completion rates
+         - Session duration media
+      3. Engagement metrics:
+         - Servicos agendados por usuario
+         - Clientes cadastrados por usuario
+         - Fotos de jardins uploaded
+         - Orcamentos gerados
+      4. Infrastructure metrics (Vercel + Supabase):
+         - Uptime percentage
+         - Error rate
+         - p95 response time
+         - Database size growth
+    outputs:
+      - raw_metrics
+      - data_quality_notes
+    gate:
+      condition: "raw_metrics.business AND raw_metrics.product AND raw_metrics.engagement"
+      on_fail: "Dados incompletos. Verificar integracao com fonte de dados."
+
+  - id: phase_2_analyze
+    name: "Analisar e Segmentar"
+    agent: "@garden-data-chief"
+    description: |
+      Analise profunda dos dados coletados:
+      1. Trend analysis: comparar com semanas anteriores (WoW)
+      2. Cohort analysis:
+         - Retencao por cohort de signup
+         - LTV por canal de aquisicao
+         - Activation rate por plano
+      3. Anomaly detection:
+         - Churn spike? Investigar motivos
+         - Signup drop? Verificar funil
+         - Feature adoption anomaly? Verificar bugs
+      4. Upgrade trigger analysis:
+         - Quantos usuarios atingiram triggers?
+         - Qual trigger tem maior conversao?
+      5. Segmentation:
+         - Solo vs Equipe behavior
+         - Power users vs casual users
+         - Regional patterns (se aplicavel)
+    inputs:
+      - raw_metrics (from phase_1)
+    outputs:
+      - analysis_results
+      - anomalies_found
+      - upgrade_opportunities
+    gate:
+      condition: "analysis_results.trends AND analysis_results.cohorts"
+      on_fail: "Analise incompleta. Falta segmentacao por cohort."
+
+  - id: phase_3_insights
+    name: "Extrair Insights Acionaveis"
+    agent: "@garden-data-chief"
+    description: |
+      Transformar analise em insights acionaveis:
+      1. Para cada metrica significativa, responder:
+         - O QUE aconteceu? (fato)
+         - POR QUE aconteceu? (hipotese baseada em dados)
+         - E DAI? (impacto no negocio)
+         - PORTANTO, DEVEMOS... (acao recomendada)
+      2. Priorizar insights por impacto no MRR
+      3. Classificar acoes:
+         - Quick wins (< 1 semana, alto impacto)
+         - Investimentos (> 1 semana, alto impacto)
+         - Nice-to-have (qualquer prazo, baixo impacto)
+      4. Identificar items para squad-marketing-growth:
+         - ICP refinements
+         - Best acquisition channels
+         - User profile insights
+    inputs:
+      - analysis_results (from phase_2)
+      - anomalies_found (from phase_2)
+    outputs:
+      - actionable_insights
+      - recommended_actions
+      - marketing_handoff_data
+
+  - id: phase_4_report
+    name: "Gerar Relatorio"
+    agent: "@garden-data-chief"
+    task: "tasks/build-dashboard.yaml"
+    description: |
+      Gerar relatorio semanal usando template:
+      1. Usar templates/metrics-report-tmpl.md
+      2. Preencher todas as secoes com dados reais
+      3. Incluir graficos descritivos (tabelas ASCII ou referencias a PostHog)
+      4. Destacar top 3 insights da semana
+      5. Listar acoes recomendadas com owners sugeridos
+      6. Adicionar secao de handoff para outros squads
+    inputs:
+      - actionable_insights (from phase_3)
+      - recommended_actions (from phase_3)
+    outputs:
+      - weekly_report
+    gate:
+      condition: "weekly_report has top_insights AND weekly_report has recommended_actions"
+      on_fail: "Relatorio sem insights ou acoes. Nao publicar."
+
+  - id: phase_5_distribute
+    name: "Distribuir e Comunicar"
+    agent: "@garden-data-chief"
+    description: |
+      Distribuir relatorio para stakeholders:
+      1. Publicar relatorio no repositorio: docs/reports/weekly/
+      2. Enviar resumo executivo (5 bullet points) para founders
+      3. Enviar dados de ICP/canal para squad-marketing-growth
+      4. Enviar metricas de produto para squad-produto-core
+      5. Enviar sinais de churn para squad-sucesso-cliente
+      6. Agendar follow-up se acoes CRITICAL foram recomendadas
+    inputs:
+      - weekly_report (from phase_4)
+      - marketing_handoff_data (from phase_3)
+    outputs:
+      - distribution_log
+      - follow_up_items
+
+# ===================================================================
+# FLOW SUMMARY
+# ===================================================================
+
+flow_summary: |
+  Coletar (seg manha) → Analisar (seg tarde) → Insights (ter manha) → Relatorio (ter tarde) → Distribuir (qua)
+
+  Cadencia: Semanal (toda segunda-feira inicia)
+  Duracao: 2-3 dias para ciclo completo
+  Output principal: Relatorio semanal com top 3 insights e acoes recomendadas
+
+  Handoffs:
+    → squad-marketing-growth: ICP data, best channels, user profile insights
+    → squad-produto-core: feature adoption, user journey issues
+    → squad-sucesso-cliente: churn signals, retention metrics
+
+rollback:
+  strategy: "Dados sao append-only. Se analise incorreta, publicar errata."
+  max_iterations_per_phase: 1
+  escalation: "Se dados inconsistentes, escalar para @garden-devops para verificar integridade."

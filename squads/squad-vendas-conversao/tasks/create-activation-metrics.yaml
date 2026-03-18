@@ -1,0 +1,117 @@
+id: create-activation-metrics
+name: "Definir e Instrumentar Métricas de Ativação"
+squad: squad-vendas-conversao
+version: 0.1.0
+type: task
+
+description: |
+  Definir o que significa um jardineiro "ativado" no GardenGreen, identificar
+  o Aha Moment, e especificar a instrumentação necessária para medir
+  ativação, retenção, e conversão.
+
+owner: garden-growth-chief
+collaborators:
+  - garden-onboarding
+
+inputs:
+  - name: user_behavior_data
+    type: document
+    description: "Dados de comportamento dos usuários (se disponíveis)"
+    required: false
+
+outputs:
+  - name: activation_spec
+    type: document
+    description: "Especificação completa de métricas de ativação"
+    path: "docs/specs/activation-metrics-spec.md"
+  - name: event_catalog
+    type: document
+    description: "Catálogo de eventos analytics"
+    path: "docs/specs/analytics-event-catalog.md"
+  - name: dashboard_spec
+    type: document
+    description: "Especificação do dashboard de growth"
+    path: "docs/specs/growth-dashboard-spec.md"
+
+steps:
+  - id: 1
+    name: "Listar candidatos a activation event"
+    agent: garden-growth-chief
+    action: |
+      Listar todos os eventos que podem indicar ativação:
+      - Completou onboarding
+      - Adicionou primeiro cliente
+      - Adicionou 3+ clientes
+      - Agendou primeiro serviço
+      - Completou primeiro serviço
+      - Viu relatório financeiro pela primeira vez
+      - Enviou primeiro orçamento
+      - Recebeu primeiro pagamento pelo app
+      - Usou app por 3 dias consecutivos
+
+  - id: 2
+    name: "Correlacionar com retenção"
+    agent: garden-growth-chief
+    action: |
+      Para cada candidato, estimar correlação com retenção D30:
+      - Hipótese: jardineiro que adiciona 3+ clientes na semana 1
+        tem 4x mais chance de converter
+      - Hipótese: jardineiro que vê relatório financeiro tem 3x
+        mais chance de converter
+      Definir Aha Moment = evento com maior correlação com retenção.
+
+  - id: 3
+    name: "Definir Activation Score"
+    agent: garden-growth-chief
+    action: |
+      Criar score composto de ativação:
+      - Onboarding completo: +1
+      - 1 cliente adicionado: +1
+      - 3+ clientes adicionados: +2
+      - 1 serviço agendado: +1
+      - 1 serviço completado: +2
+      - Relatório financeiro visualizado: +2
+      - App usado 3+ dias na semana 1: +1
+      Ativado = score >= 5 (ajustar com dados reais)
+
+  - id: 4
+    name: "Especificar eventos analytics"
+    agent: garden-growth-chief
+    action: |
+      Catálogo de eventos para instrumentação:
+      - Nomenclatura: snake_case, prefixo por categoria
+      - Propriedades obrigatórias por evento
+      - Propriedades de contexto (plataforma, plano, cohort)
+      Categorias:
+        onboarding_*, client_*, service_*, financial_*,
+        conversion_*, retention_*, engagement_*
+
+  - id: 5
+    name: "Definir métricas de north star"
+    agent: garden-growth-chief
+    action: |
+      Definir hierarquia de métricas:
+      - North Star: "Serviços agendados por semana" (proxy de valor entregue)
+      - L1 (Input): Activation Rate, Time to First Value
+      - L2 (Health): D1/D7/D14 Retention, WAU/MAU ratio
+      - L3 (Business): Trial→Paid Rate, ARPU, Churn, LTV
+      - L4 (Vanity — monitorar mas não otimizar): Downloads, Signups
+
+  - id: 6
+    name: "Especificar growth dashboard"
+    agent: garden-growth-chief
+    action: |
+      Especificar dashboard de growth com:
+      - Funil em tempo real (download→activate→convert)
+      - Cohort retention chart (D1, D3, D7, D14, D30)
+      - Activation rate por cohort semanal
+      - Conversion rate por cohort
+      - Revenue metrics (MRR, ARPU, churn)
+      - Top drop-off points
+
+postconditions:
+  - "Aha Moment definido e justificado"
+  - "Activation Score especificado com thresholds"
+  - "Catálogo de eventos analytics completo"
+  - "Hierarquia de métricas definida"
+  - "Dashboard de growth especificado"

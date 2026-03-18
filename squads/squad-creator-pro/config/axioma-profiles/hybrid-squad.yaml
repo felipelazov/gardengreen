@@ -1,0 +1,81 @@
+# Axioma Profile: Hybrid Squad (Mixed)
+# Squads combining expert agents with automated processes
+name: hybrid-squad
+description: |
+  Profile for squads that mix expert agents with pipeline automation.
+  Balanced requirements across all dimensions.
+
+dimensions:
+  accuracy:
+    weight: 0.9
+    threshold: 7.0
+    veto: true
+    description: "Both expert output and pipeline output correct"
+
+  coherence:
+    weight: 0.9
+    threshold: 7.0
+    veto: false
+    description: "Expert and pipeline components integrate smoothly"
+
+  strategic_alignment:
+    weight: 0.8
+    threshold: 6.5
+    veto: false
+    description: "Clear strategic purpose"
+
+  operational_excellence:
+    weight: 0.9
+    threshold: 7.0
+    veto: false
+    description: "Both components execute reliably"
+
+  innovation:
+    weight: 0.6
+    threshold: 5.0
+    veto: false
+    description: "Innovation in integration"
+
+  risk_management:
+    weight: 0.8
+    threshold: 6.5
+    veto: false
+    description: "Risk managed across both components"
+
+  resource_optimization:
+    weight: 0.8
+    threshold: 6.5
+    veto: false
+    description: "Efficient use of expert + automation"
+
+  stakeholder_value:
+    weight: 0.8
+    threshold: 7.0
+    veto: false
+    description: "Combined value exceeds sum of parts"
+
+  sustainability:
+    weight: 0.7
+    threshold: 6.0
+    veto: false
+    description: "Maintainable hybrid architecture"
+
+  adaptability:
+    weight: 0.7
+    threshold: 6.0
+    veto: false
+    description: "Can evolve both components"
+
+overall_threshold: 7.0
+fidelity_minimum: 0.80
+
+priority_dimensions:
+  - accuracy
+  - coherence
+  - operational_excellence
+
+special_rules:
+  - "Expert agents must have fidelity >= 0.80"
+  - "Pipeline components must have checkpoints"
+  - "Handoff between expert and pipeline defined"
+  - "Model routing configured for all tasks"

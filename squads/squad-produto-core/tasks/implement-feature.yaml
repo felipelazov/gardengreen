@@ -1,0 +1,114 @@
+# Task: Implement Feature
+# Squad: squad-produto-core
+# Version: 0.1.0
+
+task:
+  id: implement-feature
+  name: "Implementar Feature"
+  version: "0.1.0"
+  purpose: "Implementar uma feature do GardenGreen seguindo tech stack, padrões de qualidade, e arquitetura offline-first"
+  executor: "@garden-fullstack-dev"
+  collaborators:
+    - "@garden-ux-mobile"        # Referência de design
+    - "@garden-product-chief"    # Validação de acceptance criteria
+  elicit: true
+  execution_type: hybrid
+
+pre_conditions:
+  - "Feature definida com user story e acceptance criteria"
+  - "Design/wireframe aprovado (se feature visual)"
+  - "Schema design concluído (se feature com dados)"
+
+inputs:
+  - name: feature_story
+    type: text
+    prompt: "Link/path da user story:"
+  - name: platform
+    type: select
+    prompt: "Plataforma:"
+    options: ["Mobile (React Native)", "Web (Next.js)", "Backend (Supabase)", "Full-Stack (todas)"]
+  - name: has_offline
+    type: boolean
+    prompt: "Requer suporte offline?"
+    default: true
+
+steps:
+  - id: step_1_analysis
+    name: "Análise Técnica"
+    action: |
+      1. Ler user story e acceptance criteria
+      2. Identificar componentes afetados (mobile, web, backend)
+      3. Mapear dependências (tabelas, APIs, componentes existentes)
+      4. Definir estratégia offline (se aplicável)
+      5. Estimar esforço por componente
+      6. Listar riscos técnicos
+
+  - id: step_2_schema
+    name: "Schema & API (se necessário)"
+    action: |
+      1. Criar/atualizar Zod schemas em packages/validation/
+      2. Criar migration Supabase (se novo schema)
+      3. Definir RLS policies (obrigatório para toda tabela)
+      4. Criar/atualizar Edge Functions (se lógica de negócio)
+      5. Testar migration localmente
+
+  - id: step_3_implementation
+    name: "Implementação"
+    action: |
+      Mobile (React Native/Expo):
+      1. Criar componentes seguindo design system (NativeWind)
+      2. Implementar WatermelonDB models (offline-first)
+      3. Implementar sync com Supabase
+      4. Adicionar React Query hooks para server state
+      5. Implementar navegação (Expo Router)
+
+      Web (Next.js):
+      1. Criar componentes com shadcn/ui + Tailwind
+      2. Implementar Server Components onde possível
+      3. Adicionar React Query hooks
+      4. Implementar loading/error states
+
+      Shared:
+      1. Types em packages/types/
+      2. Utils em packages/utils/
+      3. Validation schemas em packages/validation/
+
+  - id: step_4_testing
+    name: "Testes"
+    action: |
+      1. Unit tests para lógica de negócio (Jest)
+      2. Component tests (React Testing Library)
+      3. Testar cenário offline (desligar network, usar, religar)
+      4. Testar em Android médio (performance)
+      5. Verificar: npm run lint, npm run typecheck
+      6. Coverage mínimo: 80% para lógica de negócio
+
+  - id: step_5_review_prep
+    name: "Preparar para Review"
+    action: |
+      1. Self-review do código (checklist de qualidade)
+      2. Verificar: TypeScript strict sem erros
+      3. Verificar: nenhum 'any' no código
+      4. Verificar: RLS policies testadas
+      5. Verificar: componentes < 150 linhas
+      6. Criar commit com conventional message
+      7. Atualizar story file (checkboxes, file list)
+
+output:
+  format: markdown
+  sections:
+    - technical_analysis
+    - files_created_or_modified
+    - test_results
+    - offline_sync_strategy
+    - pending_review_items
+
+quality_gate:
+  typescript_strict: true
+  no_any_types: true
+  rls_policies_required: true
+  min_test_coverage: 80
+  max_component_lines: 150
+  lint_pass: true
+  typecheck_pass: true
+  offline_tested: true

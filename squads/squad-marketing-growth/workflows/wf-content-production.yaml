@@ -1,0 +1,122 @@
+id: wf-content-production
+name: "Produção de Conteúdo Semanal"
+squad: squad-marketing-growth
+version: 0.1.0
+type: workflow
+
+description: |
+  Workflow semanal de produção de conteúdo para todos os canais do GardenGreen.
+  Da pesquisa de temas à análise de performance. Garante frequência consistente
+  e qualidade alinhada com a estratégia de marketing.
+
+trigger:
+  type: scheduled
+  condition: "Início de cada semana (segunda-feira)"
+
+owner: garden-content
+
+phases:
+  - id: research
+    name: "Pesquisar"
+    description: "Identificar temas relevantes para a semana"
+    agent: garden-content
+    outputs:
+      - weekly_themes
+      - trending_topics
+    duration: "Segunda, 2h"
+    steps:
+      - "Verificar calendário editorial: temas planejados para a semana"
+      - "Pesquisar tendências em grupos de WhatsApp de jardineiros"
+      - "Verificar sazonalidade: o que está acontecendo na jardinagem agora"
+      - "Checar perguntas frequentes de jardineiros (suporte, redes)"
+      - "Identificar 1 tema quente para conteúdo oportuno"
+      - "Listar testimonials disponíveis para usar"
+
+  - id: plan
+    name: "Planejar"
+    description: "Planejar peças de conteúdo da semana"
+    agent: garden-content
+    depends_on: [research]
+    outputs:
+      - weekly_content_plan
+      - asset_requirements
+    duration: "Segunda, 1h"
+    steps:
+      - "Confirmar 4-5 peças de conteúdo para a semana"
+      - "Distribuir pelos pilares: gestão (40%), sucesso (25%), sazonal (20%), comunidade (15%)"
+      - "Definir formato de cada peça: Reel, Short, card, post, blog"
+      - "Listar assets necessários (fotos, vídeos, designs)"
+      - "Atribuir prioridade e ordem de produção"
+
+  - id: create
+    name: "Criar"
+    description: "Produzir conteúdo da semana"
+    agent: garden-content
+    depends_on: [plan]
+    outputs:
+      - content_pieces
+      - visual_assets
+    duration: "Terça-Quarta, 2 dias"
+    steps:
+      - "Escrever copy de cada peça usando template social-post-tmpl.md"
+      - "Criar roteiros de Reels/Shorts (hook 3s → problema → solução → CTA)"
+      - "Produzir cards de WhatsApp (1080x1080, texto grande)"
+      - "Escrever blog post se na programação (800-1200 palavras)"
+      - "Criar variações de copy para testes"
+      - "Preparar hashtags e tags por canal"
+
+  - id: review
+    name: "Revisar"
+    description: "Revisar qualidade e alinhamento do conteúdo"
+    agent: garden-marketing-chief
+    depends_on: [create]
+    outputs:
+      - approved_content
+      - revision_notes
+    duration: "Quarta, 1h"
+    steps:
+      - "Revisar cada peça contra critérios de qualidade"
+      - "Checklist: tom informal? Jardineiro entenderia? É compartilhável?"
+      - "Verificar CTAs: cada peça tem CTA claro (download, indicação)"
+      - "Verificar alinhamento com campanhas ativas"
+      - "Aprovar ou solicitar revisão com notas específicas"
+
+  - id: publish
+    name: "Publicar"
+    description: "Publicar conteúdo nos canais conforme horários"
+    agent: garden-content
+    depends_on: [review]
+    outputs:
+      - published_content
+    duration: "Quarta-Sexta"
+    steps:
+      - "Publicar conforme calendário de horários ótimos"
+      - "Instagram: terça, quinta, sábado às 18h (jardineiro descansa)"
+      - "YouTube Shorts: quarta e domingo"
+      - "WhatsApp card: sexta-feira (dia de compartilhar)"
+      - "Blog: publicar e submeter para indexação"
+      - "Cross-post adaptado entre canais"
+
+  - id: analyze
+    name: "Analisar"
+    description: "Medir performance e gerar aprendizados"
+    agent: garden-content
+    depends_on: [publish]
+    outputs:
+      - weekly_metrics
+      - learnings
+    duration: "Segunda seguinte, 1h"
+    steps:
+      - "Coletar métricas de cada peça: saves, shares, reach, clicks"
+      - "Identificar melhor e pior peça da semana"
+      - "Analisar: por que a melhor funcionou? O que replicar?"
+      - "Analisar: por que a pior não funcionou? O que evitar?"
+      - "Atualizar aprendizados no doc de content-pillars"
+      - "Alimentar pesquisa da próxima semana com insights"
+
+success_criteria:
+  - "4-5 peças publicadas por semana, consistentemente"
+  - "Distribuição pelos 4 pilares respeitada"
+  - "Métricas analisadas semanalmente"
+  - "Aprendizados documentados e aplicados"
+  - "Engajamento semanal crescente (shares e saves)"

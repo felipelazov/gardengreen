@@ -1,0 +1,95 @@
+name: design-notifications
+version: 1.0.0
+description: "Desenhar estratégia completa de push notifications para o GardenGreen. Cada notificação deve ser ÚTIL — se o jardineiro silencia, falhamos."
+
+agent: garden-retention
+command: "*design-notification"
+
+inputs:
+  - name: cenario
+    type: string
+    required: false
+    description: "Cenário específico (agenda, financeiro, reativacao, sazonal, all)"
+    default: "all"
+
+  - name: segmento
+    type: string
+    required: false
+    description: "Segmento alvo (novo, ativo, risco, churned)"
+    default: "ativo"
+
+outputs:
+  - name: notification_catalog
+    type: object
+    description: "Catálogo completo de notificações com templates e regras"
+
+  - name: frequency_rules
+    type: object
+    description: "Regras de frequência e supressão"
+
+  - name: ab_test_plan
+    type: object
+    description: "Plano de A/B tests para otimização"
+
+steps:
+  - id: categorize-notifications
+    action: define-categories
+    description: >
+      Categorizar notificações por tipo:
+      1. Operacional (agenda, lembretes) — sempre permitido
+      2. Valor (financeiro, métricas) — diário/semanal
+      3. Engajamento (streaks, milestones) — semanal
+      4. Re-engagement (inatividade) — máximo 1/semana
+      5. Comunidade (dicas, UGC) — máximo 2/semana
+      6. Promocional (upgrade, referral) — máximo 1/semana
+
+  - id: write-templates
+    action: create-notification-templates
+    description: >
+      Para cada notificação, escrever:
+      - Título (max 50 chars)
+      - Corpo (max 100 chars)
+      - Variáveis personalizadas (nome, valores, contagens)
+      - Deep link (para onde leva no app)
+      - Horário ideal de envio
+      - Condição de envio (quando NÃO enviar)
+    depends_on: [categorize-notifications]
+
+  - id: define-frequency-rules
+    action: create-frequency-limits
+    description: >
+      Definir regras de frequência:
+      - Max 2 push/dia (operacional + valor)
+      - Max 1 promocional/semana
+      - Quiet hours: 20:00-06:00
+      - Supressão: se ignorou 3 seguidos, reduzir 50%
+      - Opt-out parcial: permitir desligar categorias
+      - Cool-down: após interação, mínimo 4h até próximo push
+    depends_on: [write-templates]
+
+  - id: plan-ab-tests
+    action: design-experiments
+    description: >
+      Planejar A/B tests iniciais:
+      - Horário: 06:00 vs 06:30 vs 07:00 (matinal)
+      - Tom: formal vs informal vs emoji
+      - Personalização: com nome vs sem nome
+      - Valor: com R$ vs sem R$
+      Definir: hipótese, métrica, sample size, duração.
+    depends_on: [define-frequency-rules]
+
+  - id: document-strategy
+    action: generate-documentation
+    description: >
+      Documentar em config/notification-rules.md:
+      - Catálogo completo de notificações
+      - Regras de frequência e supressão
+      - Plano de A/B tests
+      - Templates com variáveis
+      - Métricas de sucesso (open rate, opt-out rate)
+    depends_on: [plan-ab-tests]
+
+error_handling:
+  on_validation_error: "Cenário inválido: {{error.message}}"
+  on_process_error: "Erro ao criar estratégia: {{error.message}}"
+  retry_count: 1

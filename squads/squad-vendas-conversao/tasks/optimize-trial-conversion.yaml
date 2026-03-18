@@ -1,0 +1,121 @@
+id: optimize-trial-conversion
+name: "Otimizar Conversão Trial para Paid"
+squad: squad-vendas-conversao
+version: 0.1.0
+type: task
+
+description: |
+  Analisar e otimizar o funil de conversão de trial (14 dias grátis) para
+  assinante pago. Identificar onde os jardineiros abandonam e propor
+  intervenções para aumentar a taxa de conversão.
+
+owner: garden-growth-chief
+collaborators:
+  - garden-onboarding
+  - garden-conversion-copy
+
+inputs:
+  - name: current_conversion_rate
+    type: number
+    description: "Taxa atual de conversão trial→paid"
+    required: false
+  - name: trial_period
+    type: number
+    description: "Duração do trial em dias"
+    default: 14
+  - name: cohort_data
+    type: document
+    description: "Dados de cohort dos últimos 90 dias"
+    required: false
+
+outputs:
+  - name: funnel_analysis
+    type: document
+    description: "Análise completa do funil trial→paid"
+    path: "docs/analysis/trial-conversion-analysis.md"
+  - name: intervention_plan
+    type: document
+    description: "Plano de intervenções priorizadas"
+    path: "docs/plans/trial-conversion-interventions.md"
+  - name: communication_calendar
+    type: document
+    description: "Calendário de comunicações durante o trial"
+    path: "docs/plans/trial-communication-calendar.md"
+
+steps:
+  - id: 1
+    name: "Mapear funil completo"
+    agent: garden-growth-chief
+    action: |
+      Mapear cada etapa do funil com taxas de conversão:
+      Download → Install → Open → Signup → Onboard Complete →
+      First Client → First Service → Active (3+ clients) →
+      Trial End → Payment → Retained (M2)
+
+  - id: 2
+    name: "Identificar drop-offs críticos"
+    agent: garden-growth-chief
+    action: |
+      Analisar onde estão os maiores drop-offs:
+      - Drop-off absoluto (quantos usuários perdemos)
+      - Drop-off relativo (% de perda naquela etapa)
+      - Comparar com benchmarks de SaaS vertical
+      Priorizar por impacto potencial na receita.
+
+  - id: 3
+    name: "Segmentar comportamento de trial"
+    agent: garden-growth-chief
+    action: |
+      Segmentar usuários de trial por comportamento:
+      - Power users (usam diariamente, 5+ clientes)
+      - Casual (usam 2-3x/semana, 1-3 clientes)
+      - Ghosted (abriram 1-2x e sumiram)
+      - Bounce (não completaram onboarding)
+      Calcular conversion rate por segmento.
+
+  - id: 4
+    name: "Desenhar comunicações de trial"
+    agent: garden-conversion-copy
+    action: |
+      Criar calendário de comunicações durante os 14 dias:
+      - Dia 0: Bem-vindo + dica de primeiro uso (push)
+      - Dia 1: "Você adicionou X clientes, bora pro próximo?" (push)
+      - Dia 3: "Sua agenda da semana" (push)
+      - Dia 5: Dica de feature não usada (push)
+      - Dia 7: "Metade do trial! Veja o que você já fez" (email)
+      - Dia 10: Social proof + case de sucesso (email)
+      - Dia 12: "Faltam 2 dias. Seus dados ficam seguros." (push + email)
+      - Dia 13: "Último dia amanhã" (push)
+      - Dia 14: "Seu trial acabou. R$29/mês pra continuar." (push + email)
+      - Dia 15: "Sentimos sua falta. Volta com 30% off?" (email)
+
+  - id: 5
+    name: "Desenhar paywall experience"
+    agent: garden-onboarding
+    action: |
+      Desenhar a experiência de paywall pós-trial:
+      - O que o usuário vê quando o trial acaba?
+      - Quais dados ele mantém acesso? (read-only)
+      - Como é a tela de upgrade?
+      - Facilidade de pagamento (PIX, cartão, boleto)
+      - Garantia: "7 dias pra cancelar sem cobrança"
+
+  - id: 6
+    name: "Propor experimentos"
+    agent: garden-growth-chief
+    action: |
+      Propor 3 experimentos priorizados por ICE score:
+      Para cada experimento:
+      - Hipótese clara
+      - Métrica primária
+      - Segmento alvo
+      - Duração estimada
+      - Sample size necessário
+      - Impacto estimado na conversão
+
+postconditions:
+  - "Funil mapeado com taxas por etapa"
+  - "Top 3 drop-offs identificados com causas prováveis"
+  - "Calendário de comunicações de trial completo"
+  - "Paywall experience desenhada"
+  - "3 experimentos priorizados e prontos para execução"

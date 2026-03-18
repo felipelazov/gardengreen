@@ -1,0 +1,81 @@
+# Axioma Profile: Pipeline Squad (Process-Driven)
+# Squads focused on multi-phase automated processes
+name: pipeline-squad
+description: |
+  Profile for squads that execute sequential pipelines.
+  Focus on operational excellence and reliability over fidelity.
+
+dimensions:
+  accuracy:
+    weight: 0.8
+    threshold: 7.0
+    veto: true
+    description: "Pipeline outputs are correct"
+
+  coherence:
+    weight: 0.9
+    threshold: 7.0
+    veto: false
+    description: "Phases connect seamlessly"
+
+  strategic_alignment:
+    weight: 0.7
+    threshold: 6.0
+    veto: false
+    description: "Pipeline serves clear purpose"
+
+  operational_excellence:
+    weight: 1.0
+    threshold: 8.0
+    veto: true
+    description: "Highest weight — pipeline must be reliable"
+
+  innovation:
+    weight: 0.6
+    threshold: 5.0
+    veto: false
+    description: "Moderate — process innovation valued"
+
+  risk_management:
+    weight: 0.9
+    threshold: 7.0
+    veto: false
+    description: "Error handling and recovery critical"
+
+  resource_optimization:
+    weight: 0.9
+    threshold: 7.0
+    veto: false
+    description: "Efficiency is key for pipelines"
+
+  stakeholder_value:
+    weight: 0.7
+    threshold: 6.0
+    veto: false
+    description: "Pipeline delivers consistent value"
+
+  sustainability:
+    weight: 0.8
+    threshold: 6.5
+    veto: false
+    description: "Must be maintainable long-term"
+
+  adaptability:
+    weight: 0.7
+    threshold: 6.0
+    veto: false
+    description: "Configurable for different inputs"
+
+overall_threshold: 7.0
+fidelity_minimum: 0.75
+
+priority_dimensions:
+  - operational_excellence
+  - coherence
+  - risk_management
+
+special_rules:
+  - "All phases must have checkpoints"
+  - "Error recovery defined for each phase"
+  - "Veto conditions at every gate"
+  - "Resume capability required"

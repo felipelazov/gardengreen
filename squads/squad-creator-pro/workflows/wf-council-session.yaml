@@ -1,0 +1,298 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# WORKFLOW: Council Session — Strategic Business Planning
+# Version: 2.0.0
+# Purpose: Multi-agent deliberation to plan business-wide squad architecture
+# ═══════════════════════════════════════════════════════════════════════════════
+
+workflow-id: wf-council-session
+name: Council Session
+version: 2.0.0
+estimated-time: 15-30 minutes (planning only)
+complexity: high
+
+description: |
+  Sessão de conselho estratégico com visão empresarial ponta a ponta.
+  Os 3 especialistas analisam o negócio como um board de diretores e
+  recomendam a arquitetura completa de squads para operar a empresa.
+
+  Cadeia de valor: ATRAIR → CONVERTER → ENTREGAR → RETER → ESCALAR
+  Cada squad = uma função real do negócio.
+
+orchestrator: "@squad-chief-pro"
+command: "*council"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COUNCIL PRINCIPLES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+principles:
+  - "Pensar ponta a ponta — TODA a cadeia de valor"
+  - "Cada squad = função empresarial, não domínio técnico"
+  - "Dependências operacionais — quem alimenta quem"
+  - "Reuso criterioso — só se adequação >= 70% ao nicho"
+  - "MVP primeiro — gerar receita antes de escalar"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COUNCIL MEMBERS (business lenses)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+council_members:
+  - agent: "@oalanicolas-pro"
+    council_role: "Competency Advisor"
+    business_lens: "Quais competências core a empresa precisa ponta a ponta?"
+    analyzes:
+      - Competências fundamentais do negócio
+      - Experts reais relevantes para o NICHO ESPECÍFICO
+      - Profundidade de pesquisa por competência
+      - Adequação de experts ao contexto do projeto
+    does_not:
+      - Sugerir experts genéricos irrelevantes ao nicho
+      - Forçar clonagem onde conhecimento genérico basta
+
+  - agent: "@pedro-valerio-pro"
+    council_role: "Value Chain Advisor"
+    business_lens: "Qual a cadeia de valor completa? Cada elo vira qual squad?"
+    analyzes:
+      - Cadeia ATRAIR → CONVERTER → ENTREGAR → RETER → ESCALAR
+      - Processos por elo (automatizáveis vs manuais)
+      - Gargalos potenciais
+      - Handoffs entre squads (quem alimenta quem)
+      - Quality gates entre elos
+
+  - agent: "@thiago-finch"
+    council_role: "Revenue Advisor"
+    business_lens: "Quais squads geram receita, quais protegem, quais amplificam?"
+    analyzes:
+      - Modelo de receita do negócio
+      - Classificação de squads por papel na receita
+      - MVP mínimo para operar com faturamento
+      - Priorização por ROI real (não por "seria legal")
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# REUSE RULES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+reuse_policy:
+  minimum_fit: 70
+  evaluation:
+    - "Domínio do squad cobre o domínio necessário?"
+    - "Experts clonados são relevantes para ESTE nicho?"
+    - "Workflows se aplicam ao processo do negócio?"
+    - "Tasks resolvem problemas REAIS deste projeto?"
+  decisions:
+    fit_below_70: "Criar squad novo"
+    fit_70_to_89: "Recomendar reuso + listar adaptações"
+    fit_90_plus: "Recomendar reuso direto"
+  never:
+    - "Forçar reuso só porque o squad existe"
+    - "Recomendar genérico quando nicho precisa de especialista"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+inputs:
+  required:
+    - project_description: "Descrição do projeto/empresa"
+  optional:
+    - revenue_model: "Como ganha dinheiro"
+    - constraints: "Restrições (tempo, budget, tech)"
+    - existing_squads: "Squads já disponíveis"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STATE MACHINE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+type: state_machine
+
+states:
+  understand:
+    description: "Compreender o negócio — o que faz, pra quem, como ganha dinheiro"
+    model: sonnet
+    elicit: true
+    actions:
+      - "Extrair: produto/serviço core, público-alvo, modelo de receita"
+      - "Se falta info → elicitar (O que faz? Pra quem? Como ganha?)"
+      - "Mapear cadeia de valor preliminar"
+      - "Listar squads existentes no ecossistema do usuário"
+    output: "project_brief"
+    transitions:
+      - condition: "brief_complete"
+        to: analyze_competencies
+      - condition: "needs_clarification"
+        to: understand
+
+  analyze_competencies:
+    description: "@oalanicolas — Competências core que a empresa precisa"
+    model: opus
+    agent: "@oalanicolas-pro"
+    inputs:
+      project_brief: "{{project_brief}}"
+    actions:
+      - "Mapear competências fundamentais do negócio (não domínios técnicos)"
+      - "Para cada: identificar experts RELEVANTES PARA O NICHO"
+      - "Avaliar relevância de cada expert ao contexto específico"
+      - "Descartar experts genéricos que não agregam ao nicho"
+      - "Estimar profundidade de pesquisa por competência"
+    output: "competency_analysis"
+    transitions:
+      - condition: "complete"
+        to: analyze_value_chain
+
+  analyze_value_chain:
+    description: "@pedro-valerio — Cadeia de valor ponta a ponta"
+    model: opus
+    agent: "@pedro-valerio-pro"
+    inputs:
+      project_brief: "{{project_brief}}"
+      competency_analysis: "{{competency_analysis}}"
+    actions:
+      - "Mapear cadeia: ATRAIR → CONVERTER → ENTREGAR → RETER → ESCALAR"
+      - "Para cada elo: listar processos, taxa de automação, gargalos"
+      - "Definir handoffs entre elos (dados que passam de um squad para outro)"
+      - "Identificar quality gates entre elos"
+      - "Mapear cada elo → função empresarial → candidato a squad"
+    output: "value_chain_analysis"
+    transitions:
+      - condition: "complete"
+        to: analyze_revenue
+
+  analyze_revenue:
+    description: "@thiago-finch — Modelo de negócio e priorização por receita"
+    model: opus
+    agent: "@thiago-finch"
+    inputs:
+      project_brief: "{{project_brief}}"
+      competency_analysis: "{{competency_analysis}}"
+      value_chain_analysis: "{{value_chain_analysis}}"
+    actions:
+      - "Classificar cada squad candidato por papel na receita"
+      - "GERA receita: sem isso, zero faturamento"
+      - "PROTEGE receita: sem isso, churn/perda"
+      - "AMPLIFICA receita: sem isso, não escala"
+      - "SUSTENTA operação: pode ser manual no início"
+      - "Definir MVP: squads que GERAM + 1 que PROTEGE"
+      - "Priorizar por ROI real, não por desejabilidade"
+    output: "revenue_analysis"
+    transitions:
+      - condition: "complete"
+        to: synthesize
+
+  synthesize:
+    description: "Consolidar em arquitetura empresarial de squads"
+    model: sonnet
+    actions:
+      - "Cruzar competency + value_chain + revenue analyses"
+      - "Para cada squad: nome, função empresarial, papel na receita, prioridade"
+      - "Avaliar squads existentes: adequação >= 70% ao nicho? (senão criar novo)"
+      - "Calcular dependências operacionais (quem alimenta quem)"
+      - "Gerar roadmap de criação respeitando dependências"
+      - "Gerar mapa visual ASCII da cadeia de valor com squads"
+    output: "squad_architecture"
+    transitions:
+      - condition: "complete"
+        to: present
+
+  present:
+    description: "Apresentar arquitetura empresarial ao usuário"
+    model: sonnet
+    template: "templates/council-report-tmpl.md"
+    elicit: true
+    actions:
+      - "Renderizar relatório do conselho"
+      - "Incluir: cadeia de valor visual, mapa de squads, roadmap"
+      - "Destacar classificação por receita (gera/protege/amplifica/sustenta)"
+      - "Mostrar squads reutilizáveis apenas se fit >= 70%"
+    options:
+      S: "Aprovar plano completo"
+      A: "Ajustar escopo"
+      M: "Criar apenas MVP (gera + protege receita)"
+      N: "Cancelar"
+    transitions:
+      - condition: "approved"
+        to: execute
+      - condition: "adjust"
+        to: synthesize
+      - condition: "mvp"
+        to: execute_mvp
+      - condition: "cancelled"
+        to: complete
+
+  execute:
+    description: "Criar todos os squads aprovados na ordem do roadmap"
+    model: opus
+    actions:
+      - "Para cada squad (respeitando dependências):"
+      - "  1. *create-squad {domain} --yolo full"
+      - "  2. Verificar health check"
+      - "  3. Configurar handoffs com squad anterior"
+      - "  4. Registrar no relatório consolidado"
+    transitions:
+      - condition: "all_created"
+        to: complete
+      - condition: "creation_failed"
+        to: present
+
+  execute_mvp:
+    description: "Criar apenas squads MVP (gera receita + protege receita)"
+    model: opus
+    actions:
+      - "Filtrar para squads classificados como GERA + PROTEGE receita"
+      - "Executar criação na ordem de dependência"
+      - "Apresentar resultado + roadmap futuro para AMPLIFICA + SUSTENTA"
+    transitions:
+      - condition: "mvp_created"
+        to: complete
+
+  complete:
+    description: "Sessão do conselho concluída"
+    terminal: true
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# QUALITY GATES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+quality_gates:
+  - gate: UNDERSTANDING
+    phase: understand
+    blocking: true
+    criteria:
+      - "Produto/serviço core identificado"
+      - "Público-alvo definido"
+      - "Modelo de receita claro"
+
+  - gate: CHAIN_COMPLETE
+    phase: analyze_value_chain
+    blocking: true
+    criteria:
+      - "Todos os 5 elos mapeados (atrair→escalar)"
+      - "Handoffs definidos entre elos"
+
+  - gate: REVENUE_CLASSIFIED
+    phase: analyze_revenue
+    blocking: true
+    criteria:
+      - "Cada squad classificado por papel na receita"
+      - "MVP definido"
+
+  - gate: USER_APPROVAL
+    phase: present
+    blocking: true
+    criteria:
+      - "Usuário aprovou plano"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VETO CONDITIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+veto_conditions:
+  - condition: "3 conselheiros avaliam viabilidade LOW"
+    action: "WARN com justificativa, não bloquear"
+  - condition: "Mais de 6 squads recomendados"
+    action: "Obrigar faseamento (MVP + waves)"
+  - condition: "Projeto sem modelo de receita"
+    action: "Elicitar até ter modelo claro"
+  - condition: "Cadeia de valor com elo faltante"
+    action: "WARN, perguntar se é intencional"
+  - condition: "Squad existente sugerido para reuso com fit < 70%"
+    action: "BLOCK reuso, recomendar criação de novo"

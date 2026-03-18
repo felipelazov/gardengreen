@@ -1,0 +1,107 @@
+name: churn-analysis
+version: 1.0.0
+description: "Analisar padrões de churn do GardenGreen, identificar comportamentos preditivos e propor intervenções específicas para cada padrão."
+
+agent: garden-cs-chief
+command: "*churn-analysis"
+
+inputs:
+  - name: periodo
+    type: string
+    required: false
+    description: "Período de análise (30d, 60d, 90d)"
+    default: "90d"
+
+  - name: segmento
+    type: string
+    required: false
+    description: "Segmento (solo, equipe, all)"
+    default: "all"
+
+  - name: profundidade
+    type: string
+    required: false
+    description: "Nível de análise (rapida, completa)"
+    default: "completa"
+
+outputs:
+  - name: churn_patterns
+    type: object
+    description: "Padrões identificados de churn com frequência e severidade"
+
+  - name: predictive_signals
+    type: object
+    description: "Sinais comportamentais que precedem churn, ordenados por poder preditivo"
+
+  - name: intervention_plan
+    type: object
+    description: "Plano de intervenção por padrão com ações e prioridade"
+
+steps:
+  - id: identify-churn-patterns
+    action: pattern-analysis
+    description: >
+      Identificar os principais padrões de churn:
+      1. "Nunca Ativou" — instalou mas nunca registrou 1o serviço
+      2. "Experimentou e Saiu" — usou 1-2 semanas, parou
+      3. "Sazonal" — usa na alta, some na baixa
+      4. "Feature-Blocked" — queria algo que não existe
+      5. "Voltou pro Caderninho" — app complicado demais
+      6. "Preço" — não vê valor suficiente para R$29-49/mês
+      7. "Concorrente" — migrou para outra solução
+      Para cada padrão: frequência estimada, perfil do usuário, window de ação.
+
+  - id: map-predictive-signals
+    action: signal-detection
+    description: >
+      Mapear sinais que PRECEDEM cada padrão de churn:
+      - Redução de frequência (>50% vs baseline)
+      - Parou de registrar serviços (voltou pro caderninho)
+      - Não abriu relatório financeiro do mês
+      - Diminuiu clientes cadastrados (deletando dados)
+      - Desativou notificações
+      - Não respondeu pesquisa NPS
+      - Acessos apenas passivos (olha mas não registra)
+      Ordenar por poder preditivo e lead time (dias antes do churn).
+    depends_on: [identify-churn-patterns]
+
+  - id: design-interventions
+    action: create-intervention-matrix
+    description: >
+      Para cada padrão + sinal, desenhar intervenção:
+      - "Nunca Ativou": onboarding assistido, tutorial personalizado
+      - "Experimentou e Saiu": push com value moment, oferta de ajuda
+      - "Sazonal": conteúdo de baixa temporada, planejamento
+      - "Feature-Blocked": feedback loop, roadmap transparency
+      - "Voltou pro Caderninho": simplificação, quick-win features
+      - "Preço": demonstração de ROI personalizada
+      - "Concorrente": competitive intel, feature matching
+      Cada intervenção: canal, timing, mensagem, critério de sucesso, owner.
+    depends_on: [map-predictive-signals]
+
+  - id: prioritize
+    action: rank-interventions
+    description: >
+      Priorizar intervenções por impacto × esforço:
+      - Quick wins: alto impacto, baixo esforço (implementar primeiro)
+      - Strategic: alto impacto, alto esforço (planejar)
+      - Nice-to-have: baixo impacto, baixo esforço (quando possível)
+      - Evitar: baixo impacto, alto esforço (descatar)
+    depends_on: [design-interventions]
+
+  - id: generate-report
+    action: compile-analysis
+    description: >
+      Compilar análise final:
+      - Executive summary (3 bullets)
+      - Padrões de churn ranqueados
+      - Sinais preditivos com lead time
+      - Intervenções priorizadas
+      - Métricas de sucesso esperadas
+      - Roadmap de implementação
+    depends_on: [prioritize]
+
+error_handling:
+  on_validation_error: "Período inválido: {{error.message}}"
+  on_process_error: "Erro na análise de churn: {{error.message}}"
+  retry_count: 1

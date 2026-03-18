@@ -1,0 +1,74 @@
+# Workflow: Module Discovery
+# Discovers available capabilities in a domain
+name: wf-module-discovery
+version: 1.0.0
+description: |
+  Scans a domain to discover available capabilities (tools, patterns, templates, workflows),
+  classifies them by type and relevance, and generates a structured manifest.
+
+type: state_machine
+
+states:
+  scan:
+    description: "Scan the target domain for available capabilities"
+    model: haiku
+    actions:
+      - "Identify domain boundaries from domain_name input"
+      - "Enumerate available tools, patterns, templates, and workflows"
+      - "Collect metadata for each discovered capability"
+    inputs:
+      domain_name: "{{domain}}"
+      search_depth: "{{depth|default:medium}}"
+    output: "capabilities_list"
+    transitions:
+      - condition: "capabilities_found"
+        to: classify
+      - condition: "no_capabilities"
+        to: empty_manifest
+
+  classify:
+    description: "Classify each capability by type and score relevance"
+    model: sonnet
+    depends_on: [scan]
+    actions:
+      - "Classify each capability by type: tool, pattern, template, workflow"
+      - "Score relevance to squad domain (0.0 - 1.0)"
+      - "Filter by minimum relevance threshold (0.5)"
+      - "Rank results by relevance score descending"
+    output: "classified_capabilities, filtered_count"
+    transitions:
+      - condition: "classification_complete"
+        to: manifest
+
+  manifest:
+    description: "Generate the final module manifest"
+    model: haiku
+    depends_on: [classify]
+    actions:
+      - "Compile classified capabilities into manifest format"
+      - "Add metadata: timestamp, total_found, filtered_count"
+      - "Write module-manifest.yaml to output directory"
+    output: "module-manifest.yaml"
+    format:
+      discovered_modules: list
+      total_found: int
+      filtered_count: int
+      timestamp: datetime
+    transitions:
+      - condition: "manifest_written"
+        to: complete
+
+  empty_manifest:
+    description: "Generate empty manifest when no capabilities found"
+    model: haiku
+    actions:
+      - "Write empty module-manifest.yaml with zero counts"
+      - "Log warning: no capabilities discovered in domain"
+    output: "module-manifest.yaml"
+    transitions:
+      - condition: "always"
+        to: complete
+
+  complete:
+    description: "Discovery workflow complete"
+    terminal: true

@@ -1,0 +1,116 @@
+id: write-app-store-listing
+name: "Escrever Listagem de App Store"
+squad: squad-vendas-conversao
+version: 0.1.0
+type: task
+
+description: |
+  Criar a listagem completa do GardenGreen para Google Play Store e Apple App Store.
+  Copy otimizada para ASO (App Store Optimization), focada em jardineiros
+  que descobriram o app por indicação ou busca.
+
+owner: garden-conversion-copy
+collaborators:
+  - garden-growth-chief
+
+inputs:
+  - name: target_keywords
+    type: list
+    description: "Keywords alvo para ASO"
+    default:
+      - jardineiro
+      - agenda jardinagem
+      - controle clientes jardineiro
+      - gestão jardinagem
+      - app jardineiro
+
+outputs:
+  - name: play_store_listing
+    type: document
+    description: "Listagem completa para Google Play Store"
+    path: "docs/copy/play-store-listing.md"
+  - name: app_store_listing
+    type: document
+    description: "Listagem completa para Apple App Store"
+    path: "docs/copy/app-store-listing.md"
+  - name: screenshot_specs
+    type: document
+    description: "Especificação dos screenshots"
+    path: "docs/copy/screenshot-specs.md"
+
+steps:
+  - id: 1
+    name: "Pesquisar keywords"
+    agent: garden-growth-chief
+    action: |
+      Pesquisar e priorizar keywords:
+      - Volume de busca estimado
+      - Competição
+      - Relevância
+      Top keywords: jardineiro, agenda jardinagem, app jardineiro,
+      controle financeiro jardineiro, gestão de clientes
+
+  - id: 2
+    name: "Escrever título e subtítulo"
+    agent: garden-conversion-copy
+    action: |
+      Google Play (50 chars título, 80 chars descrição curta):
+      - Título: "GardenGreen - Agenda do Jardineiro"
+      - Descrição curta: "Clientes, agenda e cobranças num lugar só. Grátis por 14 dias."
+
+      App Store (30 chars nome, 30 chars subtítulo):
+      - Nome: "GardenGreen"
+      - Subtítulo: "Agenda do Jardineiro Pro"
+
+  - id: 3
+    name: "Escrever descrição completa"
+    agent: garden-conversion-copy
+    action: |
+      Descrição (4000 chars max Play Store):
+      - Primeiras 3 linhas: hook de conversão (visíveis sem expandir)
+      - Problema que resolve (2 parágrafos curtos)
+      - Principais benefícios (lista com 5 itens)
+      - Como funciona (3 passos simples)
+      - Social proof ("Usado por X jardineiros")
+      - CTA final
+      Keywords naturalmente distribuídas.
+
+  - id: 4
+    name: "Especificar screenshots"
+    agent: garden-conversion-copy
+    action: |
+      Definir 5-8 screenshots com:
+      - Screenshot 1: Hero — "Nunca mais perca um cliente" + tela principal
+      - Screenshot 2: Agenda — "Sua semana organizada" + tela de agenda
+      - Screenshot 3: Clientes — "Todos seus clientes num lugar" + lista
+      - Screenshot 4: Financeiro — "Saiba quanto você ganha" + relatório
+      - Screenshot 5: Cobrança — "Cobre pelo app, receba no PIX" + tela
+      Para cada: headline overlay + tela mockup + cores da marca.
+
+  - id: 5
+    name: "Escrever release notes template"
+    agent: garden-conversion-copy
+    action: |
+      Template de release notes para atualizações:
+      - Tom casual e útil
+      - Máximo 3 itens por update
+      - Foco no benefício, não na feature técnica
+      Exemplo: "Agora você recebe aviso quando o cliente confirma o serviço."
+
+  - id: 6
+    name: "Revisar ASO"
+    agent: garden-growth-chief
+    action: |
+      Validar otimização ASO:
+      - Keywords presentes no título e descrição
+      - Densidade natural (não keyword stuffing)
+      - Primeiras 3 linhas otimizadas para conversão
+      - Call-to-action claro
+      - Comparar com listings de concorrentes
+
+postconditions:
+  - "Listagem Play Store completa e otimizada"
+  - "Listagem App Store completa e otimizada"
+  - "5+ screenshots especificados"
+  - "Template de release notes criado"
+  - "ASO validado com keywords relevantes"

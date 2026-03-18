@@ -1,0 +1,102 @@
+name: design-referral-program
+version: 1.0.0
+description: "Desenhar o programa de indicação/referral do GardenGreen. Jardineiro indica colega, ambos ganham. Mecânica simples, anti-fraude, e com economics sustentável."
+
+agent: garden-community
+command: "*referral-program"
+
+inputs:
+  - name: tipo
+    type: string
+    required: false
+    description: "Tipo de programa (basico, premium, seasonal)"
+    default: "basico"
+
+  - name: budget_mensal
+    type: string
+    required: false
+    description: "Budget mensal estimado para recompensas"
+    default: "a-definir"
+
+outputs:
+  - name: program_design
+    type: object
+    description: "Design completo do programa com mecânica e regras"
+
+  - name: economics
+    type: object
+    description: "Unit economics do programa (CAC via referral vs pago)"
+
+  - name: anti_fraud_rules
+    type: object
+    description: "Regras anti-fraude e validação"
+
+  - name: communication_plan
+    type: object
+    description: "Plano de comunicação para lançar e manter o programa"
+
+steps:
+  - id: define-mechanics
+    action: design-core-mechanics
+    description: >
+      Mecânica core do programa:
+      - Quem pode indicar: qualquer assinante ativo (30+ dias)
+      - Como indica: link único, compartilhável via WhatsApp
+      - Recompensa indicador: 1 mês grátis (crédito na próxima fatura)
+      - Recompensa indicado: 1 mês grátis (trial estendido)
+      - Limite: 5 indicações válidas/mês por usuário
+      - Validade do link: 30 dias
+      - Ativação: indicado deve completar onboarding + 7 dias ativo
+
+  - id: calculate-economics
+    action: unit-economics-analysis
+    description: >
+      Calcular viabilidade econômica:
+      - Custo por referral: ~R$29-49 (1 mês grátis × 2)
+      - CAC via marketing pago estimado: R$80-150
+      - Economia por referral válido: R$30-100
+      - LTV esperado de referred user vs orgânico
+      - Break-even: em quantos meses o referred user paga o custo?
+      - Budget mensal necessário para X referrals/mês
+    depends_on: [define-mechanics]
+
+  - id: design-anti-fraud
+    action: create-fraud-rules
+    description: >
+      Regras anti-fraude:
+      - CPF único por conta (sem duplicatas)
+      - Indicado deve ser device diferente do indicador
+      - Indicado deve ter atividade real (não só instalar)
+      - Padrão suspeito: 5 indicações do mesmo IP/device
+      - Cooldown: se indicação invalidada, 30 dias sem nova indicação
+      - Auditoria mensal automática dos top indicadores
+    depends_on: [define-mechanics]
+
+  - id: plan-communication
+    action: create-launch-plan
+    description: >
+      Plano de comunicação:
+      - Pré-lançamento: teaser in-app "Algo especial vem aí"
+      - Lançamento: push + in-app + email explicando o programa
+      - Ongoing: lembrete mensal "Você ainda tem X indicações disponíveis"
+      - Milestone: "Parabéns! Sua indicação do João foi ativada!"
+      - Dashboard: tela no app mostrando indicações e status
+      - Mensagem de compartilhamento pré-escrita para WhatsApp
+    depends_on: [calculate-economics, design-anti-fraud]
+
+  - id: define-metrics
+    action: set-success-criteria
+    description: >
+      Métricas de sucesso:
+      - Referral rate: % de ativos que indicam >= 10%
+      - Conversion rate: % de indicados que assinam >= 25%
+      - Activation rate: % de referred que completam onboarding >= 60%
+      - Retention lift: referred users retêm 10pp melhor que orgânico
+      - CAC referral vs CAC pago: pelo menos 50% menor
+      - Fraud rate: < 5% das indicações
+    depends_on: [plan-communication]
+
+error_handling:
+  on_validation_error: "Tipo de programa inválido: {{error.message}}"
+  on_process_error: "Erro ao desenhar programa: {{error.message}}"
+  retry_count: 1

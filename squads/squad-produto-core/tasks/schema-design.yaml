@@ -1,0 +1,104 @@
+# Task: Schema Design
+# Squad: squad-produto-core
+# Version: 0.1.0
+
+task:
+  id: schema-design
+  name: "Design de Schema PostgreSQL/Supabase"
+  version: "0.1.0"
+  purpose: "Projetar schema de banco de dados no Supabase (PostgreSQL) para uma feature, incluindo RLS policies e indexes"
+  executor: "@garden-fullstack-dev"
+  collaborators:
+    - "@garden-domain-expert"    # Valida modelo de domínio
+    - "@garden-product-chief"    # Confirma requisitos
+  elicit: true
+  execution_type: interactive
+
+pre_conditions:
+  - "Feature definida com user story"
+  - "Entidades e relacionamentos identificados"
+
+inputs:
+  - name: feature_name
+    type: text
+    prompt: "Feature que precisa de schema:"
+  - name: entities
+    type: text
+    prompt: "Entidades principais (ex: client, service, invoice):"
+  - name: multi_tenant
+    type: boolean
+    prompt: "Multi-tenant (separação por jardineiro)?"
+    default: true
+
+steps:
+  - id: step_1_domain_model
+    name: "Modelagem de Domínio"
+    action: |
+      1. Listar entidades e seus atributos
+      2. Definir relacionamentos (1:1, 1:N, N:N)
+      3. Identificar entidade raiz do tenant (gardener/organization)
+      4. Validar com @garden-domain-expert: modelo reflete realidade?
+      5. Mapear: quais dados são offline-critical?
+
+  - id: step_2_table_design
+    name: "Design de Tabelas"
+    action: |
+      Para cada tabela:
+      1. Nome em inglês, snake_case, plural (ex: clients, services)
+      2. Colunas com tipos PostgreSQL apropriados
+      3. Primary key: UUID (uuid_generate_v4())
+      4. Foreign keys com ON DELETE behavior definido
+      5. Timestamps: created_at, updated_at (com trigger)
+      6. Soft delete: deleted_at (nullable timestamp)
+      7. Tenant column: gardener_id (FK para auth.users)
+      8. Indexes para queries frequentes
+
+  - id: step_3_rls_policies
+    name: "RLS Policies (obrigatório)"
+    action: |
+      Para CADA tabela:
+      1. ALTER TABLE {table} ENABLE ROW LEVEL SECURITY;
+      2. Policy SELECT: gardener_id = auth.uid()
+      3. Policy INSERT: gardener_id = auth.uid()
+      4. Policy UPDATE: gardener_id = auth.uid()
+      5. Policy DELETE: gardener_id = auth.uid()
+      6. Policies adicionais para cenário de equipe (futuro)
+
+  - id: step_4_migration
+    name: "Migration SQL"
+    action: |
+      Gerar migration Supabase:
+      1. CREATE TABLE statements
+      2. Index creation
+      3. RLS policy creation
+      4. Trigger para updated_at
+      5. Seed data (se necessário)
+      6. Rollback script (DROP TABLE IF EXISTS)
+
+  - id: step_5_watermelondb_schema
+    name: "Schema WatermelonDB (offline)"
+    action: |
+      Para dados que precisam funcionar offline:
+      1. Definir Model class no WatermelonDB
+      2. Mapear colunas (WatermelonDB types)
+      3. Definir relações (@relation, @children)
+      4. Implementar sync adapter (pullChanges, pushChanges)
+      5. Definir conflict resolution strategy
+
+output:
+  format: markdown
+  sections:
+    - domain_model_diagram
+    - table_definitions
+    - rls_policies
+    - migration_sql
+    - watermelondb_models
+    - sync_strategy
+
+quality_gate:
+  rls_on_every_table: true
+  tenant_isolation: true
+  soft_delete: true
+  uuid_primary_keys: true
+  timestamps_on_all_tables: true
+  offline_models_for_critical_data: true

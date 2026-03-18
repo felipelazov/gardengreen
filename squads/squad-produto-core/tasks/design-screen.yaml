@@ -1,0 +1,101 @@
+# Task: Design Screen
+# Squad: squad-produto-core
+# Version: 0.1.0
+
+task:
+  id: design-screen
+  name: "Projetar Tela/Fluxo Mobile"
+  version: "0.1.0"
+  purpose: "Projetar uma tela ou fluxo para o app mobile do GardenGreen, considerando condições de campo (sol, luvas, pressa)"
+  executor: "@garden-ux-mobile"
+  collaborators:
+    - "@garden-domain-expert"    # Valida fluxo contra rotina real
+    - "@garden-product-chief"    # Confirma alinhamento com produto
+  elicit: true
+  execution_type: interactive
+
+pre_conditions:
+  - "Feature definida (via define-feature ou briefing claro)"
+  - "Persona e contexto de uso identificados"
+
+inputs:
+  - name: screen_name
+    type: text
+    prompt: "Nome da tela/fluxo:"
+  - name: context
+    type: select
+    prompt: "Onde o jardineiro vai usar?"
+    options: ["No campo (sol, mãos sujas)", "No carro (entre clientes)", "Em casa (fim do dia)", "Escritório (planejamento)"]
+  - name: primary_action
+    type: text
+    prompt: "Ação principal que o jardineiro quer fazer:"
+  - name: frequency
+    type: select
+    prompt: "Frequência de uso:"
+    options: ["Várias vezes/dia", "1x/dia", "Semanal", "Mensal", "Eventual"]
+
+steps:
+  - id: step_1_user_context
+    name: "Mapear Contexto de Uso"
+    action: |
+      1. Definir cenário: onde, quando, como o jardineiro acessa essa tela
+      2. Listar constraints: sol?, luvas?, pressa?, uma mão ocupada?
+      3. Definir dispositivo provável: Android médio, tela 6"
+      4. Verificar: precisa funcionar offline? (quase sempre SIM)
+
+  - id: step_2_information_architecture
+    name: "Arquitetura de Informação"
+    action: |
+      1. Listar TODAS as informações necessárias na tela
+      2. Priorizar: o que é essencial vs o que é nice-to-have
+      3. Aplicar progressive disclosure: essencial visível, resto sob tap
+      4. Definir hierarquia visual (tamanho, cor, posição)
+      5. Max 5 elementos interativos visíveis por vez
+
+  - id: step_3_interaction_design
+    name: "Design de Interação"
+    action: |
+      1. Mapear fluxo de interação (tap-by-tap)
+      2. Verificar: completa em 3 toques? Se não, simplificar.
+      3. Definir quick actions (swipe, long press, FAB)
+      4. Planejar feedback: haptic + visual para cada ação
+      5. Thumb zone: ações primárias na metade inferior
+
+  - id: step_4_wireframe_description
+    name: "Wireframe Descritivo"
+    action: |
+      Descrever wireframe com:
+      1. Layout geral (header, body, bottom nav/FAB)
+      2. Cada elemento: tipo, posição, tamanho, comportamento
+      3. Estados: default, loading, empty, error, offline
+      4. Transições: de onde vem, para onde vai
+      5. Acessibilidade: contraste, touch targets, labels
+
+  - id: step_5_field_validation
+    name: "Validação de Campo"
+    action: |
+      Checklist de campo:
+      1. [ ] Legível ao sol (contraste 7:1+ WCAG AAA)
+      2. [ ] Touch targets 56px+ (luvas)
+      3. [ ] Funciona com uma mão (thumb zone)
+      4. [ ] Sem digitação obrigatória (seletores/toggles)
+      5. [ ] Funciona offline (dados cached, actions queued)
+      6. [ ] Feedback visual claro (não depende de som)
+      7. [ ] Carrega em < 1s (dados locais) ou < 3s (com sync)
+      8. [ ] Estado vazio tem CTA claro (não tela em branco)
+
+output:
+  format: markdown
+  sections:
+    - user_context
+    - information_architecture
+    - interaction_flow
+    - wireframe_description
+    - field_validation_checklist
+    - component_list
+
+quality_gate:
+  max_taps_for_primary_action: 3
+  min_contrast_ratio: 7.0
+  min_touch_target: 48
+  offline_support_required: true

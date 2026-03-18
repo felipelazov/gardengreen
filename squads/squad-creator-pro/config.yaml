@@ -1,0 +1,241 @@
+# Squad Creator Pro — Elite Squad Factory
+# Extends squad-creator-pro base with advanced capabilities
+name: squad-creator-pro
+version: 1.0.0
+tested: false
+updated_at: "2026-03-11"
+short-title: Squad Creator Pro
+description: |
+  Extensão Pro do Squad Creator que transforma o base em fábrica autônoma
+  de squads com controle de qualidade industrial.
+
+  Diferenciais Pro:
+  - Fidelity Engine: Qualidade indistinguível do expert real
+  - Model Routing: 60-70% economia de tokens com benchmark engine
+  - 3 YOLO Modes: Light / Full / Batch
+  - Observatory: Métricas de uso pós-criação
+  - Export System: Pacotes portáteis entre projetos
+  - Benchmark + Regression: Golden baselines + tracking
+  - Axioma Assessment automatizado com perfis por tipo
+
+  Agents: @squad-chief-pro (override), @thiago-finch (business strategy)
+  Herança: Tudo do squad-creator-pro base + extensões Pro
+
+author: Synkra AIOX Team
+entry_agent: squad-chief-pro
+extends: squad-creator-pro
+
+# Pro Detection — base detecta este arquivo
+pro_detection:
+  enabled: true
+  base_squad: squad-creator-pro
+  override_mode: extend  # extend | replace
+
+# Herança do base
+inheritance:
+  agents:
+    inherit: all
+    override:
+      - squad-chief  # Pro override do chief
+    add:
+      - thiago-finch  # Novo specialist
+  tasks:
+    inherit: all
+    add:
+      - create-squad-pro
+      - brownfield-upgrade
+      - optimize-workflow
+      - generate-golden-baseline
+      - regression-test
+      - squad-health-check
+      - cost-estimator
+      - clone-mind-batch
+      - generate-test-suite
+      - audit-trail
+      - squad-diff
+      - export-squad
+      - fidelity-score
+      - observatory-report
+      - qualify-model-tier
+      - council-session
+      - scenario-simulator
+      - council-retrospective
+      - ecosystem-orchestrator
+      - squad-evolution
+      - ecosystem-kpis
+  workflows:
+    inherit: all
+    override:
+      - wf-create-squad  # Pro override com fidelity gates
+    add:
+      - wf-context-aware-create
+      - wf-brownfield-upgrade
+      - wf-optimize-squad
+      - wf-workspace-hardening
+      - wf-squad-observatory
+      - wf-benchmark-suite
+      - wf-export-package
+      - wf-fidelity-loop
+      - wf-batch-create
+      - wf-council-session
+      - wf-scenario-simulator
+      - wf-council-retrospective
+
+# Model Routing Configuration
+model_routing:
+  enabled: true
+  default_model: opus
+  tiers:
+    opus:
+      role: baseline
+      cost_multiplier: 1.0
+      use_when: "Complex creation, deep research, architectural decisions"
+    sonnet:
+      role: qualified
+      cost_multiplier: 0.4
+      qualification_threshold: 0.95
+      use_when: "Analysis, synthesis, workflow creation, templates"
+    haiku:
+      role: optimized
+      cost_multiplier: 0.2
+      qualification_threshold: 0.90
+      use_when: "Deterministic validation, classification, metrics, formatting"
+  qualification:
+    benchmark_dimensions:
+      - name: completeness
+        weight: 0.30
+      - name: accuracy
+        weight: 0.30
+      - name: reasoning
+        weight: 0.20
+      - name: format
+        weight: 0.10
+      - name: actionability
+        weight: 0.10
+
+# YOLO Modes
+yolo_modes:
+  light:
+    description: "Cria mas para antes de salvar — review humano obrigatório"
+    auto_save: false
+    auto_validate: true
+    batch: false
+  full:
+    description: "Cria, salva, valida, reporta — autonomia total"
+    auto_save: true
+    auto_validate: true
+    batch: false
+  batch:
+    description: "Cria N squads em sequência sem parar"
+    auto_save: true
+    auto_validate: true
+    batch: true
+    max_concurrent: 3
+
+# Fidelity Engine
+fidelity:
+  enabled: true
+  minimum_score: 0.85
+  dimensions:
+    voice_accuracy:
+      weight: 0.25
+      description: "Signature phrases, tone, vocabulary match"
+    thinking_accuracy:
+      weight: 0.25
+      description: "Decision frameworks, heuristics match"
+    behavioral_accuracy:
+      weight: 0.20
+      description: "How agent responds to real scenarios"
+    knowledge_depth:
+      weight: 0.15
+      description: "Domain coverage and accuracy"
+    anti_pattern_coverage:
+      weight: 0.15
+      description: "Knows what expert would NEVER do"
+
+# Observatory
+observatory:
+  enabled: true
+  metrics:
+    - activation_frequency
+    - commands_used
+    - task_completion_rate
+    - average_task_duration
+    - error_rate
+    - user_satisfaction
+  storage: ".aiox/observatory/"
+
+# Export System
+export:
+  enabled: true
+  formats:
+    - portable_package  # Self-contained zip
+    - git_subtree       # Git-based sharing
+  include:
+    - agents
+    - tasks
+    - workflows
+    - checklists
+    - templates
+    - data
+    - minds
+    - config
+  exclude:
+    - test-cases
+    - benchmarks
+    - scripts
+    - ".aiox/"
+
+# Benchmark Configuration
+benchmarks:
+  enabled: true
+  golden_baseline_model: opus
+  comparison_dimensions:
+    - completeness
+    - accuracy
+    - reasoning
+    - format
+    - actionability
+  regression_threshold: 0.05  # Max acceptable degradation
+
+settings:
+  activation:
+    show_ecosystem_report: true
+    show_greeting: true
+    show_quick_commands: true
+    show_pro_badge: true
+  ecosystem_report:
+    show_totals: true
+    show_top_squads: true
+    show_quality_refs: true
+    show_gaps: true
+    show_fidelity_scores: true
+    top_squads_limit: 5
+
+slashPrefix: squadCreatorPro
+
+# Command Override Map — Pro commands that override base
+command_override_map:
+  "*create-squad": "tasks/create-squad-pro.md"
+  "*validate-squad": "workflows/wf-fidelity-loop.yaml"
+  "*optimize": "tasks/optimize-workflow.md"
+
+# Pro-exclusive commands
+pro_commands:
+  - "*fidelity-score {squad} - Calcular score de fidelidade do squad"
+  - "*benchmark {task} - Rodar benchmark contra golden baseline"
+  - "*observatory {squad} - Dashboard de métricas de uso"
+  - "*export {squad} - Exportar squad como pacote portátil"
+  - "*batch-create {domain1} {domain2} ... - Criar múltiplos squads"
+  - "*health-check {squad} - Health check rápido"
+  - "*cost-estimate {operation} - Estimar custo em tokens"
+  - "*qualify-model {task} - Qualificar task para model routing"
+  - "*regression-test - Rodar testes de regressão"
+  - "*upgrade-base - Upgrade do squad-creator-pro base"
+  - "*council {descrição} - Conselho estratégico: planeja quais squads criar para um projeto"
+  - "*simulate - Simular cenários de stress na arquitetura antes de criar"
+  - "*council-retro - Retrospectiva: conselho revisita decisões com dados reais"
+  - "*evolve {squad} - Analisar padrões de uso e sugerir melhorias"
+  - "*kpis {squad} - Definir/rastrear KPIs de negócio por squad"
+  - "*kpis --ecosystem - Dashboard de KPIs do ecossistema inteiro"
+  - "*handoff-status - Status dos handoffs entre squads"

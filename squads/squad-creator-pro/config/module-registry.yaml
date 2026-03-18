@@ -1,0 +1,41 @@
+# Module Registry — SquadCreator Pro
+# Lists available composable modules for reusable workflow blocks
+# Version: 1.0.0
+
+registry:
+  version: 1.0.0
+
+modules:
+  - id: module-discovery
+    name: Module Discovery
+    version: 1.0.0
+    description: Discovers available capabilities, tools, and patterns in a domain
+    inputs:
+      - domain_name: string
+      - search_depth: enum[shallow, medium, deep]
+    outputs:
+      - module-manifest.yaml
+    dependencies: []
+
+  - id: module-integration
+    name: Module Integration
+    version: 1.0.0
+    description: Integrates external modules into existing squads
+    inputs:
+      - squad_path: string
+      - module_id: string
+    outputs:
+      - integration-report.md
+    dependencies:
+      - module-discovery
+
+  - id: module-quality-gates
+    name: Module Quality Gates
+    version: 1.0.0
+    description: Pluggable quality gates customizable per squad type
+    inputs:
+      - squad_path: string
+      - profile: enum[minimal, standard, strict]
+    outputs:
+      - quality-report.md
+    dependencies: []

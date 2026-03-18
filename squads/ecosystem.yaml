@@ -1,0 +1,192 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# GARDENGREEN — Ecosystem Architecture
+# Created: 2026-03-17
+# Council Session: v2 (solo-first)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+ecosystem:
+  name: "GardenGreen"
+  description: "SaaS de gestão para jardineiros — solo-first, empresa como upgrade"
+  revenue_model: "SaaS subscription (Solo R$29-49/mês, Equipe R$99-199/mês)"
+  target_primary: "Jardineiro autônomo (1 pessoa, vários clientes)"
+  target_secondary: "Empresas de jardinagem (equipes)"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SQUADS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+squads:
+  - id: squad-produto-core
+    position: ENTREGAR
+    revenue_role: GERA
+    priority: P0
+    wave: 1
+    agents: 4
+    description: "Plataforma SaaS core — agendamento, CRM, financeiro, mobile"
+
+  - id: squad-vendas-conversao
+    position: CONVERTER
+    revenue_role: GERA
+    priority: P0
+    wave: 1
+    agents: 3
+    description: "Conversão trial→paid — onboarding zero-fricção, pricing, PLG"
+
+  - id: squad-sucesso-cliente
+    position: RETER
+    revenue_role: PROTEGE
+    priority: P0
+    wave: 1
+    agents: 3
+    description: "Retenção — health score, engajamento, valor percebido, comunidade"
+
+  - id: squad-marketing-growth
+    position: ATRAIR
+    revenue_role: AMPLIFICA
+    priority: P1
+    wave: 2
+    agents: 3
+    description: "Aquisição — boca-a-boca, conteúdo, referral, parcerias locais"
+
+  - id: squad-dados-operacoes
+    position: ESCALAR
+    revenue_role: AMPLIFICA
+    priority: P2
+    wave: 3
+    agents: 3
+    description: "Escala — BI, DevOps, integrações, performance"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# HANDOFF REGISTRY
+# ═══════════════════════════════════════════════════════════════════════════════
+
+handoffs:
+  - id: HO-001
+    from: squad-marketing-growth
+    to: squad-vendas-conversao
+    data: "leads qualificados (downloads, indicações, interessados)"
+    trigger: "novo lead identificado"
+    sla: "24h para primeiro contato automatizado"
+
+  - id: HO-002
+    from: squad-vendas-conversao
+    to: squad-produto-core
+    data: "trial ativado, conta criada, plano selecionado"
+    trigger: "jardineiro completa onboarding"
+    sla: "tempo real (automático)"
+
+  - id: HO-003
+    from: squad-produto-core
+    to: squad-sucesso-cliente
+    data: "dados de uso, feature adoption, health score"
+    trigger: "usuário ativo há 7+ dias"
+    sla: "diário (batch)"
+
+  - id: HO-004
+    from: squad-sucesso-cliente
+    to: squad-dados-operacoes
+    data: "métricas de retenção, sinais de churn, feedback, NPS"
+    trigger: "ciclo mensal de retenção"
+    sla: "semanal (relatório)"
+
+  - id: HO-005
+    from: squad-dados-operacoes
+    to: squad-marketing-growth
+    data: "perfil de cliente ideal, canais mais eficientes, ICP"
+    trigger: "análise de cohort mensal"
+    sla: "mensal (relatório)"
+
+  - id: HO-006
+    from: squad-sucesso-cliente
+    to: squad-vendas-conversao
+    data: "triggers de upgrade solo→equipe"
+    trigger: "jardineiro atinge critérios de upgrade"
+    sla: "tempo real (automático)"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# BUSINESS KPIs
+# ═══════════════════════════════════════════════════════════════════════════════
+
+kpis:
+  ecosystem:
+    - metric: "MRR (Monthly Recurring Revenue)"
+      target_6mo: "R$ 10.000"
+      target_12mo: "R$ 50.000"
+      owner: squad-dados-operacoes
+
+    - metric: "Total Jardineiros Ativos"
+      target_6mo: 200
+      target_12mo: 1000
+      owner: squad-marketing-growth
+
+    - metric: "Churn Rate Mensal"
+      target: "< 5%"
+      owner: squad-sucesso-cliente
+
+    - metric: "LTV/CAC Ratio"
+      target: "> 3x"
+      owner: squad-dados-operacoes
+
+  per_squad:
+    squad-produto-core:
+      - metric: "App Crash Rate"
+        target: "< 1%"
+      - metric: "Offline Sync Success"
+        target: "> 99%"
+      - metric: "Feature Adoption (core features)"
+        target: "> 60% em 30 dias"
+
+    squad-vendas-conversao:
+      - metric: "Trial → Paid Conversion"
+        target: "> 8%"
+      - metric: "Time to First Value"
+        target: "< 5 minutos"
+      - metric: "Onboarding Completion Rate"
+        target: "> 80%"
+
+    squad-sucesso-cliente:
+      - metric: "Day 7 Retention"
+        target: "> 60%"
+      - metric: "Day 30 Retention"
+        target: "> 40%"
+      - metric: "NPS Score"
+        target: "> 50"
+
+    squad-marketing-growth:
+      - metric: "CAC (Cost per Acquisition)"
+        target: "< R$ 30"
+      - metric: "Organic/Referral %"
+        target: "> 60%"
+      - metric: "Downloads Mensais"
+        target_6mo: 500
+        target_12mo: 2000
+
+    squad-dados-operacoes:
+      - metric: "Uptime"
+        target: "> 99.5%"
+      - metric: "API Response Time (p95)"
+        target: "< 500ms"
+      - metric: "Deploy Frequency"
+        target: "> 2x por semana"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ROADMAP
+# ═══════════════════════════════════════════════════════════════════════════════
+
+roadmap:
+  wave_1_mvp:
+    squads: [squad-produto-core, squad-vendas-conversao, squad-sucesso-cliente]
+    goal: "Construir, vender e reter — mínimo para faturar"
+    milestone: "Primeiro jardineiro pagante"
+
+  wave_2_amplify:
+    squads: [squad-marketing-growth]
+    goal: "Amplificar aquisição com canais estruturados"
+    trigger: "MVP validado, ≥ 50 jardineiros ativos"
+    milestone: "200 jardineiros ativos"
+
+  wave_3_scale:
+    squads: [squad-dados-operacoes]
+    goal: "Escalar com dados e infraestrutura robusta"
+    trigger: "≥ 200 jardineiros ativos, decisões precisam de dados"
+    milestone: "1000 jardineiros ativos, unit economics positivo"

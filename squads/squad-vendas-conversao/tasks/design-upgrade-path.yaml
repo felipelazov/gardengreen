@@ -1,0 +1,112 @@
+id: design-upgrade-path
+name: "Desenhar Experiência de Upgrade Solo para Equipe"
+squad: squad-vendas-conversao
+version: 0.1.0
+type: task
+
+description: |
+  Desenhar a jornada de upgrade do plano Solo (jardineiro autônomo) para
+  o plano Equipe (empresa com 2+ jardineiros). O upgrade deve ser natural,
+  detectado por padrão de uso, e sem fricção.
+
+owner: garden-onboarding
+collaborators:
+  - garden-growth-chief
+  - garden-conversion-copy
+
+inputs:
+  - name: solo_usage_patterns
+    type: document
+    description: "Padrões de uso de usuários Solo que indicam necessidade de Equipe"
+    required: false
+
+outputs:
+  - name: upgrade_flow
+    type: document
+    description: "Fluxo completo de upgrade Solo→Equipe"
+    path: "docs/specs/upgrade-solo-equipe-flow.md"
+  - name: trigger_rules
+    type: document
+    description: "Regras de detecção de upgrade potential"
+    path: "docs/specs/upgrade-trigger-rules.md"
+
+steps:
+  - id: 1
+    name: "Identificar sinais de upgrade"
+    agent: garden-growth-chief
+    action: |
+      Mapear sinais que indicam que o jardineiro Solo precisa do Equipe:
+      - Tentou adicionar outro "jardineiro" como contato
+      - Agenda com mais serviços do que 1 pessoa pode fazer
+      - Busca por funcionalidade de equipe (se existir search)
+      - Menciona "ajudante", "sócio", "funcionário" em algum campo
+      - Crescimento rápido: 10+ clientes em 30 dias
+      - Volume de serviços > X por semana
+
+  - id: 2
+    name: "Desenhar momento do upgrade"
+    agent: garden-onboarding
+    action: |
+      Desenhar como e quando apresentar o upgrade:
+      - NÃO: popup aleatório "Upgrade agora!"
+      - SIM: momento contextual quando o sinal é detectado
+      Exemplo: "Parece que você tá crescendo! Quer adicionar seu
+      ajudante no app? Teste o plano Equipe por 7 dias grátis."
+      Deve ser ignorável sem penalidade.
+
+  - id: 3
+    name: "Escrever copy de upgrade"
+    agent: garden-conversion-copy
+    action: |
+      Copy para cada touchpoint de upgrade:
+      - In-app prompt (contextual, não intrusivo)
+      - Tela de comparação Solo vs Equipe
+      - Email de sugestão de upgrade
+      - Confirmação de upgrade
+      - Welcome ao plano Equipe
+      Tom: celebração do crescimento, não venda.
+      "Você tá crescendo! O plano Equipe te ajuda a organizar a equipe."
+
+  - id: 4
+    name: "Desenhar fluxo de upgrade"
+    agent: garden-onboarding
+    action: |
+      Fluxo técnico do upgrade:
+      1. Usuário aceita trial Equipe (1 toque)
+      2. Tela: "Convide seu primeiro membro" (nome + telefone)
+      3. Membro recebe convite via WhatsApp
+      4. Membro baixa app e entra com código
+      5. Dashboard agora mostra equipe
+      Tempo total: < 3 minutos para ter membro adicionado.
+
+  - id: 5
+    name: "Definir trial de upgrade"
+    agent: garden-growth-chief
+    action: |
+      Definir regras do trial de upgrade:
+      - Duração: 7 dias grátis do plano Equipe
+      - Sem pedir cartão para trial de upgrade
+      - Dados do plano Solo preservados 100%
+      - Se não converter: volta ao Solo sem perder nada
+      - Se converter: cobrança inicia após 7 dias
+      - Comunicação durante trial: dias 1, 4, 6, 7
+
+  - id: 6
+    name: "Definir métricas de upgrade"
+    agent: garden-growth-chief
+    action: |
+      Métricas específicas do upgrade path:
+      - % de Solo que veem prompt de upgrade
+      - % que iniciam trial Equipe
+      - % que convertem trial Equipe em pago
+      - Tempo médio de Solo até primeiro sinal de upgrade
+      - Retenção M1 de quem fez upgrade vs quem não fez
+      - Revenue uplift por upgrade (ARPU Solo vs Equipe)
+
+postconditions:
+  - "Sinais de upgrade mapeados e priorizados"
+  - "Momento de apresentação definido (contextual, não intrusivo)"
+  - "Copy de upgrade escrita para todos os touchpoints"
+  - "Fluxo técnico de upgrade especificado"
+  - "Trial de upgrade de 7 dias definido"
+  - "Métricas de upgrade instrumentadas"

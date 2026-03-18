@@ -1,0 +1,159 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# WORKFLOW: Scenario Simulator — Stress-Test Squad Architecture
+# Version: 1.0.0
+# Purpose: Stress-test proposed squad architecture with 5 business scenarios
+# ═══════════════════════════════════════════════════════════════════════════════
+
+workflow-id: wf-scenario-simulator
+name: Scenario Simulator
+version: 1.0.0
+estimated-time: 10-20 minutes
+complexity: high
+
+description: |
+  Stress-test uma arquitetura de squads proposta ANTES de criar qualquer squad.
+  Simula 5 cenários de estresse contextualizados ao negócio para identificar
+  falhas arquiteturais, gargalos e squads faltantes.
+
+  Cenários: Volume Spike, Squad Failure, Edge Case, Scale Event, Competitive Pressure.
+  Classificação: RED (bloqueia), YELLOW (monitora), GREEN (OK).
+
+orchestrator: "@squad-chief-pro"
+command: "*simulate"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+inputs:
+  required:
+    - squad_architecture: "Arquitetura de squads proposta (output do council)"
+    - project_brief: "Brief do projeto/empresa"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STATE MACHINE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+type: state_machine
+
+states:
+  generate_scenarios:
+    description: "Gerar 5 cenários de estresse contextualizados ao negócio"
+    model: opus
+    elicit: false
+    actions:
+      - "Analisar project_brief para contextualizar cenários ao negócio real"
+      - "Gerar cenário 1: Volume Spike (3x carga normal)"
+      - "Gerar cenário 2: Squad Failure (squad crítico indisponível)"
+      - "Gerar cenário 3: Edge Case (request atípico de cliente)"
+      - "Gerar cenário 4: Scale Event (10x growth em 6 meses)"
+      - "Gerar cenário 5: Competitive Pressure (novo competidor no mercado)"
+      - "Cada cenário contextualizado ao negócio específico, não genérico"
+    output: "test_scenarios"
+    transitions:
+      - condition: "scenarios_generated"
+        to: simulate
+
+  simulate:
+    description: "Simular cada cenário contra a arquitetura proposta"
+    model: opus
+    actions:
+      - "Para cada cenário, avaliar:"
+      - "  - Quais squads são estressados? (stress level: low/medium/high/critical)"
+      - "  - Onde aparecem gargalos? (handoff/capacity/missing_data)"
+      - "  - Existe squad faltante que resolveria o problema?"
+      - "  - Falha em um squad causa cascata em outros?"
+      - "  - Handoffs entre squads são suficientes?"
+      - "Documentar resultado detalhado por cenário"
+    output: "simulation_results"
+    transitions:
+      - condition: "all_simulated"
+        to: assess_vulnerabilities
+
+  assess_vulnerabilities:
+    description: "Classificar vulnerabilidades encontradas — RED/YELLOW/GREEN"
+    model: opus
+    actions:
+      - "Consolidar resultados dos 5 cenários"
+      - "Classificar cada vulnerabilidade:"
+      - "  RED — falha arquitetural, MUST FIX antes de criar"
+      - "  YELLOW — risco, documentar e monitorar"
+      - "  GREEN — arquitetura lida bem"
+      - "Gerar vulnerability report com verdito geral:"
+      - "  PASS (zero RED), CONDITIONAL (YELLOWs), BLOCK (REDs encontrados)"
+    output: "vulnerability_report"
+    transitions:
+      - condition: "zero_red"
+        to: complete
+      - condition: "red_found"
+        to: recommend_fixes
+
+  recommend_fixes:
+    description: "Propor ajustes para vulnerabilidades RED"
+    model: opus
+    elicit: true
+    actions:
+      - "Para cada RED: propor ajuste específico à arquitetura"
+      - "Explicar como o ajuste resolve a vulnerabilidade"
+      - "Re-simular cenário com ajuste aplicado para confirmar resolução"
+      - "Apresentar ao usuário com opções:"
+      - "  [A] Aplicar ajustes e prosseguir"
+      - "  [R] Re-simular com arquitetura ajustada"
+      - "  [I] Ignorar e prosseguir (não recomendado)"
+      - "  [C] Cancelar e voltar ao conselho"
+    output: "adjusted_architecture"
+    transitions:
+      - condition: "adjustments_applied"
+        to: complete
+      - condition: "re_simulate"
+        to: simulate
+      - condition: "ignore"
+        to: complete
+      - condition: "cancel"
+        to: complete
+
+  complete:
+    description: "Simulação concluída — arquitetura validada ou ajustada"
+    terminal: true
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# QUALITY GATES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+quality_gates:
+  - gate: SCENARIOS_COMPLETE
+    phase: generate_scenarios
+    blocking: true
+    criteria:
+      - "5 cenários gerados"
+      - "Cada cenário contextualizado ao negócio específico"
+      - "Cenários cobrem: volume, falha, edge case, escala, competição"
+
+  - gate: SIMULATION_COMPLETE
+    phase: simulate
+    blocking: true
+    criteria:
+      - "Todos os 5 cenários simulados"
+      - "Squads estressados identificados por cenário"
+      - "Gargalos documentados"
+
+  - gate: ZERO_RED_FOR_CREATION
+    phase: assess_vulnerabilities
+    blocking: true
+    criteria:
+      - "Nenhuma vulnerabilidade RED pendente"
+      - "REDs resolvidos via ajustes OU usuário ignorou explicitamente"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VETO CONDITIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+veto_conditions:
+  - condition: "3+ cenários com verdito RED"
+    action: "BLOCK criação, recomendar revisão completa da arquitetura no conselho"
+  - condition: "Cenário Volume Spike com verdito RED"
+    action: "WARN — arquitetura não escala, crítico para negócios em crescimento"
+  - condition: "Cenário Squad Failure com verdito RED"
+    action: "WARN — sem redundância, single point of failure identificado"
+  - condition: "Squad faltante identificado em 3+ cenários"
+    action: "STRONG RECOMMEND — adicionar squad à arquitetura antes de criar"

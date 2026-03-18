@@ -1,0 +1,72 @@
+name: "squad-vendas-conversao"
+version: 0.1.0
+description: "Squad responsável por converter leads e downloads em assinantes pagantes. Zero-friction onboarding, Product-Led Growth, e otimização do funil trial→paid para jardineiros autônomos e empresas de jardinagem."
+author: "GardenGreen"
+license: MIT
+
+aiox:
+  minVersion: "2.1.0"
+  type: squad
+
+ecosystem:
+  position: CONVERTER
+  revenue_role: GERA
+  priority: P0
+  description: >
+    Converte usuários de trial em assinantes pagantes. Responsável por
+    onboarding zero-fricção, ativação, e otimização de conversão.
+    O jardineiro é LOW-TECH — se demorar mais de 2 minutos, desinstala.
+  handoffs:
+    receives_from:
+      - squad: squad-marketing-growth
+        data: "leads qualificados, downloads do app, fonte de aquisição (WhatsApp, indicação, orgânico)"
+    sends_to:
+      - squad: squad-produto-core
+        data: "usuário trial ativo, plano selecionado, perfil básico preenchido, primeiro cliente adicionado"
+
+value_chain:
+  stage: Convert
+  funnel_position: "Download → Onboarding → Ativação → Trial → Paid"
+  key_metric: "Trial-to-Paid Conversion Rate"
+  target: ">= 15% em 90 dias"
+
+target_user:
+  primary:
+    persona: "Jardineiro autônomo"
+    tech_level: LOW
+    discovery: "WhatsApp, indicação de colegas"
+    pain: "Não sabe quanto ganha, perde cliente, esquece compromisso"
+    price_sensitivity: HIGH
+    budget: "R$29-49/mês"
+  secondary:
+    persona: "Empresa de jardinagem (2-10 jardineiros)"
+    tech_level: LOW-MEDIUM
+    pain: "Gestão de equipe, dispatch, controle financeiro"
+    budget: "R$99-199/mês"
+
+components:
+  agents:
+    - agents/*.yaml
+  tasks:
+    - tasks/*.yaml
+  workflows:
+    - workflows/*.yaml
+  templates:
+    - templates/*.md
+  config:
+    - config/*.md
+
+dependencies: []
+
+keywords:
+  - aiox
+  - squad
+  - gardengreen
+  - conversao
+  - onboarding
+  - plg
+  - product-led-growth
+  - trial
+  - pricing
+  - activation
+  - retention

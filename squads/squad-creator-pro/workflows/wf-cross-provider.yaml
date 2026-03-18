@@ -1,0 +1,53 @@
+workflow:
+  id: wf-cross-provider
+  name: Cross-Provider Comparison
+  version: 1.0.0
+  description: Tests squad with different LLM providers to compare quality and cost
+  trigger: manual
+
+phases:
+  - id: configure
+    name: Configure Providers
+    actions:
+      - Load provider configs from config/cross-provider-config.yaml
+      - Validate API keys available for each provider
+      - Select test tasks (subset of squad tasks for benchmarking)
+    outputs:
+      - provider_list
+      - test_task_list
+
+  - id: baseline
+    name: Run Baseline (Anthropic)
+    depends_on: [configure]
+    actions:
+      - Execute test tasks with Anthropic Claude (default provider)
+      - Record quality scores, token usage, latency, cost
+    outputs:
+      - baseline_results
+
+  - id: compare
+    name: Run Comparison Providers
+    depends_on: [baseline]
+    actions:
+      - For each alternative provider: execute same test tasks
+      - Record quality scores, token usage, latency, cost
+      - Calculate delta vs baseline for each metric
+    outputs:
+      - comparison_results
+
+  - id: analyze
+    name: Analyze Results
+    depends_on: [compare]
+    actions:
+      - Generate quality-cost scatter plot data
+      - Rank providers by quality/cost ratio
+      - Identify best provider per task category
+    outputs:
+      - analysis_data
+
+  - id: report
+    name: Generate Report
+    depends_on: [analyze]
+    template: cross-provider-report-tmpl.md
+    outputs:
+      - cross-provider-report.md

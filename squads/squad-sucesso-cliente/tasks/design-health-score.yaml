@@ -1,0 +1,87 @@
+name: design-health-score
+version: 1.0.0
+description: "Modelar o Customer Health Score para jardineiros do GardenGreen. Define dimensões, pesos, thresholds e ações automáticas por faixa de score."
+
+agent: garden-cs-chief
+command: "*health-score"
+
+inputs:
+  - name: segmento
+    type: string
+    required: false
+    description: "Segmento alvo (solo, equipe, all). Default: all"
+    default: "all"
+
+  - name: periodo_dados
+    type: string
+    required: false
+    description: "Período de dados para calibrar o modelo (ex: 30d, 90d)"
+    default: "90d"
+
+outputs:
+  - name: health_score_model
+    type: object
+    description: "Modelo completo com dimensões, pesos e thresholds"
+
+  - name: action_matrix
+    type: object
+    description: "Matriz de ações automáticas por faixa de score"
+
+  - name: calibration_report
+    type: object
+    description: "Relatório de calibração com distribuição esperada"
+
+steps:
+  - id: define-dimensions
+    action: analyze-and-define
+    description: >
+      Definir as 5 dimensões do health score:
+      1. Frequência de Uso (peso: 30%) — dias/semana com acesso
+      2. Feature Adoption (peso: 25%) — features core utilizadas
+      3. Value Realization (peso: 25%) — momentos de valor alcançados
+      4. Recência (peso: 15%) — tempo desde último acesso
+      5. Engajamento Social (peso: 5%) — comunidade e indicações
+      Para cada dimensão, definir: métrica, escala (0-100), breakpoints.
+
+  - id: define-thresholds
+    action: calculate-thresholds
+    description: >
+      Definir faixas de health score:
+      - Saudável (80-100): usuário engajado, baixo risco
+      - Atenção (60-79): sinais de desengajamento, monitorar
+      - Risco (40-59): provável churn em 30 dias, agir
+      - Crítico (0-39): churn iminente, intervenção urgente
+    depends_on: [define-dimensions]
+
+  - id: design-actions
+    action: create-action-matrix
+    description: >
+      Para cada faixa, definir ações automáticas:
+      - Saudável: value report mensal, pedido de NPS/referral
+      - Atenção: push personalizado com dado de valor, dica de feature
+      - Risco: campanha de re-engagement, oferta de ajuda
+      - Crítico: contato direto (in-app message), oferta especial
+    depends_on: [define-thresholds]
+
+  - id: calibrate-model
+    action: validate-distribution
+    description: >
+      Validar que a distribuição esperada é saudável:
+      - Saudável: 40-50% dos usuários ativos
+      - Atenção: 25-30%
+      - Risco: 15-20%
+      - Crítico: 5-10%
+      Se distribuição está distorcida, ajustar pesos.
+    depends_on: [design-actions]
+
+  - id: document-model
+    action: generate-documentation
+    description: >
+      Gerar documentação completa do modelo em config/health-score-model.md
+      incluindo: dimensões, pesos, métricas, thresholds, ações e exemplos.
+    depends_on: [calibrate-model]
+
+error_handling:
+  on_validation_error: "Dimensão inválida: {{error.message}}"
+  on_process_error: "Erro ao calibrar modelo: {{error.message}}"
+  retry_count: 1

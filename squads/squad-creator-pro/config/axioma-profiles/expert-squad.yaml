@@ -1,0 +1,81 @@
+# Axioma Profile: Expert Squad (Mind Clones)
+# Squads based on real elite minds with documented frameworks
+name: expert-squad
+description: |
+  Profile for squads built from cloned elite minds.
+  Highest fidelity requirements — agents must be indistinguishable from real experts.
+
+dimensions:
+  accuracy:
+    weight: 1.0
+    threshold: 8.0
+    veto: true
+    description: "Voice + Thinking DNA match real expert"
+
+  coherence:
+    weight: 0.9
+    threshold: 7.0
+    veto: false
+    description: "Internal consistency across all agents"
+
+  strategic_alignment:
+    weight: 0.9
+    threshold: 7.0
+    veto: false
+    description: "Squad serves clear strategic purpose"
+
+  operational_excellence:
+    weight: 0.8
+    threshold: 6.5
+    veto: false
+    description: "Workflows execute reliably"
+
+  innovation:
+    weight: 0.5
+    threshold: 5.0
+    veto: false
+    description: "Lower weight — faithfulness > creativity"
+
+  risk_management:
+    weight: 0.8
+    threshold: 6.0
+    veto: false
+    description: "Veto conditions and safety rails"
+
+  resource_optimization:
+    weight: 0.7
+    threshold: 6.0
+    veto: false
+    description: "Model routing configured"
+
+  stakeholder_value:
+    weight: 0.8
+    threshold: 7.0
+    veto: false
+    description: "Delivers real value to users"
+
+  sustainability:
+    weight: 0.6
+    threshold: 5.5
+    veto: false
+    description: "Maintainable over time"
+
+  adaptability:
+    weight: 0.5
+    threshold: 5.0
+    veto: false
+    description: "Can evolve without breaking"
+
+overall_threshold: 7.5
+fidelity_minimum: 0.85
+
+priority_dimensions:
+  - accuracy
+  - coherence
+  - stakeholder_value
+
+special_rules:
+  - "All agents must have voice_dna with [SOURCE:] references"
+  - "All agents must pass 3/3 smoke tests"
+  - "Fidelity score >= 0.85 for every agent"
+  - "Mind DNA must exist for every expert agent"

@@ -1,0 +1,434 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Client Intake Template v1.0
+# ═══════════════════════════════════════════════════════════════════════
+# Squad: squad-pm | Task: intake-prep
+# Usado por: @pm-chief (Atlax)
+# Parser: intake-parser.py
+#
+# INSTRUCOES DE PREENCHIMENTO:
+# ----------------------------
+# 1. Este template pode ser preenchido pelo cliente diretamente,
+#    pelo PM durante entrevista, ou de forma hibrida.
+# 2. Campos marcados com [OBRIGATORIO] devem ser preenchidos.
+# 3. Campos marcados com [OPCIONAL] podem ficar vazios.
+# 4. Use aspas duplas para textos longos com caracteres especiais.
+# 5. Listas usam o formato YAML com hifen: - "item"
+# 6. Valores permitidos estao indicados em comentario ao lado.
+# 7. Apos preenchido, rode: *intake-parse para validar e processar.
+#
+# WORKFLOW:
+#   Atlax envia ao cliente -> Cliente preenche -> intake-parser.py valida
+#   -> Atlax revisa gaps -> project-diagnostic gera perfil do projeto
+#
+# ═══════════════════════════════════════════════════════════════════════
+
+metadata:
+  # Identificador unico do template (nao alterar)
+  template_id: client-intake-tmpl
+
+  # Versao do template (gerenciada pelo framework)
+  version: "1.0.0"
+
+  # Idioma do preenchimento
+  # Valores: pt-BR | en-US
+  language: "pt-BR"
+
+  # Quem preencheu este formulario?
+  # Valores: client | pm | hybrid
+  # - client: cliente preencheu sozinho
+  # - pm: PM preencheu durante entrevista com cliente
+  # - hybrid: cliente preencheu parcialmente, PM completou
+  filled_by: ""
+
+  # Data/hora do preenchimento (ISO 8601)
+  # Exemplo: "2026-03-08T14:30:00-03:00"
+  filled_at: ""
+
+  # Nome do projeto (sera usado como identificador em todo o ciclo)
+  # [OBRIGATORIO]
+  project_name: ""
+
+  # Nome do contato principal do cliente
+  # [OBRIGATORIO]
+  contact_name: ""
+
+  # Email do contato principal
+  # [OBRIGATORIO]
+  contact_email: ""
+
+  # Telefone (opcional, para agendamentos)
+  # [OPCIONAL]
+  contact_phone: ""
+
+  # Como o cliente chegou ate nos?
+  # Valores: referral, organic, ad, event, partner, other
+  # [OPCIONAL]
+  source: ""
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# BLOCO 1: O NEGOCIO
+# ═══════════════════════════════════════════════════════════════════════
+# Objetivo: Entender o contexto empresarial do cliente.
+# Essas informacoes alimentam o project-diagnostic e ajudam a
+# determinar o project_profile (simple | standard | enterprise).
+#
+# DICA PARA O PM: Se o cliente for solo founder, simplifique —
+# pergunte apenas company_name, industry e current_stage.
+# ═══════════════════════════════════════════════════════════════════════
+
+business:
+  # Nome da empresa ou projeto
+  # [OBRIGATORIO]
+  company_name: ""
+
+  # Setor de atuacao
+  # Valores sugeridos: tech, health, finance, education, retail,
+  #   logistics, food, real-estate, legal, media, gaming, other
+  # [OBRIGATORIO]
+  industry: ""
+
+  # Porte da empresa
+  # Valores: solo (1 pessoa), startup (2-20), pme (21-200),
+  #   enterprise (200+)
+  # [OBRIGATORIO]
+  company_size: ""
+
+  # Modelo de negocio principal
+  # Valores: B2B, B2C, B2B2C, marketplace, SaaS, consulting,
+  #   subscription, freemium, other
+  # [OBRIGATORIO]
+  business_model: ""
+
+  # Estagio atual do negocio
+  # Valores: idea (so ideia), mvp (construindo primeiro produto),
+  #   growth (produto no mercado, crescendo), scale (escala ativa),
+  #   mature (produto estavel, otimizacao)
+  # [OBRIGATORIO]
+  current_stage: ""
+
+  # Website atual (se existir)
+  # [OPCIONAL]
+  website: ""
+
+  # Redes sociais relevantes
+  # [OPCIONAL]
+  social_links:
+    linkedin: ""
+    instagram: ""
+    other: ""
+
+  # Quem sao os usuarios/clientes do produto?
+  # DICA PARA O PM: Aprofunde com perguntas tipo "quem usa no dia a dia?"
+  # e "quem toma a decisao de compra?"
+  target_audience:
+    # Publico principal (quem mais usa/precisa)
+    # Exemplo: "Gerentes de RH em empresas de 50-500 funcionarios"
+    # [OBRIGATORIO]
+    primary: ""
+
+    # Publico secundario (usuarios indiretos ou influenciadores)
+    # Exemplo: "Funcionarios que preenchem formularios de ponto"
+    # [OPCIONAL]
+    secondary: ""
+
+    # Numero estimado de usuarios (atuais ou projetados no lancamento)
+    # Exemplo: "500 atuais, projecao 5000 em 12 meses"
+    # [OBRIGATORIO]
+    estimated_users: ""
+
+    # Segmentacao geografica
+    # Exemplo: "Brasil (SP e RJ inicialmente)"
+    # [OPCIONAL]
+    geography: ""
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# BLOCO 2: O PROBLEMA
+# ═══════════════════════════════════════════════════════════════════════
+# Objetivo: Capturar a dor real do cliente. Este bloco e o mais
+# importante para a Discovery Phase e alimenta diretamente o PRD.
+#
+# DICA PARA O PM: Use a tecnica dos "5 Porques" para chegar na
+# causa raiz. Nao aceite respostas superficiais.
+# Pergunte: "E por que isso e um problema?" ate chegar na essencia.
+# ═══════════════════════════════════════════════════════════════════════
+
+problem:
+  # Declaracao do problema em 1-3 frases claras
+  # Formato sugerido: "[Persona] precisa de [necessidade] porque [motivo]"
+  # Exemplo: "Gerentes de RH perdem 4h/semana consolidando planilhas
+  #   de ponto porque o sistema atual nao tem integracao com folha."
+  # [OBRIGATORIO]
+  statement: ""
+
+  # Como o problema e resolvido hoje? (mesmo que de forma precaria)
+  # Exemplo: "Planilhas Excel enviadas por email, consolidacao manual"
+  # [OBRIGATORIO]
+  current_solution: ""
+
+  # Pontos de dor especificos (liste todos os que o cliente mencionar)
+  # DICA PARA O PM: Cada pain point vira potencial feature.
+  # Tente capturar pelo menos 3.
+  # [OBRIGATORIO - minimo 1]
+  pain_points:
+    - ""
+    # - ""
+    # - ""
+
+  # Qual o impacto de NAO resolver este problema?
+  # Pense em: custo financeiro, tempo perdido, risco operacional,
+  #   perda de clientes, compliance, reputacao
+  # Exemplo: "Risco de multa trabalhista + 20h/mes de trabalho manual"
+  # [OBRIGATORIO]
+  impact: ""
+
+  # Nivel de urgencia
+  # Valores: low (pode esperar 6+ meses), medium (3-6 meses),
+  #   high (1-3 meses), critical (precisa ontem)
+  # [OBRIGATORIO]
+  urgency: ""
+
+  # Ja tentaram resolver antes? O que aconteceu?
+  # [OPCIONAL]
+  previous_attempts: ""
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# BLOCO 3: A SOLUCAO DESEJADA
+# ═══════════════════════════════════════════════════════════════════════
+# Objetivo: Capturar a visao do cliente sobre a solucao ideal.
+# IMPORTANTE: Visao do cliente != especificacao tecnica.
+# O PM deve capturar o "o que" sem se comprometer com o "como".
+#
+# DICA PARA O PM: Se o cliente comecar a ditar tecnologia,
+# redirecione: "Entendi que voce quer X resultado. Vamos focar
+# no que precisa acontecer, e depois definimos a melhor forma."
+# ═══════════════════════════════════════════════════════════════════════
+
+solution:
+  # Como seria o mundo ideal? (narrativa livre do cliente)
+  # Exemplo: "Um app onde o funcionario bate ponto pelo celular,
+  #   o gerente ve em tempo real, e no fim do mes gera relatorio
+  #   automatico pra contabilidade."
+  # [OBRIGATORIO]
+  vision: ""
+
+  # Features desejadas com prioridade MoSCoW
+  # Prioridades: must (essencial), should (importante),
+  #   could (desejavel), wont (nao agora)
+  # DICA PARA O PM: Limite "must" a no maximo 5 itens.
+  # Se o cliente disser que tudo e "must", renegocie.
+  # [OBRIGATORIO - minimo 3 itens]
+  key_features:
+    - name: ""
+      description: ""
+      priority: ""  # must | should | could | wont
+    # - name: ""
+    #   description: ""
+    #   priority: ""
+
+  # Como o cliente vai medir se deu certo?
+  # DICA PARA O PM: Ajude o cliente a pensar em metricas SMART.
+  # Ruim: "quero que seja rapido" / Bom: "pagina carrega em <2s"
+  # [OBRIGATORIO - minimo 1]
+  success_metrics:
+    - metric: ""
+      target: ""
+      timeframe: ""
+    # - metric: ""
+    #   target: ""
+    #   timeframe: ""
+
+  # Referencias, inspiracoes, apps que o cliente admira
+  # Exemplo: "Gosto da simplicidade do Notion e do onboarding do Slack"
+  # [OPCIONAL]
+  inspiration: ""
+
+  # Tipo de produto desejado
+  # Valores: web-app, mobile-app, desktop, api, saas-platform,
+  #   landing-page, e-commerce, chatbot, other
+  # [OBRIGATORIO]
+  product_type: ""
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# BLOCO 4: RESTRICOES
+# ═══════════════════════════════════════════════════════════════════════
+# Objetivo: Mapear todas as limitacoes reais do projeto.
+# Restricoes sao tao importantes quanto features — elas definem
+# o "espaco de solucao" viavel.
+#
+# DICA PARA O PM: Seja direto sobre budget. Diga:
+# "Para calibrar a proposta, preciso entender a faixa de investimento.
+# Nao precisa ser exato — uma faixa ja ajuda muito."
+# ═══════════════════════════════════════════════════════════════════════
+
+constraints:
+  # --- Orcamento ---
+  budget:
+    # Faixa de investimento
+    # Valores: <10k, 10-50k, 50-200k, 200k+, to-define
+    # [OBRIGATORIO]
+    range: ""
+
+    # Moeda
+    # Valores: BRL, USD, EUR
+    currency: "BRL"
+
+    # O orcamento e fixo ou flexivel?
+    # Valores: fixed (nao negocia), flexible (pode ajustar),
+    #   phased (pode dividir em fases)
+    # [OPCIONAL]
+    flexibility: ""
+
+    # Existe budget aprovado ou ainda precisa de aprovacao?
+    # Valores: approved, pending-approval, exploring
+    # [OPCIONAL]
+    approval_status: ""
+
+  # --- Prazos ---
+  timeline:
+    # Data desejada de lancamento
+    # Formato: YYYY-MM-DD ou descricao relativa ("em 3 meses")
+    # [OBRIGATORIO]
+    desired_launch: ""
+
+    # Existe um deadline inegociavel? (evento, regulacao, contrato)
+    # Se sim, especifique a data e o motivo
+    # [OBRIGATORIO]
+    hard_deadline: ""
+
+    # Motivo do deadline (se aplicavel)
+    # Exemplo: "LGPD entra em vigor em jan/2027"
+    # [OPCIONAL]
+    deadline_reason: ""
+
+  # --- Equipe ---
+  team:
+    # Numero de desenvolvedores internos disponiveis
+    internal_devs: 0
+
+    # Numero de desenvolvedores externos ja contratados
+    external_devs: 0
+
+    # Tem designer na equipe?
+    has_designer: false
+
+    # Tem PM/PO na equipe?
+    has_pm: false
+
+    # Outros papeis relevantes (QA, DevOps, etc.)
+    # [OPCIONAL]
+    other_roles: []
+
+    # Disponibilidade da equipe do cliente para reunioes/validacoes
+    # Valores: full-time, part-time, weekly-sync, minimal
+    # [OBRIGATORIO]
+    availability: ""
+
+  # --- Restricoes Tecnicas ---
+  technical:
+    # Stack existente (linguagens, frameworks, bancos de dados)
+    # Exemplo: ["Node.js", "React", "PostgreSQL", "AWS"]
+    # [OPCIONAL - deixe vazio para greenfield]
+    existing_stack: []
+
+    # Integracoes obrigatorias com sistemas externos
+    # Exemplo: ["SAP", "Salesforce", "API de pagamento PagSeguro"]
+    # [OPCIONAL]
+    required_integrations: []
+
+    # Preferencia de hospedagem
+    # Valores: aws, gcp, azure, vercel, on-premise, no-preference
+    # [OPCIONAL]
+    hosting_preference: ""
+
+    # Requisitos de compliance/regulatorio
+    # Valores possiveis: LGPD, HIPAA, SOC2, PCI-DSS, ISO27001, GDPR
+    # [OPCIONAL]
+    compliance: []
+
+    # Restricoes de browser/dispositivo
+    # Exemplo: "Deve funcionar em IE11" ou "iOS 15+"
+    # [OPCIONAL]
+    device_constraints: ""
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# BLOCO 5: DEFINICAO DE SUCESSO
+# ═══════════════════════════════════════════════════════════════════════
+# Objetivo: Alinhar expectativas ANTES de comecar.
+# Este bloco alimenta os OKRs (@okr-tracker / Focus) e as
+# metricas de sucesso do PRD.
+#
+# DICA PARA O PM: "Se daqui a 6 meses o projeto for um sucesso
+# absoluto, o que mudou no seu negocio?" — essa pergunta abre
+# conversas valiosas.
+# ═══════════════════════════════════════════════════════════════════════
+
+success:
+  # KPIs que o cliente quer impactar
+  # DICA PARA O PM: Ajude a quantificar. "Aumentar vendas" nao e KPI.
+  # "Aumentar vendas online de 100 para 300/mes" e KPI.
+  # [OBRIGATORIO - minimo 1]
+  kpis:
+    - name: ""
+      current: ""   # valor atual (baseline)
+      target: ""    # valor desejado
+      timeframe: "" # em quanto tempo
+    # - name: ""
+    #   current: ""
+    #   target: ""
+    #   timeframe: ""
+
+  # Expectativa de timeline (visao do cliente)
+  # Exemplo: "MVP em 2 meses, versao completa em 6 meses"
+  # [OBRIGATORIO]
+  timeline_expectations: ""
+
+  # Descricao qualitativa de sucesso
+  # Exemplo: "Equipe de vendas nao precisa mais de planilha,
+  #   tudo esta no sistema, e o relatorio mensal sai com 1 clique."
+  # [OBRIGATORIO]
+  what_success_looks_like: ""
+
+  # Maior risco percebido pelo cliente
+  # Exemplo: "Equipe nao adotar o sistema novo"
+  # [OBRIGATORIO]
+  biggest_risk: ""
+
+  # O que faria o cliente considerar o projeto um fracasso?
+  # DICA PARA O PM: Essa pergunta e desconfortavel mas essencial.
+  # Exemplo: "Se em 3 meses ninguem da equipe usar o app"
+  # [OPCIONAL]
+  failure_looks_like: ""
+
+  # Quem sera o "dono" do produto apos entrega?
+  # (quem vai manter, evoluir, tomar decisoes)
+  # [OPCIONAL]
+  product_owner: ""
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# NOTAS ADICIONAIS
+# ═══════════════════════════════════════════════════════════════════════
+# Espaco livre para observacoes do PM ou do cliente que nao se
+# encaixam nos blocos acima.
+
+notes:
+  # Observacoes do cliente
+  client_notes: ""
+
+  # Observacoes do PM (preenchido apos entrevista)
+  pm_notes: ""
+
+  # Red flags identificados pelo PM
+  # Exemplos: expectativa irrealista, budget muito baixo para escopo,
+  #   stakeholder ausente, requisitos conflitantes
+  red_flags: []
+
+  # Proximo passo sugerido
+  # Valores: discovery-session, project-diagnostic, write-prd,
+  #   market-analysis, needs-more-info
+  next_step: ""

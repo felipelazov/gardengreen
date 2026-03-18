@@ -1,0 +1,179 @@
+# Workflow: Deploy Cycle
+# Squad: squad-dados-operacoes
+# Version: 0.1.0
+
+workflow:
+  id: wf-deploy-cycle
+  name: "Ciclo de Deploy"
+  version: "0.1.0"
+  purpose: "Ciclo completo de deploy: build → test → stage → deploy → monitor → rollback-if-needed"
+  orchestrator: "@garden-devops"
+  mode: quality
+
+# ===================================================================
+# PHASES
+# ===================================================================
+
+phases:
+  - id: phase_1_pre_flight
+    name: "Pre-Flight Check"
+    agent: "@garden-devops"
+    description: |
+      Verificar que tudo esta pronto para deploy:
+      1. Todos os testes passando no CI
+      2. Code review aprovado
+      3. Story file atualizado (tasks marcadas como done)
+      4. Nenhuma migration pendente nao testada
+      5. Changelog atualizado
+    inputs:
+      - branch_name
+      - deploy_target  # staging | production
+    outputs:
+      - preflight_checklist
+      - go_nogo_decision
+    gate:
+      condition: "go_nogo_decision == GO"
+      on_fail: "Fix blockers antes de prosseguir. Lista de blockers no preflight_checklist."
+
+  - id: phase_2_build
+    name: "Build & Test"
+    agent: "@garden-devops"
+    task: "tasks/setup-ci-cd.yaml"
+    description: |
+      Executar pipeline de build completo:
+      1. Install dependencies (npm ci)
+      2. Run lint (ESLint + Prettier)
+      3. Run typecheck (TypeScript strict)
+      4. Run tests (Jest — unit + integration)
+      5. Build artifacts (Next.js build, EAS build)
+      6. Run Supabase migration check (supabase db diff)
+    inputs:
+      - branch_name (from phase_1)
+    outputs:
+      - build_artifacts
+      - test_results
+      - migration_diff
+    gate:
+      condition: "test_results.all_passed AND build_artifacts.success"
+      on_fail: "Build ou testes falharam. Fix antes de prosseguir."
+
+  - id: phase_3_staging
+    name: "Deploy to Staging"
+    agent: "@garden-devops"
+    description: |
+      Deploy para staging environment:
+      1. Apply Supabase migrations to staging
+      2. Deploy web to Vercel staging
+      3. Deploy mobile via EAS (internal distribution)
+      4. Run smoke tests no staging
+      5. Verificar health check endpoint
+    inputs:
+      - build_artifacts (from phase_2)
+      - migration_diff (from phase_2)
+    outputs:
+      - staging_url
+      - staging_health_status
+      - smoke_test_results
+    gate:
+      condition: "staging_health_status == healthy AND smoke_test_results.passed"
+      on_fail: "Staging com problemas. Investigar antes de ir para production."
+
+  - id: phase_4_qa_validation
+    name: "QA Validation on Staging"
+    agent: "@garden-data-chief"
+    description: |
+      Validacao no staging antes de ir para producao:
+      1. Verificar metricas basicas estao sendo trackeadas (PostHog)
+      2. Testar fluxos criticos manualmente
+      3. Verificar que dashboards estao funcionando
+      4. Verificar integracoes (payments, notifications)
+      5. Sign-off do QA
+    inputs:
+      - staging_url (from phase_3)
+    outputs:
+      - qa_verdict  # APPROVED | BLOCKED
+      - issues_found
+    gate:
+      condition: "qa_verdict == APPROVED"
+      on_fail: "QA encontrou issues. Corrigir e re-deploy staging."
+
+  - id: phase_5_production
+    name: "Deploy to Production"
+    agent: "@garden-devops"
+    description: |
+      Deploy para producao com zero-downtime:
+      1. Criar backup do banco (point-in-time snapshot)
+      2. Apply Supabase migrations to production
+      3. Deploy web to Vercel production
+      4. Deploy mobile via EAS (if app store update needed)
+      5. OTA update via EAS Update (for minor changes)
+      6. Verificar health check imediatamente
+    inputs:
+      - build_artifacts (from phase_2)
+      - qa_verdict (from phase_4)
+    outputs:
+      - production_url
+      - deploy_timestamp
+      - health_status
+    gate:
+      condition: "health_status == healthy"
+      on_fail: "TRIGGER ROLLBACK. Health check falhou em production."
+
+  - id: phase_6_monitor
+    name: "Post-Deploy Monitoring"
+    agent: "@garden-devops"
+    task: "tasks/setup-monitoring.yaml"
+    description: |
+      Monitoramento intensivo nas primeiras 2 horas pos-deploy:
+      1. Error rate monitoring (Sentry): baseline vs current
+      2. Response time monitoring: p50, p95, p99
+      3. User-facing errors: any new error types?
+      4. Business metrics: signup rate, payment success rate
+      5. Decision: STABLE (continue) ou ROLLBACK (revert)
+
+      Thresholds para rollback automatico:
+      - Error rate > 2% (vs baseline)
+      - p95 response time > 3x baseline
+      - Health check fail 3x consecutivas
+      - Payment failure rate > 5%
+    inputs:
+      - deploy_timestamp (from phase_5)
+    outputs:
+      - monitoring_verdict  # STABLE | ROLLBACK
+      - metrics_snapshot
+    gate:
+      condition: "monitoring_verdict == STABLE"
+      on_fail: "ROLLBACK TRIGGERED. Execute rollback procedure."
+
+  - id: phase_7_rollback
+    name: "Rollback (if needed)"
+    agent: "@garden-devops"
+    description: |
+      Procedimento de rollback:
+      1. Vercel: revert to previous deployment (instant)
+      2. Supabase: run rollback migration (deve estar preparado)
+      3. EAS: push OTA update reverting changes
+      4. Notify team: incident channel
+      5. Post-mortem: document what happened and why
+    inputs:
+      - monitoring_verdict (from phase_6)
+    outputs:
+      - rollback_status
+      - post_mortem_draft
+    skip_if: "monitoring_verdict == STABLE"
+
+# ===================================================================
+# FLOW SUMMARY
+# ===================================================================
+
+flow_summary: |
+  Pre-flight → Build & Test → Staging → QA Validation → Production → Monitor → (Rollback if needed)
+
+  Duracao tipica: 1-4 horas (staging + production)
+  Monitoring window: 2 horas pos-deploy
+  Rollback: < 5 minutos para web, < 15 minutos para mobile (OTA)
+
+rollback:
+  strategy: "Cada phase e reversivel. Vercel rollback e instantaneo. Supabase migrations devem ter rollback script."
+  max_iterations_per_phase: 1
+  escalation: "Se rollback falha, escalar para incident response. All hands."

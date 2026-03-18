@@ -1,0 +1,144 @@
+id: design-partnership-program
+name: "Desenhar Programa de Parcerias com Lojas e Associações"
+squad: squad-marketing-growth
+version: 0.1.0
+type: task
+
+description: |
+  Criar programa de parcerias do GardenGreen com lojas de insumos de jardinagem,
+  associações de jardineiros e escolas de paisagismo. Esses parceiros são canais
+  de distribuição de alta confiança — o dono da loja é o influencer #1 do jardineiro.
+
+owner: garden-referral
+collaborators:
+  - garden-marketing-chief
+  - garden-content
+
+inputs:
+  - name: partner_type
+    type: string
+    description: "Tipo: loja_insumos, associacao, escola, todos"
+    default: "todos"
+  - name: regiao_piloto
+    type: string
+    description: "Região para piloto do programa"
+    required: false
+
+outputs:
+  - name: partnership_program
+    type: document
+    description: "Programa de parcerias completo"
+    path: "docs/marketing/partnership-program.md"
+  - name: partner_kit
+    type: document
+    description: "Kit de materiais para o parceiro"
+    path: "docs/marketing/partner-kit/"
+  - name: partner_playbook
+    type: document
+    description: "Playbook operacional de gestão de parcerias"
+    path: "docs/marketing/partner-playbook.md"
+
+preconditions:
+  - "Programa de indicação desenhado (referral-program-spec)"
+  - "App funcional com sistema de cupons/códigos"
+  - "Material de marketing básico pronto"
+
+steps:
+  - id: 1
+    name: "Definir proposta de valor por tipo de parceiro"
+    agent: garden-referral
+    action: |
+      Para cada tipo de parceiro, definir:
+      LOJAS DE INSUMOS:
+      - O que ganha: comissão R$5-10 por download convertido, co-marketing,
+        clientes mais organizados (compram mais insumos com planejamento)
+      - O que faz: exibir cartaz, entregar cartão, recomendar verbalmente
+      ASSOCIAÇÕES:
+      - O que ganha: desconto coletivo para membros, conteúdo exclusivo,
+        workshop gratuito para membros
+      - O que faz: divulgar em newsletter, evento, reunião
+      ESCOLAS:
+      - O que ganha: GardenGreen grátis para alunos, módulo curricular,
+        diferencial competitivo
+      - O que faz: incluir no currículo, distribuir acesso
+
+  - id: 2
+    name: "Criar material de ativação"
+    agent: garden-content
+    action: |
+      Produzir kit de materiais para cada tipo de parceiro:
+      LOJA:
+      - Cartaz A4 com QR code e mensagem simples
+      - Cartões de visita do app (50 unidades por loja)
+      - Display de balcão pequeno
+      - Script de 30s para o vendedor recomendar
+      ASSOCIAÇÃO:
+      - Template de email/mensagem para membros
+      - Apresentação de 5 slides para reunião
+      - Banner digital para redes sociais
+      ESCOLA:
+      - Material didático: "Tecnologia para Jardineiros"
+      - Guia de uso do app para instrutores
+
+  - id: 3
+    name: "Definir mecânica de tracking e comissão"
+    agent: garden-referral
+    action: |
+      Especificar:
+      - Código exclusivo por parceiro (ex: LOJA-VERDE-SP)
+      - Cupom que dá X dias extras de trial ao jardineiro
+      - Sistema de tracking: código → download → cadastro → conversão
+      - Pagamento de comissão: mensal, via Pix, mínimo R$50
+      - Dashboard do parceiro: quantos downloads, quantas conversões
+      - Relatório mensal automático por email
+
+  - id: 4
+    name: "Criar processo de onboarding de parceiro"
+    agent: garden-referral
+    action: |
+      Fluxo de ativação de novo parceiro:
+      1. Contato inicial (visita à loja / email para associação)
+      2. Apresentação da proposta (5 min, direto ao ponto)
+      3. Aceite e cadastro (formulário simples)
+      4. Entrega do kit de materiais (presencial para lojas)
+      5. Ativação do código exclusivo no sistema
+      6. Follow-up em 7 dias (como está indo?)
+      7. Review mensal de performance
+
+  - id: 5
+    name: "Definir escala e expansion playbook"
+    agent: garden-marketing-chief
+    action: |
+      Planejar escala do programa:
+      - Piloto: 5-10 lojas em 1 cidade
+      - Validação: 60 dias, medir downloads e conversão por loja
+      - Critérios de sucesso: mínimo 10 downloads/mês por loja
+      - Expansão: replicar para cidades com mais jardineiros
+      - Meta ano 1: 50 lojas parceiras, 5 associações
+      - Equipe necessária: 1 pessoa para gestão de parcerias
+
+  - id: 6
+    name: "Definir métricas do programa"
+    agent: garden-marketing-chief
+    action: |
+      Métricas de parcerias:
+      - Parceiros ativos (exibindo material)
+      - Downloads por parceiro/mês
+      - Conversão de downloads de parceiro vs orgânico
+      - CAC via parceria (comissão + material + tempo)
+      - Satisfação do parceiro (NPS trimestral)
+      - Revenue gerado por canal de parceria
+
+postconditions:
+  - "Programa de parcerias documentado por tipo de parceiro"
+  - "Kit de materiais especificado"
+  - "Mecânica de tracking e comissão definida"
+  - "Processo de onboarding de parceiro pronto"
+  - "Plano de piloto e expansão com métricas"
+
+acceptance_criteria:
+  - "Proposta de valor clara para cada tipo de parceiro"
+  - "Kit de materiais não requer investimento > R$50/parceiro"
+  - "Tracking por código exclusivo funcional"
+  - "Onboarding de parceiro leva < 30 minutos"
+  - "Plano de piloto com 5-10 lojas definido"

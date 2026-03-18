@@ -1,0 +1,113 @@
+name: "squad-marketing-growth"
+version: 0.1.0
+description: "Squad responsável por atrair jardineiros para baixar e experimentar o GardenGreen. Marketing de guerrilha, referral viral, conteúdo prático e parcerias com lojas de insumos. Jardineiros são LOW-TECH — marketing tradicional B2B SaaS NÃO funciona aqui."
+author: "GardenGreen"
+license: MIT
+
+aiox:
+  minVersion: "2.1.0"
+  type: squad
+
+ecosystem:
+  position: ATRAIR
+  revenue_role: AMPLIFICA
+  priority: P1
+  description: >
+    Atrai jardineiros para o app através dos canais onde eles realmente estão:
+    grupos de WhatsApp, Instagram mostrando jardins, lojas de insumos, e indicação
+    de colegas. Marketing tradicional (LinkedIn, webinars, Google Ads genérico) é
+    desperdício de dinheiro para este público.
+  handoffs:
+    receives_from: []
+    sends_to:
+      - squad: squad-vendas-conversao
+        data: "leads qualificados, downloads do app, fonte de aquisição (WhatsApp, indicação, orgânico, parceria loja)"
+
+value_chain:
+  stage: Attract
+  funnel_position: "Awareness → Interesse → Download"
+  key_metric: "Downloads qualificados por mês"
+  target: ">= 500 downloads/mês em 6 meses"
+
+target_user:
+  primary:
+    persona: "Jardineiro autônomo"
+    tech_level: LOW
+    age_range: "30-55 anos"
+    discovery: "WhatsApp, indicação de colegas, Instagram local, lojas de insumos"
+    pain: "Não sabe quanto ganha, perde cliente, esquece compromisso"
+    price_sensitivity: HIGH
+    budget: "R$29-49/mês"
+    devices: "Android básico, tela 5.5\", internet 3G/4G"
+  secondary:
+    persona: "Empresa de jardinagem (2-10 jardineiros)"
+    tech_level: LOW-MEDIUM
+    discovery: "Busca Google, associações, cooperativas"
+    pain: "Gestão de equipe, dispatch, controle financeiro"
+    budget: "R$99-199/mês"
+
+channels:
+  tier_1_primary:
+    - name: "WhatsApp viral"
+      description: "Grupos de jardineiros, cards compartilháveis, indicação peer-to-peer"
+      cost: LOW
+      impact: HIGH
+    - name: "Referral (indicação)"
+      description: "Indique 1 amigo = 1 mês grátis (ambos os lados)"
+      cost: LOW
+      impact: HIGH
+    - name: "Instagram Reels"
+      description: "Antes/depois de jardins, dicas rápidas de negócio"
+      cost: LOW
+      impact: MEDIUM-HIGH
+  tier_2_secondary:
+    - name: "YouTube Shorts"
+      description: "Dicas de 60s sobre gestão de negócio de jardinagem"
+      cost: LOW
+      impact: MEDIUM
+    - name: "Parcerias lojas de insumos"
+      description: "QR code na loja, cupom exclusivo, co-marketing"
+      cost: MEDIUM
+      impact: MEDIUM-HIGH
+    - name: "Google Local SEO"
+      description: "'app para jardineiros', 'gestão de jardinagem'"
+      cost: LOW
+      impact: MEDIUM
+  tier_3_experimental:
+    - name: "Micro-influencers (jardineiros reais)"
+      description: "Jardineiros com 1K-10K seguidores mostrando uso real"
+      cost: MEDIUM
+      impact: MEDIUM
+    - name: "Associações e cooperativas"
+      description: "Palestras, workshops, descontos coletivos"
+      cost: LOW
+      impact: LOW-MEDIUM
+
+components:
+  agents:
+    - agents/*.yaml
+  tasks:
+    - tasks/*.yaml
+  workflows:
+    - workflows/*.yaml
+  templates:
+    - templates/*.md
+  config:
+    - config/*.md
+
+dependencies: []
+
+keywords:
+  - aiox
+  - squad
+  - gardengreen
+  - marketing
+  - growth
+  - aquisicao
+  - referral
+  - whatsapp
+  - instagram
+  - seo
+  - content
+  - viral
+  - parcerias

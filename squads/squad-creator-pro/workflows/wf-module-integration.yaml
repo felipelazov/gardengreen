@@ -1,0 +1,110 @@
+# Workflow: Module Integration
+# Integrates external modules into existing squads
+name: wf-module-integration
+version: 1.0.0
+description: |
+  Safely integrates a discovered module into an existing squad.
+  Validates compatibility, creates backup, performs integration, verifies, and reports.
+
+type: state_machine
+
+states:
+  validate_compatibility:
+    description: "Check if the module is compatible with the target squad"
+    model: sonnet
+    actions:
+      - "Load module definition from module-registry.yaml"
+      - "Load target squad config.yaml"
+      - "Check dependency requirements are met"
+      - "Verify no naming conflicts with existing squad components"
+      - "Assess version compatibility"
+    inputs:
+      squad_path: "{{squad_path}}"
+      module_id: "{{module_id}}"
+    output: "compatibility_report, is_compatible"
+    transitions:
+      - condition: "is_compatible"
+        to: backup_current
+      - condition: "not_compatible"
+        to: failed
+
+  backup_current:
+    description: "Backup current squad state before integration"
+    model: haiku
+    actions:
+      - "Snapshot current squad directory structure"
+      - "Copy affected files to squads/.backups/{squad}-pre-module-{timestamp}/"
+      - "Generate backup manifest with file hashes"
+      - "Verify backup integrity"
+    output: "backup_path, backup_manifest"
+    transitions:
+      - condition: "backup_verified"
+        to: integrate
+      - condition: "backup_failed"
+        to: failed
+
+  integrate:
+    description: "Perform the module integration"
+    model: sonnet
+    actions:
+      - "Copy module tasks to squad tasks directory"
+      - "Copy module workflows to squad workflows directory"
+      - "Merge module config entries into squad config"
+      - "Update squad dependency graph"
+      - "Register module in squad module-registry (local)"
+    output: "integration_log, files_added, files_modified"
+    transitions:
+      - condition: "integration_complete"
+        to: verify
+      - condition: "integration_error"
+        to: rollback
+
+  verify:
+    description: "Verify the integration is correct and squad still works"
+    model: haiku
+    actions:
+      - "Run squad health check on integrated squad"
+      - "Validate all YAML files parse correctly"
+      - "Verify new tasks are reachable from workflows"
+      - "Check no broken references exist"
+      - "Run smoke test if available"
+    output: "verification_result"
+    transitions:
+      - condition: "verification_passed"
+        to: report
+      - condition: "verification_failed"
+        to: rollback
+
+  rollback:
+    description: "Restore squad from backup on failure"
+    model: haiku
+    actions:
+      - "Restore files from backup_path"
+      - "Verify restored state matches backup_manifest"
+      - "Log rollback reason and details"
+    output: "rollback_status"
+    transitions:
+      - condition: "always"
+        to: failed
+
+  report:
+    description: "Generate integration report"
+    model: haiku
+    actions:
+      - "Compile integration summary"
+      - "List all files added and modified"
+      - "Document new capabilities available"
+      - "Write integration-report.md"
+    output: "integration-report.md"
+    transitions:
+      - condition: "always"
+        to: complete
+
+  complete:
+    description: "Integration workflow complete"
+    terminal: true
+
+  failed:
+    description: "Integration failed — squad unchanged"
+    terminal: true
+    error: true

@@ -1,0 +1,137 @@
+# Benchmark Suite — Run all benchmarks and regression tests
+name: wf-benchmark-suite
+version: 1.0.0
+description: |
+  Suite completa de benchmarks: gera golden baselines, qualifica modelos,
+  e executa testes de regressão para todas as tasks do squad.
+
+type: sequential
+
+phases:
+  - name: "inventory"
+    description: "Inventariar tasks e baselines existentes"
+    model: haiku
+    actions:
+      - "List all tasks in squad"
+      - "Check which have golden baselines"
+      - "Check which have model qualifications"
+      - "Identify gaps"
+    output: "task_inventory, missing_baselines, missing_qualifications"
+
+  - name: "generate_baselines"
+    description: "Gerar golden baselines faltantes"
+    model: opus
+    condition: "missing_baselines > 0"
+    actions:
+      - "For each task without baseline:"
+      - "  Execute with Opus"
+      - "  Save output as golden baseline"
+      - "  Register in baseline-registry.yaml"
+    output: "new_baselines"
+    checkpoint:
+      gate: "QG-PRO-BM-1"
+      condition: "all critical tasks have baselines"
+
+  - name: "qualify_models"
+    description: "Qualificar tasks para Sonnet/Haiku"
+    model: opus
+    condition: "missing_qualifications > 0"
+    actions:
+      - "For each task without qualification:"
+      - "  Run with Sonnet, score vs baseline"
+      - "  Run with Haiku, score vs baseline"
+      - "  Assign optimal model"
+    output: "qualification_results"
+    checkpoint:
+      gate: "QG-PRO-BM-2"
+      condition: "all tasks qualified"
+
+  - name: "regression_tests"
+    description: "Rodar testes de regressão"
+    model: haiku
+    actions:
+      - "For each task with qualification:"
+      - "  Run regression-test"
+      - "  Compare vs golden baseline"
+      - "  Flag regressions"
+    output: "regression_results"
+
+  - name: "report"
+    description: "Relatório consolidado"
+    model: haiku
+    output: |
+      ## Benchmark Suite Report
+
+      ### Baselines
+      - Total tasks: {total}
+      - With baselines: {with_baselines}
+      - New baselines generated: {new}
+
+      ### Model Qualifications
+      | Model | Tasks Qualified | Avg Score |
+      |-------|----------------|-----------|
+      | Haiku | {n} | {score} |
+      | Sonnet | {n} | {score} |
+      | Opus (required) | {n} | baseline |
+
+      ### Regression Tests
+      - Passed: {passed}/{total}
+      - Regressions: {regressions}
+      - Auto-promoted: {promoted}
+
+      ### Estimated Savings
+      **{savings}% token cost reduction** with current routing
+
+# Veto conditions
+veto_conditions:
+  - condition: "squad_has_no_tasks"
+    message: "Squad has no tasks to benchmark — nothing to run"
+    severity: BLOCK
+  - condition: "no_opus_access"
+    message: "Opus model not available — cannot generate golden baselines"
+    severity: BLOCK
+  - condition: "baseline_registry_locked"
+    message: "baseline-registry.yaml is locked by another process"
+    severity: WARN
+    fallback: "Wait and retry after 30s"
+
+# Error handling
+error_handling:
+  baseline_generation_fails:
+    description: "Opus fails to generate baseline for a task"
+    actions:
+      - "Mark task as SKIP in inventory"
+      - "Log reason in benchmark report"
+      - "Continue with remaining tasks"
+    impact: "Skipped tasks won't have model qualification — stays on Opus (default)"
+  qualification_fails:
+    description: "Sonnet/Haiku score too low or execution errors"
+    actions:
+      - "Keep current model assignment (don't downgrade)"
+      - "Log failure with score details"
+      - "Flag for manual review in report"
+  regression_detected:
+    description: "Task output deviates significantly from golden baseline"
+    actions:
+      - "Flag regression in report"
+      - "Do NOT auto-promote the new model"
+      - "Recommend re-running baseline generation"
+
+# Scheduling
+scheduling:
+  on_demand: true
+  description: |
+    Can be run on-demand via *benchmark-suite or as part of squad creation post-processing.
+    Recommended after: initial squad creation, brownfield upgrade, agent fidelity improvements.
+  post_processing:
+    - "After wf-fidelity-loop completes (agent quality changed)"
+    - "After wf-brownfield-upgrade completes (squad structure changed)"
+    - "After manual agent edits"
+
+# Resume capability
+resume_capability:
+  enabled: false
+  description: |
+    Designed to run in one go. Relatively fast (minutes, not hours).
+    If interrupted, re-run from scratch — baselines already generated won't be regenerated
+    (inventory phase detects existing baselines).

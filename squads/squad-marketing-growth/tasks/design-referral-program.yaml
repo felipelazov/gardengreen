@@ -1,0 +1,128 @@
+id: design-referral-program
+name: "Desenhar Programa de Indicação para Jardineiros"
+squad: squad-marketing-growth
+version: 0.1.0
+type: task
+
+description: |
+  Desenhar o programa de indicação completo do GardenGreen sob a perspectiva
+  de marketing. Mecânica simples, double-sided, com momentos naturais de
+  compartilhamento. "Indique um colega = 1 mês grátis" como base.
+
+owner: garden-referral
+collaborators:
+  - garden-marketing-chief
+  - garden-content
+
+inputs:
+  - name: incentive_type
+    type: string
+    description: "Tipo de incentivo: free_month, discount, credits"
+    default: "free_month"
+  - name: current_ltv
+    type: number
+    description: "LTV estimado de um jardineiro (em R$)"
+    default: 420
+
+outputs:
+  - name: referral_spec
+    type: document
+    description: "Especificação completa do programa de indicação"
+    path: "docs/marketing/referral-program-spec.md"
+  - name: referral_copy
+    type: document
+    description: "Toda a copy do programa (mensagens, telas, emails)"
+    path: "docs/marketing/referral-copy.md"
+  - name: referral_economics
+    type: document
+    description: "Unit economics do programa"
+    path: "docs/marketing/referral-economics.md"
+
+preconditions:
+  - "Pricing definido (R$29-49 solo, R$99-199 equipe)"
+  - "LTV estimado calculado"
+  - "App funcional com sistema de contas"
+
+steps:
+  - id: 1
+    name: "Definir mecânica principal"
+    agent: garden-referral
+    action: |
+      Desenhar a mecânica core:
+      - O que quem indica ganha (ex: 1 mês grátis)
+      - O que quem é indicado ganha (ex: 14 dias extras de trial)
+      - Como funciona o link/código de indicação
+      - Limite de indicações (sem limite ou max 10/mês)
+      - Regras: indicado precisa ser novo, precisa se cadastrar
+
+  - id: 2
+    name: "Mapear touchpoints de compartilhamento"
+    agent: garden-referral
+    action: |
+      Identificar momentos no app onde pedir indicação faz sentido:
+      - Após ver relatório financeiro (Aha Moment)
+      - Após completar 10 serviços
+      - Após receber primeiro pagamento
+      - Card de resumo mensal (fim de mês)
+      Para cada momento, definir: formato (banner, toast, card), copy, CTA.
+      EXCLUIR: onboarding, após erro, após inatividade.
+
+  - id: 3
+    name: "Desenhar viral loops"
+    agent: garden-referral
+    action: |
+      Especificar cada mecanismo de viralização:
+      1. Link pessoal de indicação + mensagem WhatsApp pré-formatada
+      2. Orçamentos/quotes com branding GardenGreen
+      3. Fotos de jardim com watermark sutil
+      4. Cards de conquista compartilháveis (resumo mensal)
+      Para cada loop: trigger → ação → exposição → conversão → tracking.
+
+  - id: 4
+    name: "Escrever toda a copy do programa"
+    agent: garden-content
+    action: |
+      Criar copy para cada touchpoint:
+      - Tela principal de indicação no app
+      - Mensagem WhatsApp pré-formatada para enviar
+      - Notificação quando indicação é aceita
+      - Email/push de lembrete para quem não indicou
+      - Mensagem de boas-vindas para indicado
+      Tom: informal, peer-to-peer, sem linguagem corporativa.
+
+  - id: 5
+    name: "Calcular unit economics"
+    agent: garden-marketing-chief
+    action: |
+      Modelar financeiramente o programa:
+      - Custo por indicação bem-sucedida (1 mês grátis = R$29-49)
+      - LTV esperado do indicado vs orgânico
+      - Viral coefficient esperado (target: K >= 0.3)
+      - Break-even: quantas indicações para pagar o custo
+      - Projeção de crescimento com K = 0.3 vs 0.5
+
+  - id: 6
+    name: "Definir métricas e tracking"
+    agent: garden-referral
+    action: |
+      Especificar instrumentação completa:
+      - Eventos: referral_link_created, referral_link_shared,
+        referral_link_clicked, referral_signup_completed,
+        referral_reward_granted
+      - Atribuição: UTM params, deep links, códigos únicos
+      - Dashboard: K factor, conversion rate, share rate
+      - Alertas: se K < 0.1, se share rate < 5%
+
+postconditions:
+  - "Mecânica de indicação documentada e simples de explicar"
+  - "Touchpoints de compartilhamento mapeados com copy"
+  - "Viral loops especificados com tracking"
+  - "Unit economics validados (CAC referral < CAC paid)"
+  - "Métricas e eventos de tracking definidos"
+
+acceptance_criteria:
+  - "Programa explicável em 1 frase: 'Indique 1 amigo = 1 mês grátis pros dois'"
+  - "Mínimo 3 touchpoints de compartilhamento no app"
+  - "Mínimo 2 viral loops além do link direto"
+  - "Unit economics mostram CAC referral < 50% do CAC paid"
+  - "Copy de todos os touchpoints escrita em tom informal"

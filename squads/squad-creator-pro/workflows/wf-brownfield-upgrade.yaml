@@ -1,0 +1,173 @@
+# Brownfield Upgrade — Safe upgrade of existing squads
+name: wf-brownfield-upgrade
+version: 1.0.0
+description: |
+  Upgrade seguro de squad existente com backup, audit, plan, execute, validate.
+  Nunca perde dados — sempre tem rollback.
+
+type: state_machine
+
+states:
+  backup:
+    description: "Backup completo do squad atual"
+    model: haiku
+    actions:
+      - "Copy squads/{name}/ to squads/.backups/{name}-{timestamp}/"
+      - "Generate backup manifest with file hashes"
+      - "Verify backup integrity"
+    output: "backup_path, backup_manifest"
+    transitions:
+      - condition: "backup_verified"
+        to: audit
+      - condition: "backup_failed"
+        to: failed
+
+  audit:
+    description: "Audit do squad atual — identificar gaps e oportunidades"
+    model: sonnet
+    actions:
+      - "Run health check on current squad"
+      - "Compare against current Pro standards"
+      - "Identify missing components (agents, tasks, workflows)"
+      - "Check fidelity scores if available"
+      - "Generate gap analysis report"
+    output: "audit_report, gaps_list, upgrade_recommendations"
+    transitions:
+      - condition: "audit_complete"
+        to: plan
+
+  plan:
+    description: "Plano de upgrade com ações específicas"
+    model: sonnet
+    elicit: true
+    actions:
+      - "Generate upgrade plan based on audit"
+      - "Estimate effort and token cost"
+      - "Present plan for approval"
+    prompt: |
+      ## Upgrade Plan: {squad_name}
+
+      ### Changes Planned
+      {changes_list}
+
+      ### Estimated Cost
+      - Tokens: ~{tokens}
+      - Duration: ~{duration}
+
+      ### Risk Level: {LOW/MEDIUM/HIGH}
+
+      Options:
+      1. ✅ Approve full plan
+      2. 📝 Approve with modifications
+      3. ❌ Cancel (restore backup)
+    transitions:
+      - condition: "approved"
+        to: execute
+      - condition: "modified"
+        to: plan
+      - condition: "cancelled"
+        to: rollback
+
+  execute:
+    description: "Executar upgrade conforme plano"
+    model: opus
+    actions:
+      - "Execute each planned change sequentially"
+      - "Validate each change before proceeding"
+      - "Track progress in upgrade log"
+    quality_gate: "QG-PRO-BU01"
+    transitions:
+      - condition: "all_changes_applied"
+        to: validate
+      - condition: "change_failed"
+        to: rollback_partial
+
+  validate:
+    description: "Validar squad após upgrade"
+    model: haiku
+    actions:
+      - "Run full health check"
+      - "Run fidelity scores on upgraded agents"
+      - "Compare quality metrics before vs after"
+      - "Verify no regressions"
+    transitions:
+      - condition: "validation_passed"
+        to: complete
+      - condition: "validation_failed"
+        to: rollback
+
+  complete:
+    description: "Upgrade concluído com sucesso"
+    terminal: true
+    actions:
+      - "Generate upgrade report (before vs after)"
+      - "Update config.yaml version"
+      - "Update observatory metrics"
+      - "Clean old backup after 7 days"
+    output: |
+      ✅ Upgrade Complete: {squad_name}
+
+      Before: v{old_version} | After: v{new_version}
+      Changes: {changes_count}
+      Quality: {old_score} → {new_score}
+
+      Backup available at: {backup_path} (auto-cleanup in 7 days)
+
+  rollback:
+    description: "Rollback completo para estado anterior"
+    actions:
+      - "Restore from backup at {backup_path}"
+      - "Verify restoration integrity"
+      - "Log rollback reason"
+    terminal: true
+    output: |
+      🔄 Rollback Complete: {squad_name}
+      Restored to: {backup_timestamp}
+      Reason: {rollback_reason}
+
+  rollback_partial:
+    description: "Rollback parcial — desfazer última mudança"
+    actions:
+      - "Revert last change only"
+      - "Log partial rollback"
+    transitions:
+      - condition: "retry"
+        to: execute
+      - condition: "abort"
+        to: rollback
+
+  failed:
+    description: "Falha crítica"
+    terminal: true
+    output: "❌ Upgrade failed: {reason}"
+
+# Veto conditions — block execution before starting
+veto_conditions:
+  - condition: "squad_not_found"
+    message: "Squad '{squad_name}' does not exist in squads/"
+    severity: BLOCK
+  - condition: "squad_is_locked"
+    message: "Squad is Pro-managed and currently locked by another workflow"
+    severity: BLOCK
+  - condition: "no_backup_space"
+    message: "Insufficient space in squads/.backups/ — cleanup required"
+    severity: BLOCK
+  - condition: "squad_version_incompatible"
+    message: "Squad version is incompatible with current Pro standards — use migration first"
+    severity: WARN
+
+# Resume capability
+resume_capability:
+  enabled: true
+  description: |
+    Session state is saved after each state transition in .aiox/sessions/brownfield-{squad_name}.yaml.
+    On resume, workflow continues from the last completed state.
+    Backup state is always preserved — resume never loses the original backup.
+  state_file: ".aiox/sessions/brownfield-{squad_name}.yaml"
+  saved_fields:
+    - current_state
+    - backup_path
+    - backup_manifest
+    - audit_report
+    - approved_plan
+    - changes_applied

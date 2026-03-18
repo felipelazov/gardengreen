@@ -1,0 +1,151 @@
+name: wf-retention-cycle
+version: 1.0.0
+description: "Ciclo mensal de retenção: analisar health scores → segmentar usuários → engajar por segmento → medir resultados. Executado no início de cada mês."
+
+trigger:
+  schedule: "monthly (dia 1)"
+  command: "*retention-cycle"
+  agent: garden-cs-chief
+
+elicitation:
+  enabled: true
+  questions:
+    - id: periodo
+      prompt: "Qual período analisar?"
+      type: choice
+      options:
+        - "Último mês"
+        - "Últimos 3 meses"
+        - "Customizado"
+      default: "Último mês"
+
+    - id: foco
+      prompt: "Qual o foco principal deste ciclo?"
+      type: choice
+      options:
+        - "Retenção geral"
+        - "Re-engagement de inativos"
+        - "Upgrade de power users"
+        - "Prevenção de churn sazonal"
+
+    - id: budget
+      prompt: "Há budget para ofertas especiais neste ciclo?"
+      type: choice
+      options:
+        - "Sim — descontos permitidos"
+        - "Não — apenas engajamento orgânico"
+        - "Limitado — até X ofertas"
+
+steps:
+  - id: analyze-health
+    task: design-health-score
+    agent: garden-cs-chief
+    description: >
+      Fase 1 — ANALISAR: Calcular health scores de todos os usuários ativos.
+      Gerar distribuição por faixa (Saudável, Atenção, Risco, Crítico).
+      Comparar com mês anterior — tendência melhorando ou piorando?
+    inputs:
+      segmento: "all"
+      periodo_dados: "{{elicitation.periodo}}"
+    on_success: segment-users
+    on_error: error-analysis
+
+  - id: segment-users
+    action: create-segments
+    agent: garden-cs-chief
+    description: >
+      Fase 2 — SEGMENTAR: Criar segmentos acionáveis:
+      - Campeões (score 80+, uso crescente) → pedir referral, NPS
+      - Estáveis (score 60-79, uso constante) → manter, value report
+      - Em Risco (score 40-59, uso declinante) → re-engagement
+      - Críticos (score <40, inativo) → intervenção urgente
+      - Novos (< 30 dias) → verificar ativação
+      Para cada segmento: tamanho, tendência, ação prioritária.
+    depends_on: [analyze-health]
+    on_success: engage-segments
+    on_error: error-segmentation
+
+  - id: engage-segments
+    action: execute-engagement
+    agent: garden-retention
+    description: >
+      Fase 3 — ENGAJAR: Executar ações por segmento:
+      - Campeões: enviar value report premium, pedir indicação
+      - Estáveis: enviar value report, dica de feature não usada
+      - Em Risco: push personalizado com dado de valor, oferta de ajuda
+      - Críticos: mensagem direta, oferta especial (se budget permitir)
+      - Novos: verificar ativação, tutorial se não ativou
+      Cada ação registrada com timestamp e canal.
+    depends_on: [segment-users]
+    inputs:
+      foco: "{{elicitation.foco}}"
+      budget: "{{elicitation.budget}}"
+    on_success: activate-community
+    on_error: error-engagement
+
+  - id: activate-community
+    action: community-touchpoints
+    agent: garden-community
+    description: >
+      Fase 3.5 — COMUNIDADE: Ações de comunidade paralelas:
+      - Postar "Dica do Mês" na comunidade
+      - Destacar "Jardineiro do Mês" (baseado em health score + engajamento)
+      - Lançar campanha UGC temática do mês
+      - Enviar lembrete de indicações para Campeões
+    depends_on: [engage-segments]
+    on_success: measure-results
+    on_error: measure-results
+
+  - id: measure-results
+    action: collect-metrics
+    agent: garden-cs-chief
+    description: >
+      Fase 4 — MEDIR: Coletar métricas do ciclo:
+      - Retention rate do período
+      - Churn rate por segmento
+      - NPS coletado
+      - Referrals gerados
+      - Push open rates
+      - Health score delta (melhorou/piorou)
+      - Ações executadas vs planejadas
+      Comparar com ciclo anterior. Gerar insights para próximo ciclo.
+    depends_on: [activate-community]
+    on_success: generate-report
+
+  - id: generate-report
+    action: compile-cycle-report
+    agent: garden-cs-chief
+    description: >
+      Gerar relatório do ciclo de retenção:
+      - Executive summary (3 bullets)
+      - Métricas vs targets
+      - Segmentos: tamanho e movimento
+      - Ações executadas e resultados
+      - Insights e aprendizados
+      - Recomendações para próximo ciclo
+      Enviar para squad-dados-operacoes.
+    depends_on: [measure-results]
+
+error_handling:
+  - id: error-analysis
+    action: notify
+    message: "Falha na análise de health scores: {{error.message}}. Verificar dados de squad-produto-core."
+    severity: error
+
+  - id: error-segmentation
+    action: notify
+    message: "Falha na segmentação: {{error.message}}. Prosseguir com segmentação anterior."
+    severity: warning
+
+  - id: error-engagement
+    action: notify
+    message: "Falha no engajamento: {{error.message}}. Registrar ações não executadas para retry."
+    severity: error
+
+completion:
+  message: "Ciclo de retenção mensal concluído."
+  next_steps:
+    - "Revisar relatório do ciclo"
+    - "Ajustar health score model se necessário"
+    - "Planejar ações especiais para próximo ciclo"
+    - "Enviar métricas para squad-dados-operacoes"

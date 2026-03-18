@@ -1,0 +1,101 @@
+# Task: Build Dashboard
+# Squad: squad-dados-operacoes
+# Version: 0.1.0
+
+task:
+  id: build-dashboard
+  name: "Construir Dashboard Executivo/Operacional"
+  version: "0.1.0"
+  purpose: "Projetar e implementar dashboard com metricas acionaveis para decisao de negocio ou operacao diaria"
+  executor: "@garden-data-chief"
+  collaborators:
+    - "@garden-devops"           # Performance dos queries
+    - "@garden-product-chief"    # Validacao de metricas relevantes (squad-produto-core)
+  elicit: true
+  execution_type: hybrid
+
+pre_conditions:
+  - "PostHog configurado com eventos basicos sendo trackeados"
+  - "Supabase com dados de usuarios e servicos"
+  - "Definicao clara do publico-alvo do dashboard (executivo, operacional, produto)"
+
+inputs:
+  - name: dashboard_type
+    type: select
+    prompt: "Tipo de dashboard:"
+    options: ["Executive (KPIs de negocio)", "Product (feature adoption, user journeys)", "Operational (infra, performance)", "Custom"]
+  - name: audience
+    type: select
+    prompt: "Publico-alvo:"
+    options: ["Founders/C-Level", "Product Team", "Engineering", "Growth Team"]
+  - name: data_sources
+    type: multiselect
+    prompt: "Fontes de dados:"
+    options: ["PostHog", "Supabase (direct query)", "Stripe", "Vercel Analytics", "Sentry"]
+
+steps:
+  - id: step_1_requirements
+    name: "Levantamento de Metricas"
+    action: |
+      1. Identificar as 5-8 metricas mais importantes para o publico-alvo
+      2. Para cada metrica, definir:
+         - Formula de calculo
+         - Fonte de dados
+         - Frequencia de atualizacao
+         - Threshold (verde/amarelo/vermelho)
+      3. Validar: "Se o executivo ve apenas ESTE dashboard, ele consegue decidir?"
+      4. Eliminar metricas de vaidade — cada numero deve gerar acao
+
+  - id: step_2_data_modeling
+    name: "Modelagem de Dados"
+    action: |
+      1. Mapear queries necessarias para cada metrica
+      2. Verificar performance das queries (EXPLAIN ANALYZE)
+      3. Decidir: real-time query vs materialized view vs aggregation table
+      4. Criar views/functions no Supabase se necessario
+      5. Planejar caching strategy (para dashboards com muitos usuarios)
+
+  - id: step_3_design
+    name: "Design do Dashboard"
+    action: |
+      1. Layout: metricas primarias no topo, drill-down abaixo
+      2. Componentes: KPI cards, line charts (trends), bar charts (comparisons), tables (details)
+      3. Filtros: periodo (7d, 30d, 90d, custom), plano, regiao, canal
+      4. Responsividade: funciona em mobile e desktop
+      5. Regra: maximo 5 KPIs visíveis sem scroll no nivel executivo
+
+  - id: step_4_implementation
+    name: "Implementacao"
+    action: |
+      1. Criar componentes de dashboard (React/Next.js)
+      2. Implementar data fetching (React Query + Supabase client)
+      3. Criar Supabase views/functions para aggregations
+      4. Implementar filtros e period selectors
+      5. Adicionar loading states e error handling
+      6. Testar com dados reais (ou seed data representativo)
+
+  - id: step_5_validation
+    name: "Validacao"
+    action: |
+      1. Verificar: cada metrica esta calculada corretamente?
+      2. Verificar: performance aceitavel (< 2s para carregar dashboard completo)?
+      3. Verificar: filtros funcionam corretamente?
+      4. Teste de usuario: executivo consegue extrair insight em 30 segundos?
+      5. Documentar: o que cada metrica mede e como e calculada
+
+output:
+  format: markdown
+  sections:
+    - metrics_definition
+    - data_model
+    - dashboard_layout
+    - implementation_notes
+    - performance_benchmarks
+
+quality_gate:
+  max_load_time_seconds: 2
+  max_visible_kpis: 5
+  every_metric_has_formula: true
+  every_metric_has_threshold: true
+  no_vanity_metrics: true
+  mobile_responsive: true

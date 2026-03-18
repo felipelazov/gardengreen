@@ -1,0 +1,96 @@
+# Task: Code Review
+# Squad: squad-produto-core
+# Version: 0.1.0
+
+task:
+  id: code-review
+  name: "Review de Código"
+  version: "0.1.0"
+  purpose: "Revisar código para simplicidade, performance mobile, suporte offline, e segurança"
+  executor: "@garden-fullstack-dev"
+  collaborators:
+    - "@garden-ux-mobile"  # Valida UX de componentes visuais
+  elicit: true
+  execution_type: interactive
+
+pre_conditions:
+  - "Código implementado e committado"
+  - "Testes passando localmente"
+
+inputs:
+  - name: scope
+    type: text
+    prompt: "Quais arquivos/feature para review?"
+  - name: review_type
+    type: select
+    prompt: "Tipo de review:"
+    options: ["Feature completa", "Hotfix", "Refactoring", "Schema change"]
+
+steps:
+  - id: step_1_readability
+    name: "Legibilidade & Clean Code"
+    action: |
+      Verificar:
+      1. [ ] Nomes de variáveis/funções descritivos (sem abreviações crípticas)
+      2. [ ] Funções com responsabilidade única (< 30 linhas idealmente)
+      3. [ ] Componentes React < 150 linhas
+      4. [ ] Sem código duplicado (DRY)
+      5. [ ] Sem 'any' no TypeScript
+      6. [ ] Sem console.log residual
+      7. [ ] Imports organizados (absolutos, agrupados)
+
+  - id: step_2_performance
+    name: "Performance Mobile"
+    action: |
+      Verificar:
+      1. [ ] Listas usam FlatList/FlashList (nunca ScrollView para listas longas)
+      2. [ ] Imagens otimizadas (resize antes de upload)
+      3. [ ] Memoization onde necessário (React.memo, useMemo, useCallback)
+      4. [ ] Sem re-renders desnecessários
+      5. [ ] Bundle size: nova dependência justificada?
+      6. [ ] Lazy loading para telas/componentes pesados
+
+  - id: step_3_offline
+    name: "Suporte Offline"
+    action: |
+      Verificar:
+      1. [ ] Dados críticos salvos no WatermelonDB
+      2. [ ] Actions queued quando offline
+      3. [ ] Sync implementado corretamente (conflict resolution)
+      4. [ ] UI mostra estado de sync (online/offline/syncing)
+      5. [ ] Nunca tela em branco por falta de internet
+      6. [ ] Optimistic updates para UX fluido
+
+  - id: step_4_security
+    name: "Segurança"
+    action: |
+      Verificar:
+      1. [ ] RLS policies para toda tabela nova/alterada
+      2. [ ] Sem dados sensíveis no frontend/logs
+      3. [ ] Validação com Zod no input (frontend + backend)
+      4. [ ] Auth check em toda Edge Function
+      5. [ ] Sem SQL injection (usar query builder do Supabase)
+      6. [ ] Sem secrets hardcoded
+
+  - id: step_5_verdict
+    name: "Veredicto"
+    action: |
+      Emitir veredicto:
+      - APPROVED: Tudo OK, pode mergear
+      - APPROVED WITH NOTES: OK mas com sugestões opcionais
+      - CHANGES REQUESTED: Precisa de ajustes (listar todos)
+      - BLOCKED: Problema crítico de segurança/performance
+
+output:
+  format: markdown
+  sections:
+    - readability_findings
+    - performance_findings
+    - offline_findings
+    - security_findings
+    - verdict_and_action_items
+
+quality_gate:
+  all_checks_evaluated: true
+  security_blocker_if_rls_missing: true
+  performance_blocker_if_scrollview_for_lists: true

@@ -1,0 +1,318 @@
+name: squad-pm
+version: 1.0.0
+tested: false
+updated_at: "2026-03-08"
+short-title: Squad PM
+description: >-
+  Squad completo de Project Management + Product Requirements.
+  Orchestrator: @pm-chief (Atlax) — intake, routing, PRD, epic execution.
+  Tier 0: @discovery-lead (Maia) + @market-analyst (Scout) — discovery e estratégia.
+  Tier 1: @requirements-engineer (Sofia) + @schedule-planner (Tempo) + @risk-strategist (Risco).
+  Tier 2: @integration-architect (Iris) + @prioritization-engine (Sage).
+  Tier 3: @stakeholder-liaison (Stella) + @cost-estimator (Dinero).
+  Tools: @prd-validator + @okr-tracker + @pm-auditor.
+  6 Worker scripts Python ($0), 3 workflows, 8 templates, 5 data files.
+  Herda inteligência completa do @pm AIOX (Morgan).
+  Score: 10/10 quality dimensions.
+author: Synkra AIOX
+entry_agent: pm-chief
+slashPrefix: pm
+icon: "🏛️"
+
+settings:
+  activation:
+    show_ecosystem_report: false
+    show_greeting: true
+    show_quick_commands: true
+
+agents:
+  # Orchestrator
+  - id: pm-chief
+    name: Atlax
+    role: "PM + Product Orchestrator"
+    tier: orchestrator
+    version: "1.0.0"
+    mind_base: "Harold Kerzner + Marty Cagan + Morgan (AIOX PM)"
+
+  # Tier 0 - Discovery
+  - id: discovery-lead
+    name: Maia
+    role: "Product Discovery & Customer Research"
+    tier: 0
+    version: "1.0.0"
+    mind_base: "Teresa Torres (Continuous Discovery, OST)"
+    specialty: "Opportunity Solution Trees, entrevistas, JTBD"
+
+  - id: market-analyst
+    name: Scout
+    role: "Market Analysis & Product Strategy"
+    tier: 0
+    version: "1.0.0"
+    mind_base: "April Dunford + Ash Maurya"
+    specialty: "Positioning, Lean Canvas, competitive analysis"
+
+  # Tier 1 - Core Execution
+  - id: requirements-engineer
+    name: Sofia
+    role: "Requirements Engineering & Story Mapping"
+    tier: 1
+    version: "1.0.0"
+    mind_base: "Karl Wiegers + Jeff Patton"
+    specialty: "FR/NFR, Story Mapping, Acceptance Criteria"
+
+  - id: schedule-planner
+    name: Tempo
+    role: "Schedule & Timeline Planning"
+    tier: 1
+    version: "1.0.0"
+    mind_base: "Eliyahu Goldratt + Steve McConnell"
+    specialty: "Critical Chain (CCPM), Cone of Uncertainty"
+
+  - id: risk-strategist
+    name: Risco
+    role: "Risk Management & Mitigation"
+    tier: 1
+    version: "1.0.0"
+    mind_base: "David Hillson (The Risk Doctor)"
+    specialty: "ATOM Methodology, risk metalanguage"
+
+  # Tier 2 - Systematizers
+  - id: integration-architect
+    name: Iris
+    role: "Integration & Methodology Coordination"
+    tier: 2
+    version: "1.0.0"
+    mind_base: "Dean Leffingwell"
+    specialty: "SAFe, Dual-Track Agile, PI Planning, methodology adapter"
+
+  - id: prioritization-engine
+    name: Sage
+    role: "Prioritization & Backlog Ordering"
+    tier: 2
+    version: "1.0.0"
+    mind_base: "Don Reinertsen + Dai Clegg + Sean McBride"
+    specialty: "WSJF, MoSCoW, RICE scoring"
+
+  # Tier 3 - Specialists
+  - id: stakeholder-liaison
+    name: Stella
+    role: "Stakeholder Management & Communication"
+    tier: 3
+    version: "1.0.0"
+    mind_base: "Frederick Brooks + Tom DeMarco"
+    specialty: "Stakeholder mapping, expectation management, Peopleware"
+
+  - id: cost-estimator
+    name: Dinero
+    role: "Cost Estimation & Budget Planning"
+    tier: 3
+    version: "1.0.0"
+    mind_base: "Steve McConnell"
+    specialty: "Software Estimation, Cone of Uncertainty, EVM"
+
+  # Tools
+  - id: prd-validator
+    name: Checker
+    role: "PRD Quality Validation"
+    tier: tool
+    version: "1.0.0"
+    mind_base: "Karl Wiegers (7 quality criteria)"
+    type: validator
+
+  - id: okr-tracker
+    name: Focus
+    role: "OKR Definition & Tracking"
+    tier: tool
+    version: "1.0.0"
+    mind_base: "John Doerr + Christina Wodtke"
+    type: tracker
+
+  - id: pm-auditor
+    name: Sentinel
+    role: "Self-Diagnostic & Meta-QA"
+    tier: tool
+    version: "1.0.0"
+    mind_base: "Quality Dimensions Framework"
+    type: auditor
+
+tasks:
+  # Intake
+  - id: intake-prep
+    name: "Intake Preparation"
+    executor: agent
+    agent: pm-chief
+  - id: intake-parser
+    name: "Intake Parser"
+    executor: hybrid
+    agent: pm-chief
+    worker: intake-parser.py
+
+  # Discovery
+  - id: project-diagnostic
+    name: "Project Diagnostic"
+    executor: agent
+    agent: pm-chief
+  - id: discovery-session
+    name: "Discovery Session"
+    executor: agent
+    agent: discovery-lead
+  - id: market-analysis
+    name: "Market Analysis"
+    executor: agent
+    agent: market-analyst
+  - id: lean-canvas
+    name: "Lean Canvas Generation"
+    executor: agent
+    agent: market-analyst
+
+  # PRD & Requirements
+  - id: gather-requirements
+    name: "Gather Requirements"
+    executor: agent
+    agent: requirements-engineer
+  - id: write-prd
+    name: "Write PRD"
+    executor: agent
+    agent: pm-chief
+  - id: story-mapping
+    name: "Story Mapping"
+    executor: agent
+    agent: requirements-engineer
+  - id: validate-prd
+    name: "Validate PRD"
+    executor: hybrid
+    agent: prd-validator
+    worker: prd-validator.py
+
+  # Prioritization
+  - id: prioritize-backlog
+    name: "Prioritize Backlog"
+    executor: hybrid
+    agent: prioritization-engine
+    worker: rice-calculator.py
+
+  # Planning
+  - id: create-schedule
+    name: "Create Schedule"
+    executor: hybrid
+    agent: schedule-planner
+    worker: cost-estimator.py
+  - id: estimate-cost
+    name: "Estimate Cost"
+    executor: hybrid
+    agent: cost-estimator
+    worker: cost-estimator.py
+  - id: risk-assessment
+    name: "Risk Assessment"
+    executor: agent
+    agent: risk-strategist
+  - id: stakeholder-map
+    name: "Stakeholder Mapping"
+    executor: agent
+    agent: stakeholder-liaison
+  - id: define-okrs
+    name: "Define OKRs"
+    executor: agent
+    agent: okr-tracker
+
+  # QA
+  - id: phase-audit
+    name: "Phase Audit"
+    executor: hybrid
+    agent: pm-auditor
+
+workflows:
+  - id: full-pm-cycle
+    name: "Full PM Cycle"
+    phases: 7
+    file: full-pm-cycle.yaml
+  - id: greenfield-intake
+    name: "Greenfield Intake"
+    phases: 3
+    file: greenfield-intake.yaml
+  - id: brownfield-intake
+    name: "Brownfield Intake"
+    phases: 4
+    file: brownfield-intake.yaml
+
+workers:
+  - id: rice-calculator
+    file: rice-calculator.py
+    purpose: "Calcula RICE score"
+  - id: wsjf-calculator
+    file: wsjf-calculator.py
+    purpose: "Calcula WSJF"
+  - id: prd-validator-script
+    file: prd-validator.py
+    purpose: "Valida estrutura PRD"
+  - id: risk-matrix-generator
+    file: risk-matrix-generator.py
+    purpose: "Gera risk matrix visual"
+  - id: cost-estimator-script
+    file: cost-estimator.py
+    purpose: "Cone of Uncertainty calc"
+  - id: intake-parser-script
+    file: intake-parser.py
+    purpose: "Parseia intake em estrutura"
+
+templates:
+  - id: client-intake-tmpl
+    file: client-intake-tmpl.yaml
+  - id: prd-tmpl
+    file: prd-tmpl.yaml
+  - id: executive-summary-tmpl
+    file: executive-summary-tmpl.md
+  - id: commercial-proposal-tmpl
+    file: commercial-proposal-tmpl.md
+  - id: project-charter-tmpl
+    file: project-charter-tmpl.md
+  - id: risk-dashboard-tmpl
+    file: risk-dashboard-tmpl.md
+  - id: roadmap-visual-tmpl
+    file: roadmap-visual-tmpl.md
+  - id: lean-canvas-tmpl
+    file: lean-canvas-tmpl.md
+
+checklists:
+  - id: intake-completeness
+    file: intake-completeness.md
+  - id: prd-quality-gate
+    file: prd-quality-gate.md
+  - id: planning-quality-gate
+    file: planning-quality-gate.md
+  - id: phase-transition
+    file: phase-transition.md
+
+data:
+  - id: pm-kb
+    file: pm-kb.md
+  - id: project-profiles
+    file: project-profiles.yaml
+  - id: methodology-adapters
+    file: methodology-adapters.yaml
+  - id: risk-catalog
+    file: risk-catalog.yaml
+  - id: industry-templates
+    file: industry-templates.yaml
+
+project_profiles:
+  simple:
+    description: "Solo founder, MVP, projeto pequeno"
+    agents: [pm-chief, discovery-lead, requirements-engineer, prd-validator]
+    estimated_time: "1-2 dias"
+  standard:
+    description: "Startup, seed/series A, projeto médio"
+    agents: [pm-chief, discovery-lead, market-analyst, requirements-engineer, prioritization-engine, schedule-planner, cost-estimator, risk-strategist, prd-validator]
+    estimated_time: "3-5 dias"
+  enterprise:
+    description: "Corporate, compliance, projeto grande"
+    agents: all
+    estimated_time: "1-2 semanas"
+
+methodology_support:
+  - waterfall
+  - scrum
+  - kanban
+  - shape-up
+  - safe
+  - hybrid

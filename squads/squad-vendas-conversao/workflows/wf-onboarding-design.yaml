@@ -1,0 +1,161 @@
+id: wf-onboarding-design
+name: "Design End-to-End de Onboarding"
+squad: squad-vendas-conversao
+version: 0.1.0
+type: workflow
+
+description: |
+  Workflow completo para desenhar o onboarding do GardenGreen do zero.
+  Da pesquisa de usuário até a especificação final pronta para implementação.
+  Usado na criação inicial e em redesigns significativos do onboarding.
+
+trigger:
+  type: manual
+  condition: "Novo produto, redesign de onboarding, ou completion rate < 60%"
+
+owner: garden-onboarding
+
+phases:
+  - id: research
+    name: "Pesquisa"
+    description: "Entender o jardineiro e seu contexto de uso"
+    agent: garden-growth-chief
+    outputs:
+      - user_research
+      - competitor_analysis
+      - benchmark_data
+    duration: "2 dias"
+    steps:
+      - "Mapear perfil do jardineiro: idade, tech-savviness, dispositivo, contexto"
+      - "Analisar onboarding de 5 apps que jardineiros usam (WhatsApp, iFood, Uber)"
+      - "Benchmarking de SaaS verticais (Venuxx, GetNinjas, iClinic)"
+      - "Identificar padrões de sucesso: o que esses apps fazem bem?"
+      - "Documentar anti-patterns: o que faz o jardineiro desistir?"
+      - "Listar restrições: Android Go, 3G, tela pequena, sol"
+
+  - id: define
+    name: "Definir"
+    description: "Definir requisitos e princípios do onboarding"
+    agent: garden-onboarding
+    depends_on: [research]
+    outputs:
+      - onboarding_principles
+      - requirements
+      - success_metrics
+    duration: "1 dia"
+    steps:
+      - "Definir princípios inegociáveis (2 min max, 5 telas max, etc.)"
+      - "Definir dados mínimos para funcionamento"
+      - "Mapear progressive profiling completo"
+      - "Definir success metrics e targets"
+      - "Priorizar: o que DEVE estar no onboarding vs o que pode esperar"
+
+  - id: design_flow
+    name: "Desenhar Fluxo"
+    description: "Criar o fluxo de onboarding tela a tela"
+    tasks:
+      - task: design-onboarding-flow
+    agent: garden-onboarding
+    depends_on: [define]
+    outputs:
+      - flow_diagram
+      - screen_wireframes
+      - interaction_spec
+    duration: "2 dias"
+    steps:
+      - "Desenhar fluxo principal (happy path)"
+      - "Desenhar fluxos alternativos (erro, voltar, pular)"
+      - "Wireframe de cada tela com layout de elementos"
+      - "Especificar interações: toques, swipes, teclado"
+      - "Validar tempo total estimado"
+      - "Simular em dispositivo pequeno"
+
+  - id: write_copy
+    name: "Escrever Copy"
+    description: "Criar toda a copy do onboarding e empty states"
+    agent: garden-conversion-copy
+    depends_on: [design_flow]
+    outputs:
+      - onboarding_copy_deck
+      - empty_states_copy
+      - error_messages_copy
+    duration: "2 dias"
+    steps:
+      - "Escrever copy de cada tela do onboarding (headline, body, CTA)"
+      - "Escrever labels de todos os campos"
+      - "Escrever mensagens de erro amigáveis"
+      - "Escrever empty states de todas as seções"
+      - "Escrever tooltips e dicas contextuais"
+      - "Revisar: tudo passa no teste de 'jardineiro entende?'"
+
+  - id: validate
+    name: "Validar"
+    description: "Validar fluxo e copy com teste low-tech"
+    agents:
+      - garden-onboarding
+      - garden-growth-chief
+    depends_on: [write_copy]
+    outputs:
+      - validation_report
+      - friction_points
+      - final_adjustments
+    duration: "1 dia"
+    steps:
+      - "Teste de simulação: percorrer fluxo como jardineiro 45 anos"
+      - "Checklist de fricção: cada tela tem UMA ação clara?"
+      - "Checklist de acessibilidade: botões grandes, texto legível"
+      - "Checklist de performance: funciona em 3G/Android Go?"
+      - "Medir tempo estimado do fluxo completo"
+      - "Listar ajustes necessários"
+      - "Aprovar ou iterar"
+
+  - id: instrument
+    name: "Instrumentar"
+    description: "Definir eventos analytics e métricas"
+    tasks:
+      - task: create-activation-metrics
+        scope: "Eventos específicos do onboarding"
+    agent: garden-growth-chief
+    depends_on: [validate]
+    outputs:
+      - event_specs
+      - dashboard_spec
+    duration: "1 dia"
+    steps:
+      - "Definir evento para cada tela: onboarding_screen_1_viewed, etc."
+      - "Definir evento de completion: onboarding_completed"
+      - "Definir eventos de drop-off por tela"
+      - "Especificar propriedades de cada evento"
+      - "Definir dashboard de monitoramento do onboarding"
+
+  - id: spec_final
+    name: "Especificação Final"
+    description: "Consolidar tudo em spec pronta para implementação"
+    agent: garden-onboarding
+    depends_on: [instrument]
+    outputs:
+      - final_spec
+      - implementation_guide
+    duration: "1 dia"
+    steps:
+      - "Consolidar fluxo + copy + eventos em documento único"
+      - "Adicionar specs técnicas: API calls, data model"
+      - "Listar dependências de implementação"
+      - "Definir critérios de aceitação testáveis"
+      - "Entregar spec para squad-produto-core"
+
+handoff:
+  to_squad: squad-produto-core
+  deliverables:
+    - "Especificação completa do onboarding"
+    - "Copy deck aprovado"
+    - "Event catalog para instrumentação"
+    - "Critérios de aceitação"
+  format: "docs/specs/onboarding-final-spec.md"
+
+success_criteria:
+  - "Fluxo de onboarding com max 5 telas"
+  - "Tempo estimado < 2 minutos"
+  - "Copy aprovada pelo garden-conversion-copy"
+  - "Métricas e eventos especificados"
+  - "Spec final entregue ao squad-produto-core"

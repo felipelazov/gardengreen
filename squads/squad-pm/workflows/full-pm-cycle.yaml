@@ -1,0 +1,1413 @@
+# =============================================================================
+# FULL PM CYCLE — Main Workflow (7 Phases)
+# =============================================================================
+# Squad PM primary workflow: complete PM cycle from intake to delivery.
+# Covers the entire lifecycle of a project from the first client contact
+# to the final deliverables package ready for development handoff.
+#
+# Profile-aware: adapts automatically based on project complexity
+# (simple, standard, enterprise). Methodology-aware: adapts outputs
+# and scheduling format based on selected methodology (scrum, kanban,
+# shape_up, waterfall, safe).
+#
+# Execution time:
+#   - Simple:     1-2 dias (skip discovery, reduced tasks)
+#   - Standard:   3-5 dias (full cycle)
+#   - Enterprise: 1-2 semanas (full cycle + extra gates)
+#
+# Author: Synkra AIOX — Squad PM
+# Version: 1.0.0
+# Last updated: 2026-03-08
+# =============================================================================
+
+name: Full PM Cycle
+id: full-pm-cycle
+version: 1.0.0
+description: >-
+  Ciclo completo de PM: intake → discovery → requirements → planning →
+  execution → review → delivery. Este e o workflow principal do Squad PM,
+  cobrindo todo o ciclo de vida de um projeto desde o primeiro contato
+  com o cliente ate o pacote de entregaveis pronto para handoff ao
+  time de desenvolvimento.
+trigger: "*full-cycle {project_name}"
+executor: pm-chief
+
+# =============================================================================
+# GLOBAL CONFIGURATION
+# =============================================================================
+
+config:
+  # Quality thresholds
+  quality:
+    minimum_phase_score: 7.0        # Minimum score to pass a phase gate
+    minimum_dimension_score: 5.0    # No individual dimension can score below this
+    audit_max_retries: 3            # Max re-audits before escalation
+    blocking_gate_timeout: "48h"    # Time before auto-escalation on blocking gates
+
+  # Execution modes
+  execution:
+    default_mode: interactive       # interactive | yolo | pre-flight
+    parallel_enabled: true          # Allow parallel task execution where defined
+    auto_advance: false             # Auto-advance on gate PASS (false = confirm with user)
+    checkpoint_on_phase_complete: true  # Save state after each phase
+
+  # Output directories
+  paths:
+    intake: "docs/intake/"
+    discovery: "docs/discovery/"
+    prd: "docs/prd/"
+    planning: "docs/planning/"
+    audit: "docs/audit/"
+    deliverables: "docs/deliverables/"
+    stories: "docs/stories/"
+
+  # Error handling defaults
+  error_handling:
+    on_task_failure: "halt_and_report"   # halt_and_report | retry_once | skip_and_warn
+    on_gate_failure: "block_and_fix"     # block_and_fix | warn_and_continue
+    on_agent_unavailable: "fallback_to_pm_chief"
+    max_task_retries: 2
+    rollback_on_critical_failure: true
+
+# =============================================================================
+# PHASE 0: INTAKE & CLASSIFICATION
+# =============================================================================
+# First contact with the project. Collect raw information, classify complexity,
+# assign profile, and select methodology. This phase determines how the rest
+# of the cycle will be executed.
+#
+# Entry point: user provides project name (and optionally industry/context)
+# Exit point: project-brief.yaml + diagnostic-report.md generated
+# =============================================================================
+
+phases:
+  phase_0_intake:
+    name: "Intake & Classification"
+    description: >-
+      Coleta inicial de informacoes do projeto, classificacao de complexidade,
+      atribuicao de perfil (simple/standard/enterprise) e selecao de metodologia.
+      Este e o ponto de entrada para todo novo projeto no Squad PM.
+    order: 0
+    estimated_duration: "2-4 horas"
+
+    # Agents involved in this phase
+    agents:
+      primary: pm-chief
+      support: []
+
+    # Tasks executed sequentially unless parallel is specified
+    tasks:
+      - id: intake-prep
+        name: "Intake Preparation"
+        agent: pm-chief
+        description: >-
+          Gerar roteiro de reuniao com 5 blocos de perguntas customizadas
+          por industria. O roteiro serve como guia de conversa para a reuniao
+          de discovery inicial com o cliente.
+        inputs:
+          - industry_context: "{project.industry}"    # optional
+          - client_name: "{project.client_name}"      # optional
+          - meeting_date: "{project.meeting_date}"    # optional
+        outputs:
+          - "docs/intake/roteiro-reuniao-{date}.md"
+        preconditions: []
+        on_error:
+          action: "warn_and_continue"
+          message: "Roteiro nao gerado. Intake-parser pode funcionar sem roteiro previo."
+
+      - id: intake-parser
+        name: "Intake Parser"
+        agent: pm-chief
+        worker: intake-parser.py
+        execution_type: hybrid
+        description: >-
+          Parsear dados coletados (do roteiro preenchido, notas de reuniao,
+          ou input direto do usuario) em estrutura YAML padronizada.
+          O worker intake-parser.py valida a estrutura; o agente enriquece
+          com inferencias e classificacoes.
+        inputs:
+          - raw_intake_data: "docs/intake/roteiro-reuniao-{date}.md"
+          - user_input: "{direct user input if no roteiro}"
+        outputs:
+          - "docs/intake/parsed-intake.yaml"
+        preconditions:
+          - "intake-prep completed OR user provided direct input"
+        on_error:
+          action: "retry_once"
+          fallback: "pm-chief parses manually without worker"
+          message: "Worker intake-parser.py falhou. Parsing manual sera executado."
+
+      - id: project-diagnostic
+        name: "Project Diagnostic"
+        agent: pm-chief
+        description: >-
+          Analisar os dados parseados para classificar o projeto em:
+          1. Complexidade (simple/standard/enterprise) usando 5 dimensoes
+          2. Perfil de projeto (com agentes e tasks adequados)
+          3. Metodologia recomendada (scrum/kanban/shape_up/waterfall/safe)
+          4. Estimativa de tempo para o ciclo completo
+        inputs:
+          - "docs/intake/parsed-intake.yaml"
+        outputs:
+          - "docs/project-brief.yaml"
+          - "docs/intake/diagnostic-report.md"
+        preconditions:
+          - "intake-parser completed successfully"
+        classification_dimensions:
+          scope:
+            description: "Quantidade de features/modulos estimados"
+            scoring: "1-5 (1=micro, 5=enterprise-scale)"
+          integration:
+            description: "Quantidade de integracoes externas (APIs, servicos)"
+            scoring: "1-5 (1=standalone, 5=heavy integration)"
+          infrastructure:
+            description: "Necessidade de infraestrutura dedicada"
+            scoring: "1-5 (1=serverless/simple, 5=multi-region/complex)"
+          knowledge:
+            description: "Familiaridade do time com o dominio"
+            scoring: "1-5 (1=expert, 5=new domain)"
+          risk:
+            description: "Criticidade do sistema (financeiro, saude, etc)"
+            scoring: "1-5 (1=low risk, 5=critical/regulated)"
+        profile_thresholds:
+          simple: "score <= 8"
+          standard: "score 9-15"
+          enterprise: "score >= 16"
+        on_error:
+          action: "halt_and_report"
+          message: "Diagnostico falhou. Nao e possivel prosseguir sem classificacao."
+
+    # Quality gate — must pass to proceed to phase 1
+    quality_gate:
+      name: "Intake Complete"
+      type: blocking
+      criteria:
+        - id: "gate_0_1"
+          name: "project_brief_generated"
+          description: "Arquivo project-brief.yaml existe e esta preenchido"
+          check: "file_exists('docs/project-brief.yaml') AND file_not_empty('docs/project-brief.yaml')"
+        - id: "gate_0_2"
+          name: "complexity_classified"
+          description: "Score de complexidade calculado e perfil atribuido"
+          check: "project_brief.complexity_score IS NOT NULL"
+        - id: "gate_0_3"
+          name: "profile_assigned"
+          description: "Perfil do projeto definido (simple|standard|enterprise)"
+          check: "project_brief.profile IN ['simple', 'standard', 'enterprise']"
+        - id: "gate_0_4"
+          name: "methodology_selected"
+          description: "Metodologia de desenvolvimento selecionada"
+          check: "project_brief.methodology IN ['scrum', 'kanban', 'shape_up', 'waterfall', 'safe', 'hybrid']"
+      on_pass:
+        action: "log_and_advance"
+        message: "Intake completo. Perfil: {profile}, Metodologia: {methodology}. Avancando para Discovery."
+      on_fail:
+        action: "block_and_fix"
+        message: "Intake incompleto. Criterios faltantes: {failed_criteria}. Corrigir antes de prosseguir."
+        fix_suggestions:
+          - "Se project_brief nao gerado: re-executar project-diagnostic"
+          - "Se perfil nao atribuido: verificar se todas as 5 dimensoes foram pontuadas"
+          - "Se metodologia nao selecionada: usar valor padrao 'scrum'"
+
+    # Skip condition
+    skip_if: "project_brief already exists AND project_brief.status == 'approved'"
+    skip_message: "Project brief ja existe e foi aprovado. Pulando intake."
+
+    # Phase outputs
+    outputs:
+      - path: "docs/project-brief.yaml"
+        description: "Brief completo do projeto com classificacao e perfil"
+      - path: "docs/intake/diagnostic-report.md"
+        description: "Relatorio detalhado do diagnostico de complexidade"
+      - path: "docs/intake/roteiro-reuniao-{date}.md"
+        description: "Roteiro de reuniao gerado (se intake-prep executado)"
+
+    # Rollback procedure
+    rollback:
+      trigger: "critical failure during intake"
+      steps:
+        - "Preservar qualquer dado coletado em docs/intake/raw/"
+        - "Limpar outputs parciais (project-brief.yaml se incompleto)"
+        - "Notificar usuario com resumo do que foi coletado vs o que falta"
+        - "Oferecer opcao de reiniciar intake ou fornecer dados manualmente"
+
+  # =============================================================================
+  # PHASE 1: DISCOVERY & MARKET ANALYSIS
+  # =============================================================================
+  # Deep dive into user needs, market landscape, and opportunity mapping.
+  # This phase produces the foundation for requirements — everything
+  # downstream traces back to discovery artifacts.
+  #
+  # SKIPPED for simple profile projects (MVP/solo founder).
+  # For standard/enterprise, full discovery with market analysis.
+  # =============================================================================
+
+  phase_1_discovery:
+    name: "Discovery & Market Analysis"
+    description: >-
+      Mergulho profundo nas necessidades dos usuarios, paisagem de mercado
+      e mapeamento de oportunidades. Produz o Opportunity Solution Tree (OST),
+      analise competitiva e Lean Canvas. Tudo downstream rastreia ate esses
+      artefatos (Article IV — No Invention).
+    order: 1
+    estimated_duration: "1-3 dias"
+
+    agents:
+      primary: discovery-lead
+      support:
+        - market-analyst
+
+    tasks:
+      - id: discovery-session
+        name: "Discovery Session"
+        agent: discovery-lead
+        description: >-
+          Sessao estruturada de discovery baseada em Teresa Torres (Continuous
+          Discovery). Produz o Opportunity Solution Tree (OST) mapeando
+          desired outcomes → opportunities → solutions.
+          Inclui analise JTBD (Jobs To Be Done) para cada oportunidade.
+        inputs:
+          - "docs/project-brief.yaml"
+          - "docs/intake/parsed-intake.yaml"
+        outputs:
+          - "docs/discovery/opportunity-tree.md"
+          - "docs/discovery/jtbd-analysis.md"
+        preconditions:
+          - "phase_0_intake.quality_gate PASSED"
+        elicit: true
+        elicit_points:
+          - "Validar desired outcome principal com usuario"
+          - "Confirmar priorizacao de oportunidades"
+          - "Verificar JTBD statements com usuario"
+        on_error:
+          action: "halt_and_report"
+          message: "Discovery session falhou. OST e JTBD sao criticos para rastreabilidade."
+
+      - id: market-analysis
+        name: "Market Analysis"
+        agent: market-analyst
+        description: >-
+          Analise de mercado e posicionamento baseada em April Dunford
+          (Obviously Awesome) e Ash Maurya. Inclui analise competitiva
+          com pelo menos 3 competidores, TAM/SAM/SOM, e estrategia
+          de diferenciacao.
+        inputs:
+          - "docs/project-brief.yaml"
+          - "docs/discovery/opportunity-tree.md"
+        outputs:
+          - "docs/discovery/market-analysis.md"
+        preconditions:
+          - "discovery-session completed (OST available for context)"
+        research_tools:
+          - "EXA (web search) para dados de mercado atualizados"
+          - "Apify para scraping de competidores se necessario"
+        on_error:
+          action: "warn_and_continue"
+          message: "Market analysis incompleta. Prosseguindo com dados disponiveis."
+          degraded_output: "Market analysis parcial sem dados de pesquisa web"
+
+      - id: lean-canvas
+        name: "Lean Canvas Generation"
+        agent: market-analyst
+        description: >-
+          Gerar Lean Canvas (Ash Maurya) sintetizando discovery e market
+          analysis. O canvas serve como visao unificada de 1 pagina do
+          produto/negocio.
+        inputs:
+          - "docs/discovery/opportunity-tree.md"
+          - "docs/discovery/market-analysis.md"
+          - "docs/project-brief.yaml"
+        outputs:
+          - "docs/discovery/lean-canvas.md"
+        template: "lean-canvas-tmpl.md"
+        preconditions:
+          - "discovery-session completed"
+          - "market-analysis completed OR skipped with warning"
+        on_error:
+          action: "retry_once"
+          message: "Lean Canvas falhou na primeira tentativa. Retentando..."
+
+    quality_gate:
+      name: "Discovery Complete"
+      type: standard
+      criteria:
+        - id: "gate_1_1"
+          name: "opportunity_solution_tree_created"
+          description: "OST existe com pelo menos 1 desired outcome, 3 oportunidades e 3 solucoes"
+          check: "file_exists('docs/discovery/opportunity-tree.md') AND ost.opportunities >= 3"
+        - id: "gate_1_2"
+          name: "competitive_landscape_mapped"
+          description: "Analise competitiva com pelo menos 3 competidores identificados"
+          check: "file_exists('docs/discovery/market-analysis.md') AND competitors >= 3"
+        - id: "gate_1_3"
+          name: "lean_canvas_validated"
+          description: "Lean Canvas completo com todos os 9 blocos preenchidos"
+          check: "file_exists('docs/discovery/lean-canvas.md') AND all_9_blocks_filled"
+        - id: "gate_1_4"
+          name: "jtbd_documented"
+          description: "Pelo menos 3 JTBD statements no formato correto"
+          check: "file_exists('docs/discovery/jtbd-analysis.md') AND jtbd_count >= 3"
+      on_pass:
+        action: "log_and_advance"
+        message: "Discovery completo. {opportunities_count} oportunidades mapeadas. Avancando para Requirements."
+      on_fail:
+        action: "block_and_fix"
+        message: "Discovery incompleto. Artefatos faltantes: {failed_criteria}."
+        fix_suggestions:
+          - "Se OST faltando: re-executar discovery-session"
+          - "Se market analysis faltando: executar market-analysis isoladamente"
+          - "Se lean canvas incompleto: verificar blocos vazios e preencher"
+
+    # Profile-based skip
+    skip_if: "project_profile == 'simple'"
+    skip_message: >-
+      Perfil 'simple' detectado. Discovery completo nao e necessario para
+      projetos simples (solo founder, MVP). Avancando direto para Requirements
+      com discovery minimo derivado do intake.
+    skip_fallback:
+      action: "generate_minimal_discovery"
+      description: >-
+        Para perfil simple, gerar artefatos minimos de discovery derivados
+        do project-brief: 1 JTBD principal, 1-2 oportunidades, sem market analysis.
+      outputs:
+        - "docs/discovery/opportunity-tree.md (minimal)"
+        - "docs/discovery/jtbd-analysis.md (minimal)"
+
+    outputs:
+      - path: "docs/discovery/opportunity-tree.md"
+        description: "Opportunity Solution Tree completo com outcomes, oportunidades e solucoes"
+      - path: "docs/discovery/jtbd-analysis.md"
+        description: "Analise JTBD com statements formatados e priorizados"
+      - path: "docs/discovery/market-analysis.md"
+        description: "Analise competitiva, TAM/SAM/SOM, diferenciacao"
+      - path: "docs/discovery/lean-canvas.md"
+        description: "Lean Canvas com 9 blocos preenchidos"
+
+    rollback:
+      trigger: "discovery artifacts inconsistent or contradictory"
+      steps:
+        - "Preservar artefatos existentes com sufixo -backup"
+        - "Identificar qual artefato e a fonte da inconsistencia"
+        - "Re-executar apenas o task problematico"
+        - "Se inconsistencia persiste, escalar para pm-chief para mediacao"
+
+  # =============================================================================
+  # PHASE 2: REQUIREMENTS & PRD
+  # =============================================================================
+  # Transform discovery findings into formal requirements (FR/NFR) and a
+  # complete PRD document. This is the most critical phase — the PRD is the
+  # single source of truth for everything downstream.
+  #
+  # Quality gate is BLOCKING: PRD must score >= 7.0 on validation.
+  # No dimension can score below 5.0.
+  # =============================================================================
+
+  phase_2_requirements:
+    name: "Requirements & PRD"
+    description: >-
+      Transformar os achados de discovery em requisitos formais (FR/NFR) e
+      um PRD completo. O PRD e a fonte unica de verdade para tudo downstream:
+      stories, epics, schedule, cost, risk. O quality gate desta fase e
+      BLOCKING — nenhum avanco sem PRD aprovado.
+    order: 2
+    estimated_duration: "1-3 dias"
+
+    agents:
+      primary: requirements-engineer
+      support:
+        - pm-chief
+        - prd-validator
+
+    tasks:
+      - id: gather-requirements
+        name: "Gather Requirements"
+        agent: requirements-engineer
+        description: >-
+          Extrair requisitos funcionais (FR) e nao-funcionais (NFR) dos
+          artefatos de discovery. Cada requisito deve ser rastreavel a uma
+          oportunidade no OST e a um JTBD. Aplicar Karl Wiegers 7 criteria
+          individualmente a cada requisito.
+        inputs:
+          - "docs/discovery/opportunity-tree.md"
+          - "docs/discovery/jtbd-analysis.md"
+          - "docs/project-brief.yaml"
+          - "docs/discovery/lean-canvas.md (if exists)"
+        outputs:
+          - "docs/prd/requirements.yaml"
+          - "docs/prd/requirements.md"
+        preconditions:
+          - "phase_1_discovery.quality_gate PASSED OR phase_1_discovery SKIPPED (simple profile)"
+        wiegers_criteria:
+          - complete: "Cada FR descreve toda a funcionalidade necessaria"
+          - correct: "Cada FR reflete fielmente uma necessidade do usuario"
+          - feasible: "Cada FR e implementavel com tecnologia disponivel"
+          - necessary: "Cada FR rastreia a um JTBD ou oportunidade"
+          - prioritized: "Cada FR tem prioridade MoSCoW atribuida"
+          - unambiguous: "Cada FR tem apenas uma interpretacao possivel"
+          - verifiable: "Cada FR tem criterios de aceitacao testaveis"
+        on_error:
+          action: "halt_and_report"
+          message: "Falha na coleta de requisitos. PRD nao pode ser escrito sem requirements."
+
+      - id: write-prd
+        name: "Write PRD"
+        agent: pm-chief
+        description: >-
+          Escrever o PRD completo com 10 secoes obrigatorias, usando os
+          requisitos coletados, discovery artifacts e project brief como
+          inputs. O PRD segue o template prd-tmpl.yaml e deve ser auto-contido
+          (qualquer agente downstream deve entender o projeto lendo apenas o PRD).
+        inputs:
+          - "docs/prd/requirements.yaml"
+          - "docs/prd/requirements.md"
+          - "docs/discovery/opportunity-tree.md"
+          - "docs/discovery/jtbd-analysis.md"
+          - "docs/project-brief.yaml"
+        outputs:
+          - "docs/prd.md"
+        template: "prd-tmpl.yaml"
+        preconditions:
+          - "gather-requirements completed successfully"
+        sections_required:
+          - "1. Goals and Background Context"
+          - "2. Discovery Summary"
+          - "3. Requirements — Functional (FR-XXX)"
+          - "4. Requirements — Non-Functional (NFR-CAT-XXX)"
+          - "5. UI Design Goals"
+          - "6. Technical Assumptions"
+          - "7. Epic List"
+          - "8. Epic Details with Stories"
+          - "9. Checklist Results"
+          - "10. Next Steps"
+        constitutional_check:
+          article_iv: >-
+            NO INVENTION: Cada statement no PRD DEVE rastrear a um FR-*, NFR-*,
+            CON-*, ou achado de pesquisa. Nenhuma feature inventada e permitida.
+        on_error:
+          action: "halt_and_report"
+          message: "PRD nao pode ser escrito. Verificar inputs."
+
+      - id: story-mapping
+        name: "Story Mapping"
+        agent: requirements-engineer
+        description: >-
+          Criar Story Map (Jeff Patton) visual organizando stories por
+          atividade do usuario (backbone) e prioridade (walking skeleton
+          vs detalhes). Definir a linha de MVP que separa must-have de
+          nice-to-have.
+        inputs:
+          - "docs/prd.md"
+          - "docs/prd/requirements.yaml"
+        outputs:
+          - "docs/prd/story-map.md"
+        preconditions:
+          - "write-prd completed successfully"
+        on_error:
+          action: "warn_and_continue"
+          message: "Story map nao gerado. PRD ainda pode prosseguir para validacao."
+
+      - id: validate-prd
+        name: "Validate PRD"
+        agent: prd-validator
+        worker: prd-validator.py
+        execution_type: hybrid
+        description: >-
+          Validar o PRD contra 7 dimensoes de qualidade. Worker prd-validator.py
+          executa validacao estrutural; agente Checker avalia qualidade de conteudo.
+          Score geral deve ser >= 7.0 e nenhuma dimensao pode estar abaixo de 5.0.
+        inputs:
+          - "docs/prd.md"
+          - "docs/prd/requirements.md"
+          - "docs/discovery/opportunity-tree.md"
+          - "docs/discovery/jtbd-analysis.md"
+        outputs:
+          - "docs/prd/prd-validation-report.md"
+          - "docs/prd/prd-structure-check.json"
+        preconditions:
+          - "write-prd completed successfully"
+        validation_dimensions:
+          - "Structure (10 sections present and well-formed)"
+          - "Requirements Quality (Wiegers 7 criteria at document level)"
+          - "Traceability (FR → OPP → JTBD, forward and backward)"
+          - "Acceptance Criteria (all stories have testable AC)"
+          - "Epic Sequencing (no circular dependencies, logical order)"
+          - "Technical Assumptions (documented, reasonable, risks identified)"
+          - "Scope (in/out scope clear, justified, no contradictions)"
+        verdicts:
+          PASS: "Overall >= 7.0 AND min dimension >= 5.0"
+          CONDITIONAL_PASS: "Overall >= 7.0 BUT some dimension < 5.0"
+          NEEDS_REVISION: "Overall 5.0-6.9"
+          FAIL: "Overall < 5.0"
+        on_pass:
+          action: "mark_prd_approved"
+          message: "PRD aprovado com score {score}. Pronto para consumo downstream."
+        on_fail:
+          action: "generate_fix_list_and_return"
+          return_to: "write-prd"
+          max_iterations: 3
+          message: "PRD reprovado (score: {score}). Fix list gerada. Corrigir e re-validar."
+        on_error:
+          action: "retry_once"
+          fallback: "Agent validates manually without worker"
+          message: "Worker prd-validator.py falhou. Validacao manual sera executada."
+
+    quality_gate:
+      name: "PRD Approved"
+      type: blocking
+      blocking: true
+      criteria:
+        - id: "gate_2_1"
+          name: "all_fr_nfr_documented"
+          description: "Todos os requisitos funcionais e nao-funcionais documentados com IDs"
+          check: "requirements.yaml has FR-* AND NFR-* entries"
+        - id: "gate_2_2"
+          name: "prd_score_sufficient"
+          description: "PRD validation score >= 7.0"
+          check: "prd_validation_report.overall_score >= 7.0"
+        - id: "gate_2_3"
+          name: "story_map_with_mvp_line"
+          description: "Story map gerado com linha de MVP definida"
+          check: "file_exists('docs/prd/story-map.md') AND mvp_line_defined"
+        - id: "gate_2_4"
+          name: "no_dimension_below_5"
+          description: "Nenhuma dimensao de validacao abaixo de 5.0"
+          check: "prd_validation_report.min_dimension_score >= 5.0"
+        - id: "gate_2_5"
+          name: "article_iv_compliant"
+          description: "Nenhuma feature inventada — tudo rastreavel a discovery"
+          check: "prd_validation_report.article_iv_violations == 0"
+      on_pass:
+        action: "log_and_advance"
+        message: "PRD aprovado (score: {score}). Avancando para Prioritization."
+      on_fail:
+        action: "block_and_fix"
+        message: "PRD nao aprovado. Score: {score}. Fix list disponivel em prd-validation-report.md."
+        escalation:
+          after_retries: 3
+          escalate_to: "pm-chief"
+          message: "PRD falhou 3 validacoes consecutivas. Escalar para revisao de escopo."
+
+    outputs:
+      - path: "docs/prd/requirements.yaml"
+        description: "Requisitos estruturados em YAML (FR + NFR)"
+      - path: "docs/prd/requirements.md"
+        description: "Requisitos em formato legivel Markdown"
+      - path: "docs/prd.md"
+        description: "PRD completo com 10 secoes"
+      - path: "docs/prd/story-map.md"
+        description: "Story map visual com linha de MVP"
+      - path: "docs/prd/prd-validation-report.md"
+        description: "Relatorio de validacao com scorecard e fix list"
+
+    rollback:
+      trigger: "PRD fails validation 3+ times"
+      steps:
+        - "Preservar todas as versoes do PRD (prd-v1.md, prd-v2.md, etc)"
+        - "Analisar fix lists acumuladas para identificar problema raiz"
+        - "Se problema raiz esta em requirements: voltar para gather-requirements"
+        - "Se problema raiz esta em discovery: voltar para phase_1_discovery"
+        - "Se problema raiz e escopo: escalar para pm-chief para re-scoping"
+
+  # =============================================================================
+  # PHASE 3: PRIORITIZATION & BACKLOG
+  # =============================================================================
+  # Apply formal prioritization framework to order the backlog.
+  # Method is selected based on methodology adapter.
+  # =============================================================================
+
+  phase_3_prioritization:
+    name: "Prioritization & Backlog"
+    description: >-
+      Aplicar framework formal de priorizacao para ordenar o backlog.
+      O metodo e selecionado com base na metodologia do projeto (RICE para
+      kanban, WSJF para scrum/SAFe, MoSCoW para waterfall, appetite-based
+      para Shape Up).
+    order: 3
+    estimated_duration: "0.5-1 dia"
+
+    agents:
+      primary: prioritization-engine
+      support: []
+
+    tasks:
+      - id: prioritize-backlog
+        name: "Prioritize Backlog"
+        agent: prioritization-engine
+        worker: rice-calculator.py
+        execution_type: hybrid
+        description: >-
+          Aplicar scoring de priorizacao a todos os items do backlog.
+          O metodo e determinado pelo methodology_adapter selecionado
+          na fase de intake. Worker calcula scores; agente Sage valida
+          a logica e ajusta com contexto qualitativo.
+        inputs:
+          - "docs/prd.md"
+          - "docs/prd/requirements.yaml"
+          - "docs/prd/story-map.md"
+          - "docs/project-brief.yaml (methodology field)"
+        outputs:
+          - "docs/planning/prioritized-backlog.yaml"
+          - "docs/planning/prioritization-rationale.md"
+        preconditions:
+          - "phase_2_requirements.quality_gate PASSED"
+        methodology_methods:
+          scrum: "WSJF (Weighted Shortest Job First)"
+          kanban: "RICE (Reach, Impact, Confidence, Effort)"
+          shape_up: "Appetite-based (fixed time, variable scope)"
+          waterfall: "MoSCoW (Must, Should, Could, Won't)"
+          safe: "WSJF (SAFe standard)"
+          hybrid: "RICE (default for hybrid)"
+        worker_config:
+          rice_calculator:
+            script: "rice-calculator.py"
+            used_when: "methodology IN ['kanban', 'hybrid']"
+          wsjf_calculator:
+            script: "wsjf-calculator.py"
+            used_when: "methodology IN ['scrum', 'safe']"
+        validation_checks:
+          - "Todos os items do backlog possuem score calculado"
+          - "Ranking final e consistente (sem empates nao resolvidos)"
+          - "Top 5 items tem justificativa qualitativa"
+          - "Items Won't Have/Won't Do estao claramente marcados"
+        on_error:
+          action: "retry_once"
+          fallback: "Agent applies MoSCoW manually without worker"
+
+    quality_gate:
+      name: "Backlog Ordered"
+      type: standard
+      criteria:
+        - id: "gate_3_1"
+          name: "scoring_method_applied"
+          description: "Metodo de scoring aplicado a todos os items"
+          check: "all_backlog_items_scored AND method IN ['RICE', 'WSJF', 'MoSCoW', 'appetite_based']"
+        - id: "gate_3_2"
+          name: "top_items_justified"
+          description: "Top 5 items tem justificativa qualitativa alem do score"
+          check: "top_5_items_have_rationale"
+        - id: "gate_3_3"
+          name: "stakeholder_aligned"
+          description: "Priorizacao alinhada com expectativas do stakeholder"
+          check: "user_confirmed_priorities OR auto_approved"
+      on_pass:
+        action: "log_and_advance"
+        message: "Backlog priorizado usando {method}. {total_items} items ordenados."
+      on_fail:
+        action: "block_and_fix"
+        message: "Priorizacao incompleta: {failed_criteria}."
+
+    outputs:
+      - path: "docs/planning/prioritized-backlog.yaml"
+        description: "Backlog ordenado com scores e ranking"
+      - path: "docs/planning/prioritization-rationale.md"
+        description: "Justificativa qualitativa da priorizacao"
+
+  # =============================================================================
+  # PHASE 4: PLANNING & RISK
+  # =============================================================================
+  # Parallel execution of planning tasks: schedule, cost, risk, stakeholders, OKRs.
+  # Some tasks have dependencies (schedule feeds cost), others can run in parallel.
+  # =============================================================================
+
+  phase_4_planning:
+    name: "Planning & Risk"
+    description: >-
+      Execucao paralela de tasks de planejamento: schedule, custo, risco,
+      stakeholders, OKRs. Algumas tasks tem dependencias sequenciais
+      (schedule alimenta custo), outras podem rodar em paralelo.
+    order: 4
+    estimated_duration: "1-3 dias"
+
+    agents:
+      primary: schedule-planner
+      support:
+        - cost-estimator
+        - risk-strategist
+        - stakeholder-liaison
+        - okr-tracker
+
+    tasks:
+      - id: create-schedule
+        name: "Create Schedule"
+        agent: schedule-planner
+        worker: cost-estimator.py
+        execution_type: hybrid
+        description: >-
+          Criar cronograma detalhado usando Critical Chain Project Management
+          (CCPM) de Goldratt. Inclui WBS, estimativas com 3 cenarios
+          (otimista, provavel, pessimista), identificacao do caminho critico,
+          buffers de projeto e feeding buffers.
+        inputs:
+          - "docs/planning/prioritized-backlog.yaml"
+          - "docs/prd.md"
+          - "docs/project-brief.yaml"
+        outputs:
+          - "docs/planning/schedule.md"
+        parallel_group: "group_1_sequential"
+        parallel_order: 1
+        methodology_adaptations:
+          scrum: "Format as sprints (2-week default)"
+          kanban: "Format as flow metrics (WIP limits, cycle time)"
+          shape_up: "Format as 6-week cycles with 2-week cooldowns"
+          waterfall: "Format as Gantt chart with milestones"
+          safe: "Format as PI Planning (10-week increments)"
+        on_error:
+          action: "halt_and_report"
+          message: "Schedule nao gerado. Custo nao pode ser estimado sem schedule."
+
+      - id: estimate-cost
+        name: "Estimate Cost"
+        agent: cost-estimator
+        worker: cost-estimator.py
+        execution_type: hybrid
+        description: >-
+          Estimar custo do projeto usando Cone of Uncertainty (Steve McConnell).
+          Inclui tabela de rates, custos de labor por fase, custos de
+          infraestrutura, e tres cenarios de custo total.
+        inputs:
+          - "docs/planning/schedule.md"
+          - "docs/planning/prioritized-backlog.yaml"
+          - "docs/project-brief.yaml"
+        outputs:
+          - "docs/planning/cost-estimate.md"
+        parallel_group: "group_1_sequential"
+        parallel_order: 2
+        depends_on: "create-schedule"
+        on_error:
+          action: "warn_and_continue"
+          message: "Estimativa de custo falhou. Prosseguindo com custo TBD."
+
+      - id: risk-assessment
+        name: "Risk Assessment"
+        agent: risk-strategist
+        description: >-
+          Identificar, classificar e planejar resposta a riscos usando
+          ATOM Methodology (David Hillson). Inclui risk metalanguage,
+          risk matrix probabilidade x impacto, e planos de resposta
+          para riscos High/Very High.
+        inputs:
+          - "docs/prd.md"
+          - "docs/project-brief.yaml"
+          - "docs/planning/schedule.md (if available)"
+        outputs:
+          - "docs/planning/risk-register.md"
+          - "docs/planning/risk-matrix.md"
+        parallel_group: "group_2_parallel"
+        template: "risk-dashboard-tmpl.md"
+        worker_optional: "risk-matrix-generator.py"
+        minimum_risks: 15
+        on_error:
+          action: "warn_and_continue"
+          message: "Risk assessment parcial. Riscos criticos devem ser re-avaliados."
+
+      - id: stakeholder-map
+        name: "Stakeholder Mapping"
+        agent: stakeholder-liaison
+        description: >-
+          Mapear stakeholders usando Power/Interest grid, criar RACI matrix,
+          e definir plano de comunicacao. Baseado em Frederick Brooks
+          (Mythical Man-Month) e Tom DeMarco (Peopleware).
+        inputs:
+          - "docs/project-brief.yaml"
+          - "docs/prd.md"
+        outputs:
+          - "docs/planning/stakeholder-map.md"
+        parallel_group: "group_3_parallel"
+        skip_if: "project_profile == 'simple'"
+        skip_message: "Stakeholder mapping nao necessario para projetos simples."
+        on_error:
+          action: "warn_and_continue"
+          message: "Stakeholder map nao gerado. Nao bloqueante."
+
+      - id: define-okrs
+        name: "Define OKRs"
+        agent: okr-tracker
+        description: >-
+          Definir OKRs do projeto baseado em John Doerr (Measure What Matters)
+          e Christina Wodtke. 2-3 Objectives com 3-5 Key Results cada.
+          Key Results devem ser outcomes (nao outputs), mensuraveis e
+          com scoring system definido.
+        inputs:
+          - "docs/prd.md"
+          - "docs/project-brief.yaml"
+          - "docs/discovery/jtbd-analysis.md"
+        outputs:
+          - "docs/planning/okrs.md"
+        parallel_group: "group_4_parallel"
+        on_error:
+          action: "warn_and_continue"
+          message: "OKRs nao definidos. Nao bloqueante mas recomendado."
+
+    # Parallel execution configuration
+    parallel_execution:
+      group_1_sequential:
+        tasks: [create-schedule, estimate-cost]
+        mode: sequential
+        description: "Schedule deve ser criado antes do custo (schedule alimenta estimativa)"
+      group_2_parallel:
+        tasks: [risk-assessment]
+        mode: parallel
+        description: "Risk assessment pode rodar em paralelo com outros grupos"
+      group_3_parallel:
+        tasks: [stakeholder-map]
+        mode: parallel
+        description: "Stakeholder mapping pode rodar em paralelo"
+      group_4_parallel:
+        tasks: [define-okrs]
+        mode: parallel
+        description: "OKRs podem ser definidos em paralelo"
+      execution_order: >-
+        Todos os grupos iniciam simultaneamente. Dentro de group_1_sequential,
+        estimate-cost aguarda create-schedule. Todos os outros grupos sao
+        independentes e podem completar em qualquer ordem.
+
+    quality_gate:
+      name: "Planning Complete"
+      type: blocking
+      blocking: true
+      criteria:
+        - id: "gate_4_1"
+          name: "schedule_with_milestones"
+          description: "Cronograma existe com milestones e estimativas"
+          check: "file_exists('docs/planning/schedule.md') AND has_milestones"
+        - id: "gate_4_2"
+          name: "cost_estimate_with_cone"
+          description: "Estimativa de custo com 3 cenarios (cone of uncertainty)"
+          check: "file_exists('docs/planning/cost-estimate.md') AND has_3_scenarios"
+        - id: "gate_4_3"
+          name: "risk_matrix_complete"
+          description: "Risk register com pelo menos 15 riscos e risk matrix"
+          check: "file_exists('docs/planning/risk-register.md') AND risk_count >= 15"
+        - id: "gate_4_4"
+          name: "stakeholder_map_with_raci"
+          description: "Stakeholder map com RACI matrix (skip if simple profile)"
+          check: "file_exists('docs/planning/stakeholder-map.md') OR project_profile == 'simple'"
+        - id: "gate_4_5"
+          name: "okrs_defined"
+          description: "OKRs definidos com 2-3 Objectives e 3-5 KRs cada"
+          check: "file_exists('docs/planning/okrs.md') AND objectives >= 2"
+      on_pass:
+        action: "log_and_advance"
+        message: "Planning completo. Schedule, cost, risk, stakeholders e OKRs prontos."
+      on_fail:
+        action: "block_and_fix"
+        message: "Planning incompleto. Artefatos faltantes: {failed_criteria}."
+
+    outputs:
+      - path: "docs/planning/schedule.md"
+        description: "Cronograma com WBS, estimativas, caminho critico e buffers"
+      - path: "docs/planning/cost-estimate.md"
+        description: "Estimativa de custo com 3 cenarios e Cone of Uncertainty"
+      - path: "docs/planning/risk-register.md"
+        description: "Registro de riscos com classificacao e planos de resposta"
+      - path: "docs/planning/risk-matrix.md"
+        description: "Risk matrix visual probabilidade x impacto"
+      - path: "docs/planning/stakeholder-map.md"
+        description: "Mapa de stakeholders com Power/Interest grid e RACI"
+      - path: "docs/planning/okrs.md"
+        description: "OKRs do projeto com scoring system"
+
+    rollback:
+      trigger: "schedule or cost estimate fundamentally wrong"
+      steps:
+        - "Identificar qual task produziu output incorreto"
+        - "Se schedule errado: re-executar com parametros ajustados"
+        - "Se cost errado: verificar se schedule mudou e recalcular"
+        - "Preservar versoes anteriores dos artefatos"
+
+  # =============================================================================
+  # PHASE 5: QUALITY REVIEW & AUDIT
+  # =============================================================================
+  # Meta-QA across all phases. The pm-auditor runs the 10-dimension quality
+  # framework and produces a comprehensive audit report.
+  # =============================================================================
+
+  phase_5_review:
+    name: "Quality Review & Audit"
+    description: >-
+      Meta-QA sobre todas as fases anteriores. O pm-auditor (Sentinel) executa
+      o framework de 10 dimensoes de qualidade e produz um relatorio de auditoria
+      abrangente. Este e o checkpoint final antes da geracao de entregaveis.
+    order: 5
+    estimated_duration: "0.5-1 dia"
+
+    agents:
+      primary: pm-auditor
+      support:
+        - integration-architect
+
+    tasks:
+      - id: phase-audit
+        name: "Comprehensive Phase Audit"
+        agent: pm-auditor
+        execution_type: hybrid
+        description: >-
+          Executar auditoria completa (Phase 7 — FINAL) usando o framework
+          de 10 dimensoes de qualidade com pesos. Avaliar todos os artefatos
+          produzidos nas fases 0-4 e gerar scorecard final.
+        inputs:
+          - "docs/ (all project documentation)"
+          - "docs/planning/*.md"
+          - "docs/prd/*.md"
+          - "docs/discovery/*.md"
+          - "docs/intake/*.md"
+          - "docs/project-brief.yaml"
+        outputs:
+          - "docs/audit/final-audit.md"
+          - "docs/audit/quality-dashboard.md"
+        preconditions:
+          - "phase_4_planning.quality_gate PASSED"
+        quality_dimensions:
+          - name: "Completeness"
+            weight: 0.15
+          - name: "Consistency"
+            weight: 0.12
+          - name: "Traceability"
+            weight: 0.12
+          - name: "Measurability"
+            weight: 0.10
+          - name: "Feasibility"
+            weight: 0.10
+          - name: "Clarity"
+            weight: 0.10
+          - name: "Risk Awareness"
+            weight: 0.08
+          - name: "User Focus"
+            weight: 0.08
+          - name: "Actionability"
+            weight: 0.08
+          - name: "Alignment"
+            weight: 0.07
+        on_error:
+          action: "halt_and_report"
+          message: "Auditoria falhou. Nao e possivel gerar entregaveis sem audit."
+
+      - id: integration-review
+        name: "Integration & Methodology Review"
+        agent: integration-architect
+        description: >-
+          Revisar consistencia entre artefatos de diferentes fases e verificar
+          que a metodologia selecionada foi aplicada corretamente em todos
+          os outputs (formato de schedule, priorizacao, etc).
+        inputs:
+          - "docs/audit/final-audit.md"
+          - "docs/project-brief.yaml"
+          - "docs/planning/*.md"
+        outputs:
+          - "docs/audit/integration-review.md"
+        preconditions:
+          - "phase-audit completed"
+        on_error:
+          action: "warn_and_continue"
+          message: "Integration review incompleto. Audit principal ja esta disponivel."
+
+    quality_gate:
+      name: "Audit Passed"
+      type: blocking
+      blocking: true
+      criteria:
+        - id: "gate_5_1"
+          name: "overall_score_sufficient"
+          description: "Score geral >= 7.0 no framework de 10 dimensoes"
+          check: "audit_report.overall_score >= 7.0"
+        - id: "gate_5_2"
+          name: "no_dimension_below_5"
+          description: "Nenhuma dimensao individual abaixo de 5.0"
+          check: "audit_report.min_dimension_score >= 5.0"
+        - id: "gate_5_3"
+          name: "all_blocking_issues_resolved"
+          description: "Nenhum issue bloqueante pendente"
+          check: "audit_report.blocking_issues == 0"
+      on_pass:
+        action: "log_and_advance"
+        message: "Audit aprovado (score: {score}). Avancando para Delivery."
+      on_fail:
+        action: "return_to_weakest_phase"
+        message: "Audit falhou (score: {score}). Retornando para fase mais fraca: {weakest_phase}."
+        return_logic: >-
+          Identificar a dimensao com score mais baixo.
+          Mapear essa dimensao para a fase responsavel.
+          Gerar fix list especifica para aquela fase.
+          Retornar execucao para aquela fase com fix list.
+        escalation:
+          after_retries: 2
+          escalate_to: "pm-chief"
+          message: "Audit falhou 2x apos fixes. Escalar para revisao de escopo."
+
+    outputs:
+      - path: "docs/audit/final-audit.md"
+        description: "Relatorio de auditoria com 10 dimensoes, scorecard e veredicto"
+      - path: "docs/audit/quality-dashboard.md"
+        description: "Dashboard visual de qualidade por fase e dimensao"
+      - path: "docs/audit/integration-review.md"
+        description: "Revisao de integracao e consistencia entre fases"
+
+    rollback:
+      trigger: "audit score < 5.0 (critical fail)"
+      steps:
+        - "Gerar fix list completa com todas as acoes necessarias"
+        - "Priorizar fixes por peso da dimensao afetada"
+        - "Retornar para a fase mais critica primeiro"
+        - "Se 3+ fases precisam fix: considerar re-iniciar ciclo"
+
+  # =============================================================================
+  # PHASE 6: DELIVERABLES & HANDOFF
+  # =============================================================================
+  # Generate final deliverables package using templates.
+  # This is the output phase — no new analysis, just formatting and packaging.
+  # =============================================================================
+
+  phase_6_delivery:
+    name: "Deliverables & Handoff"
+    description: >-
+      Gerar pacote final de entregaveis usando templates do squad.
+      Esta fase nao produz analise nova — apenas formata, empacota e
+      apresenta os resultados das fases anteriores em documentos
+      consumiveis pelo cliente e pelo time de desenvolvimento.
+    order: 6
+    estimated_duration: "0.5-1 dia"
+
+    agents:
+      primary: pm-chief
+      support: []
+
+    tasks: []
+
+    # Templates are applied instead of tasks
+    templates_applied:
+      - id: executive-summary
+        template: "executive-summary-tmpl.md"
+        output: "docs/deliverables/executive-summary.md"
+        description: "Resumo executivo de 1-2 paginas para stakeholders"
+        always_generate: true
+
+      - id: commercial-proposal
+        template: "commercial-proposal-tmpl.md"
+        output: "docs/deliverables/commercial-proposal.md"
+        description: "Proposta comercial para cliente (se projeto externo)"
+        condition: "project_brief.type == 'client' OR project_brief.type == 'external'"
+        skip_if: "project_brief.type == 'internal'"
+
+      - id: project-charter
+        template: "project-charter-tmpl.md"
+        output: "docs/deliverables/project-charter.md"
+        description: "Project charter formal com escopo, objetivos, restricoes"
+        always_generate: true
+
+      - id: roadmap-visual
+        template: "roadmap-visual-tmpl.md"
+        output: "docs/deliverables/roadmap.md"
+        description: "Roadmap visual com timeline de epics e milestones"
+        always_generate: true
+
+      - id: dev-handoff-package
+        description: >-
+          Pacote de handoff para @dev/@architect contendo:
+          PRD, story map, schedule, tech assumptions, e
+          instrucoes de primeiro sprint.
+        output: "docs/deliverables/dev-handoff.md"
+        contents:
+          - "Link para docs/prd.md"
+          - "Link para docs/prd/story-map.md"
+          - "Link para docs/planning/schedule.md"
+          - "Resumo de tech assumptions"
+          - "Primeiro epic para implementacao"
+          - "Setup instructions (se disponivel)"
+        always_generate: true
+
+    quality_gate:
+      name: "Deliverables Complete"
+      type: standard
+      criteria:
+        - id: "gate_6_1"
+          name: "executive_summary_generated"
+          check: "file_exists('docs/deliverables/executive-summary.md')"
+        - id: "gate_6_2"
+          name: "project_charter_generated"
+          check: "file_exists('docs/deliverables/project-charter.md')"
+        - id: "gate_6_3"
+          name: "roadmap_generated"
+          check: "file_exists('docs/deliverables/roadmap.md')"
+        - id: "gate_6_4"
+          name: "dev_handoff_generated"
+          check: "file_exists('docs/deliverables/dev-handoff.md')"
+      on_pass:
+        action: "present_deliverables"
+        message: >-
+          Ciclo PM completo! Pacote de entregaveis gerado:
+          - Executive Summary: docs/deliverables/executive-summary.md
+          - Project Charter: docs/deliverables/project-charter.md
+          - Roadmap: docs/deliverables/roadmap.md
+          - Dev Handoff: docs/deliverables/dev-handoff.md
+          {conditional: Commercial Proposal: docs/deliverables/commercial-proposal.md}
+
+    final_action: "Present deliverables package to user"
+
+    outputs:
+      - path: "docs/deliverables/executive-summary.md"
+        description: "Resumo executivo para stakeholders"
+      - path: "docs/deliverables/commercial-proposal.md"
+        description: "Proposta comercial (se projeto externo)"
+        conditional: true
+      - path: "docs/deliverables/project-charter.md"
+        description: "Project charter formal"
+      - path: "docs/deliverables/roadmap.md"
+        description: "Roadmap visual com timeline"
+      - path: "docs/deliverables/dev-handoff.md"
+        description: "Pacote de handoff para desenvolvimento"
+
+# =============================================================================
+# PROFILE ADAPTATIONS
+# =============================================================================
+# Automatic adjustments based on project complexity profile.
+# Profile is determined in phase_0_intake by project-diagnostic task.
+# =============================================================================
+
+profile_adaptations:
+  simple:
+    description: "Solo founder, MVP, projeto pequeno (<= 8 complexity score)"
+    skip_phases:
+      - phase_1_discovery
+    skip_tasks:
+      - market-analysis
+      - lean-canvas
+      - stakeholder-map
+    reduced_gates:
+      phase_2_requirements:
+        prd_score_threshold: 6.0    # Reduced from 7.0
+        story_map_required: false    # Story map optional
+      phase_4_planning:
+        minimum_risks: 5             # Reduced from 15
+        okrs_required: false         # OKRs optional
+    agents_active:
+      - pm-chief
+      - discovery-lead
+      - requirements-engineer
+      - prd-validator
+    estimated_time: "1-2 dias"
+
+  standard:
+    description: "Startup, seed/series A, projeto medio (9-15 complexity score)"
+    skip_phases: []
+    skip_tasks: []
+    reduced_gates: {}
+    agents_active:
+      - pm-chief
+      - discovery-lead
+      - market-analyst
+      - requirements-engineer
+      - prioritization-engine
+      - schedule-planner
+      - cost-estimator
+      - risk-strategist
+      - prd-validator
+    estimated_time: "3-5 dias"
+
+  enterprise:
+    description: "Corporate, compliance, projeto grande (>= 16 complexity score)"
+    skip_phases: []
+    skip_tasks: []
+    extra_gates:
+      - name: "compliance-review"
+        after_phase: 2
+        description: "Revisao de compliance regulatorio (LGPD, PCI-DSS, SOC2, etc)"
+        agent: pm-chief
+        blocking: true
+      - name: "executive-approval"
+        after_phase: 5
+        description: "Aprovacao executiva do pacote de entregaveis antes do handoff"
+        agent: pm-chief
+        blocking: true
+        elicit: true
+        elicit_prompt: "Pacote de entregaveis pronto para aprovacao executiva. Aprovado?"
+    agents_active: "all"
+    extra_deliverables:
+      - "docs/deliverables/compliance-checklist.md"
+      - "docs/deliverables/executive-briefing.md"
+    estimated_time: "1-2 semanas"
+
+# =============================================================================
+# METHODOLOGY ADAPTERS
+# =============================================================================
+# Adapt output formats and methods based on selected development methodology.
+# Methodology is selected in phase_0_intake based on project characteristics.
+# =============================================================================
+
+methodology_adapters:
+  scrum:
+    description: "Scrum framework — sprints, product backlog, sprint planning"
+    phase_2_output_format: "product_backlog_items"
+    phase_3_method: "WSJF"
+    phase_3_worker: "wsjf-calculator.py"
+    phase_4_schedule_format: "sprints"
+    schedule_details:
+      sprint_length: "2 weeks (default, configurable)"
+      velocity_estimation: "story points"
+      ceremonies: "sprint planning, daily standup, review, retro"
+    terminology:
+      backlog_item: "Product Backlog Item (PBI)"
+      iteration: "Sprint"
+      estimation_unit: "Story Points"
+
+  kanban:
+    description: "Kanban — flow-based, WIP limits, cycle time"
+    phase_2_output_format: "work_items"
+    phase_3_method: "RICE"
+    phase_3_worker: "rice-calculator.py"
+    phase_4_schedule_format: "flow_metrics"
+    schedule_details:
+      wip_limits: "configured per column"
+      cycle_time_target: "estimated per item size"
+      throughput: "items per week"
+    terminology:
+      backlog_item: "Work Item"
+      iteration: "Continuous Flow"
+      estimation_unit: "T-shirt sizes (S/M/L/XL)"
+
+  shape_up:
+    description: "Shape Up (Basecamp) — 6-week cycles, pitches, appetite"
+    phase_2_output_format: "pitches"
+    phase_3_method: "appetite_based"
+    phase_3_worker: null
+    phase_4_schedule_format: "6_week_cycles"
+    schedule_details:
+      cycle_length: "6 weeks"
+      cooldown: "2 weeks"
+      appetite: "small batch (1-2 weeks) or big batch (6 weeks)"
+    terminology:
+      backlog_item: "Pitch"
+      iteration: "Cycle"
+      estimation_unit: "Appetite (small/big batch)"
+
+  waterfall:
+    description: "Waterfall — sequential phases, WBS, Gantt"
+    phase_2_output_format: "wbs"
+    phase_3_method: "MoSCoW"
+    phase_3_worker: null
+    phase_4_schedule_format: "gantt"
+    schedule_details:
+      phase_gates: "requirements → design → implementation → testing → deployment"
+      estimation: "hours/days per WBS element"
+      tracking: "earned value management (EVM)"
+    terminology:
+      backlog_item: "WBS Element"
+      iteration: "Phase"
+      estimation_unit: "Hours/Days"
+
+  safe:
+    description: "SAFe (Scaled Agile Framework) — PIs, ARTs, features"
+    phase_2_output_format: "features_enablers"
+    phase_3_method: "WSJF"
+    phase_3_worker: "wsjf-calculator.py"
+    phase_4_schedule_format: "pi_planning"
+    schedule_details:
+      pi_length: "8-12 weeks (5-6 sprints)"
+      planning_event: "PI Planning (2-day event)"
+      cadence: "Innovation & Planning (IP) sprint"
+    terminology:
+      backlog_item: "Feature / Enabler"
+      iteration: "Program Increment (PI)"
+      estimation_unit: "Story Points (normalized)"
+
+# =============================================================================
+# WORKFLOW LIFECYCLE HOOKS
+# =============================================================================
+# Hooks that execute at specific points in the workflow lifecycle.
+# =============================================================================
+
+lifecycle_hooks:
+  on_workflow_start:
+    - action: "create_project_directory_structure"
+      description: "Criar estrutura de diretorios se nao existe"
+      directories:
+        - "docs/intake/"
+        - "docs/discovery/"
+        - "docs/prd/"
+        - "docs/planning/"
+        - "docs/audit/"
+        - "docs/deliverables/"
+        - "docs/stories/"
+    - action: "log_workflow_start"
+      description: "Registrar inicio do workflow com timestamp"
+
+  on_phase_complete:
+    - action: "checkpoint_save"
+      description: "Salvar estado do workflow para retomada"
+    - action: "notify_user"
+      description: "Notificar usuario da conclusao da fase"
+
+  on_workflow_complete:
+    - action: "generate_workflow_summary"
+      description: "Gerar resumo do ciclo completo com metricas"
+    - action: "cleanup_temp_files"
+      description: "Limpar arquivos temporarios de workers"
+
+  on_workflow_failure:
+    - action: "save_failure_state"
+      description: "Salvar estado no ponto de falha para debug"
+    - action: "notify_user_with_recovery"
+      description: "Notificar usuario com opcoes de recuperacao"
+
+# =============================================================================
+# STATE MANAGEMENT
+# =============================================================================
+# Workflow state is persisted to allow resumption after interruptions.
+# =============================================================================
+
+state_management:
+  persistence_file: "docs/.workflow-state.yaml"
+  checkpoint_frequency: "after_each_phase"
+  state_fields:
+    - current_phase: "phase ID currently executing"
+    - completed_phases: "list of completed phase IDs"
+    - gate_results: "map of gate ID → pass/fail with scores"
+    - profile: "project profile (simple/standard/enterprise)"
+    - methodology: "selected methodology"
+    - start_time: "workflow start timestamp"
+    - last_checkpoint: "last checkpoint timestamp"
+  resume_command: "*resume-full-cycle"
+  resume_behavior: >-
+    Ao resumir, carregar estado do arquivo de persistencia.
+    Iniciar a partir da ultima fase incompleta.
+    Re-verificar gates de fases anteriores (quick check, nao re-execucao).
+    Notificar usuario do ponto de retomada.
+
+# =============================================================================
+# ERROR HANDLING & ESCALATION
+# =============================================================================
+# Global error handling rules that apply across all phases.
+# =============================================================================
+
+error_handling:
+  global_rules:
+    - rule: "task_failure"
+      description: "Um task individual falha durante execucao"
+      action: "Retry once. If still fails, check if task has fallback. If no fallback, halt phase."
+      escalation: "After 2 retries, escalate to pm-chief"
+
+    - rule: "gate_failure"
+      description: "Um quality gate nao e satisfeito"
+      action: "Generate fix list. Return to responsible task. Max 3 iterations."
+      escalation: "After 3 gate failures, escalate to pm-chief for scope review"
+
+    - rule: "agent_unavailable"
+      description: "O agente designado nao esta disponivel"
+      action: "Fallback to pm-chief for the task. Log degraded execution."
+      escalation: "None — pm-chief handles all fallback"
+
+    - rule: "worker_failure"
+      description: "Um worker Python falha durante execucao"
+      action: "Fallback to agent-only execution. Log that worker was not used."
+      escalation: "None — graceful degradation"
+
+    - rule: "critical_failure"
+      description: "Falha critica que impede continuacao do workflow"
+      action: "Save state. Notify user. Provide recovery options."
+      escalation: "Immediate notification to user with full error context"
+
+  recovery_options:
+    - "*resume-full-cycle": "Retomar do ultimo checkpoint"
+    - "*restart-phase {N}": "Reiniciar fase especifica"
+    - "*skip-gate {gate_id}": "Pular gate (requer confirmacao explicita do usuario)"
+    - "*rollback-phase {N}": "Reverter fase e re-executar"
+    - "*abort-cycle": "Abortar ciclo e salvar artefatos parciais"

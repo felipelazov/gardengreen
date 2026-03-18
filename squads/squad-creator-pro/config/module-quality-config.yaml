@@ -1,0 +1,253 @@
+# Module Quality Gate Profiles — SquadCreator Pro
+# Defines quality gate configurations per profile level
+# Version: 1.0.0
+
+quality_profiles:
+  version: "1.0.0"
+
+  # ============================================
+  # MINIMAL — Essential checks only
+  # ============================================
+  minimal:
+    name: "Minimal"
+    description: "Essential structural and syntax checks. Best for rapid prototyping."
+    overall_pass_threshold: 60
+
+    gates:
+      structure:
+        enabled: true
+        weight: 50
+        threshold: 80
+        checks:
+          - id: required_dirs
+            name: "Required directories exist"
+            severity: critical
+          - id: config_present
+            name: "Config files present"
+            severity: critical
+          - id: entry_point
+            name: "Entry point defined"
+            severity: critical
+
+      syntax:
+        enabled: true
+        weight: 50
+        threshold: 90
+        checks:
+          - id: yaml_valid
+            name: "All YAML files parse correctly"
+            severity: critical
+          - id: markdown_valid
+            name: "All Markdown files well-formed"
+            severity: warning
+          - id: no_orphan_refs
+            name: "No orphan references"
+            severity: warning
+
+      coherence:
+        enabled: false
+      coverage:
+        enabled: false
+      completeness:
+        enabled: false
+      performance:
+        enabled: false
+
+  # ============================================
+  # STANDARD — Full quality suite
+  # ============================================
+  standard:
+    name: "Standard"
+    description: "Full quality suite including coherence and coverage. Recommended for production squads."
+    overall_pass_threshold: 70
+
+    gates:
+      structure:
+        enabled: true
+        weight: 25
+        threshold: 90
+        checks:
+          - id: required_dirs
+            name: "Required directories exist"
+            severity: critical
+          - id: config_present
+            name: "Config files present"
+            severity: critical
+          - id: entry_point
+            name: "Entry point defined"
+            severity: critical
+          - id: readme_present
+            name: "README.md exists"
+            severity: warning
+
+      syntax:
+        enabled: true
+        weight: 25
+        threshold: 95
+        checks:
+          - id: yaml_valid
+            name: "All YAML files parse correctly"
+            severity: critical
+          - id: markdown_valid
+            name: "All Markdown files well-formed"
+            severity: warning
+          - id: no_orphan_refs
+            name: "No orphan references"
+            severity: error
+
+      coherence:
+        enabled: true
+        weight: 25
+        threshold: 75
+        checks:
+          - id: agent_task_consistency
+            name: "Agent definitions consistent with tasks"
+            severity: error
+          - id: workflow_task_refs
+            name: "Workflow steps reference existing tasks"
+            severity: error
+          - id: dependency_dag
+            name: "Dependencies form valid DAG (no cycles)"
+            severity: critical
+
+      coverage:
+        enabled: true
+        weight: 25
+        threshold: 70
+        checks:
+          - id: tasks_reachable
+            name: "All tasks reachable from at least one workflow"
+            severity: warning
+          - id: agents_have_tasks
+            name: "All agents have at least one task"
+            severity: warning
+          - id: templates_referenced
+            name: "Templates referenced by tasks exist"
+            severity: error
+
+      completeness:
+        enabled: false
+      performance:
+        enabled: false
+
+  # ============================================
+  # STRICT — Maximum rigor
+  # ============================================
+  strict:
+    name: "Strict"
+    description: "Maximum rigor for mission-critical squads. All gates active with high thresholds."
+    overall_pass_threshold: 85
+
+    gates:
+      structure:
+        enabled: true
+        weight: 15
+        threshold: 95
+        checks:
+          - id: required_dirs
+            name: "Required directories exist"
+            severity: critical
+          - id: config_present
+            name: "Config files present"
+            severity: critical
+          - id: entry_point
+            name: "Entry point defined"
+            severity: critical
+          - id: readme_present
+            name: "README.md exists"
+            severity: error
+          - id: changelog_present
+            name: "CHANGELOG or version history exists"
+            severity: warning
+
+      syntax:
+        enabled: true
+        weight: 15
+        threshold: 100
+        checks:
+          - id: yaml_valid
+            name: "All YAML files parse correctly"
+            severity: critical
+          - id: markdown_valid
+            name: "All Markdown files well-formed"
+            severity: error
+          - id: no_orphan_refs
+            name: "No orphan references"
+            severity: critical
+
+      coherence:
+        enabled: true
+        weight: 20
+        threshold: 85
+        checks:
+          - id: agent_task_consistency
+            name: "Agent definitions consistent with tasks"
+            severity: critical
+          - id: workflow_task_refs
+            name: "Workflow steps reference existing tasks"
+            severity: critical
+          - id: dependency_dag
+            name: "Dependencies form valid DAG (no cycles)"
+            severity: critical
+          - id: naming_conventions
+            name: "Consistent naming conventions across components"
+            severity: error
+
+      coverage:
+        enabled: true
+        weight: 15
+        threshold: 85
+        checks:
+          - id: tasks_reachable
+            name: "All tasks reachable from at least one workflow"
+            severity: error
+          - id: agents_have_tasks
+            name: "All agents have at least one task"
+            severity: error
+          - id: templates_referenced
+            name: "Templates referenced by tasks exist"
+            severity: critical
+
+      completeness:
+        enabled: true
+        weight: 20
+        threshold: 80
+        checks:
+          - id: tasks_have_criteria
+            name: "All tasks have completion criteria"
+            severity: error
+          - id: workflows_have_error_handling
+            name: "All workflows have error/rollback handling"
+            severity: error
+          - id: agents_have_fallback
+            name: "All agents have fallback behavior defined"
+            severity: warning
+
+      performance:
+        enabled: true
+        weight: 15
+        threshold: 70
+        checks:
+          - id: no_redundant_chains
+            name: "No redundant task chains"
+            severity: warning
+          - id: workflow_depth_limit
+            name: "Workflow depth within limits (max 10)"
+            severity: error
+          - id: token_budget
+            name: "Estimated token cost within budget"
+            severity: warning
+
+  # ============================================
+  # SEVERITY DEFINITIONS
+  # ============================================
+  severity_levels:
+    critical:
+      description: "Blocks the gate — automatic FAIL"
+      score_impact: -100
+    error:
+      description: "Significant issue — contributes to FAIL threshold"
+      score_impact: -25
+    warning:
+      description: "Advisory — does not block but lowers score"
+      score_impact: -10

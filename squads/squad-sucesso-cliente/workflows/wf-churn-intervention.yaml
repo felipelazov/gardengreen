@@ -1,0 +1,181 @@
+name: wf-churn-intervention
+version: 1.0.0
+description: "Workflow de intervenção para churn: detectar sinal → diagnosticar causa → agir → acompanhar resultado. Acionado automaticamente quando health score entra em zona de risco."
+
+trigger:
+  event: "health_score_below_threshold"
+  threshold: 40
+  command: "*churn-intervention"
+  agent: garden-cs-chief
+
+elicitation:
+  enabled: true
+  questions:
+    - id: usuario_id
+      prompt: "ID ou nome do usuário em risco (ou 'batch' para todos em risco)"
+      type: text
+      required: true
+
+    - id: urgencia
+      prompt: "Qual a urgência da intervenção?"
+      type: choice
+      options:
+        - "Crítica — score < 20, churn iminente"
+        - "Alta — score 20-39, risco forte"
+        - "Média — score 40-59, tendência negativa"
+
+    - id: contexto_adicional
+      prompt: "Há algum contexto adicional? (ex: reclamação recente, bug reportado, sazonalidade)"
+      type: text
+      required: false
+
+steps:
+  - id: detect-signal
+    action: analyze-churn-signals
+    agent: garden-cs-chief
+    description: >
+      Fase 1 — DETECTAR: Analisar sinais de churn do usuário:
+      - Health score atual e tendência (últimos 30 dias)
+      - Última data de acesso
+      - Features que parou de usar
+      - Padrão de uso (frequência, duração, profundidade)
+      - NPS mais recente (se houver)
+      - Notificações: abrindo ou ignorando?
+      - Tickets de suporte recentes
+      Classificar em padrão de churn (Nunca Ativou, Experimentou, Sazonal, etc.)
+    on_success: diagnose-cause
+    on_error: error-detection
+
+  - id: diagnose-cause
+    action: root-cause-analysis
+    agent: garden-cs-chief
+    description: >
+      Fase 2 — DIAGNOSTICAR: Identificar causa raiz provável:
+
+      Checklist de diagnóstico:
+      - [ ] Onboarding incompleto? (não teve primeiro valor)
+      - [ ] Feature gap? (precisava de algo que não existe)
+      - [ ] Complexidade? (voltou pro caderninho por ser mais simples)
+      - [ ] Preço? (não vê ROI suficiente para R$29-49/mês)
+      - [ ] Bug/problema técnico? (experiência ruim)
+      - [ ] Sazonalidade? (baixa temporada natural)
+      - [ ] Concorrente? (migrou para alternativa)
+      - [ ] Mudança de vida? (parou de trabalhar como jardineiro)
+
+      Selecionar causa mais provável com base nos sinais.
+      Se ambíguo, preparar diagnóstico com 2-3 hipóteses ranqueadas.
+    depends_on: [detect-signal]
+    on_success: select-intervention
+    on_error: error-diagnosis
+
+  - id: select-intervention
+    action: choose-intervention
+    agent: garden-cs-chief
+    description: >
+      Fase 3a — SELECIONAR AÇÃO: Baseado no diagnóstico, escolher intervenção:
+
+      | Causa | Intervenção | Canal | Timing |
+      |-------|------------|-------|--------|
+      | Onboarding incompleto | Tutorial guiado + oferta de ajuda | In-app + push | Imediato |
+      | Feature gap | Feedback collection + roadmap | In-app survey | 24h |
+      | Complexidade | Simplification tips + quick wins | Push + tooltips | Imediato |
+      | Preço | ROI calculator personalizado | Email + in-app | 48h |
+      | Bug/técnico | Fix + pedido de desculpas | Push + email | ASAP |
+      | Sazonalidade | Conteúdo de baixa temporada | Push + community | Semanal |
+      | Concorrente | Competitive comparison + oferta | Email pessoal | 24h |
+
+      Se urgência CRÍTICA: escalar para contato humano imediato.
+    depends_on: [diagnose-cause]
+    on_success: execute-intervention
+    on_error: error-selection
+
+  - id: execute-intervention
+    action: run-intervention
+    agent: garden-retention
+    description: >
+      Fase 3b — AGIR: Executar a intervenção selecionada:
+      1. Preparar mensagem personalizada (nome, dados do jardineiro)
+      2. Enviar pelo canal selecionado
+      3. Registrar ação com timestamp
+      4. Definir follow-up: quando verificar resultado?
+      5. Se envolveu oferta: registrar custo
+
+      Regras:
+      - Máximo 1 intervenção por dia (não bombardear)
+      - Se já tentou 3 intervenções sem resposta: escalar
+      - Tom: genuíno, prestativo, nunca desesperado
+      - Exemplo: "Oi [Nome], percebemos que faz um tempo que você não usa o GardenGreen.
+        Seus [X] clientes continuam cadastrados aqui. Podemos ajudar em algo?"
+    depends_on: [select-intervention]
+    on_success: schedule-followup
+    on_error: error-execution
+
+  - id: schedule-followup
+    action: set-followup
+    agent: garden-cs-chief
+    description: >
+      Fase 4a — AGENDAR ACOMPANHAMENTO:
+      - Follow-up em 3 dias: usuário respondeu? Voltou a usar?
+      - Follow-up em 7 dias: health score melhorou?
+      - Follow-up em 14 dias: tendência estável?
+
+      Critérios de sucesso:
+      - Sucesso: health score subiu 10+ pontos em 14 dias
+      - Parcial: voltou a acessar mas não registrou serviço
+      - Falha: sem resposta e sem melhora em 14 dias
+    depends_on: [execute-intervention]
+    on_success: evaluate-result
+
+  - id: evaluate-result
+    action: measure-outcome
+    agent: garden-cs-chief
+    description: >
+      Fase 4b — AVALIAR RESULTADO:
+
+      Se SUCESSO:
+      - Registrar intervenção bem-sucedida
+      - Mover para monitoramento regular
+      - Documentar o que funcionou (aprendizado)
+
+      Se PARCIAL:
+      - Tentar segunda intervenção (diferente da primeira)
+      - Ajustar abordagem baseado na resposta
+      - Se 2a intervenção também parcial: escalar
+
+      Se FALHA:
+      - Se tentou 3 intervenções: marcar como "churn provável"
+      - Ativar campanha de win-back (30 dias após churn)
+      - Registrar motivo provável para análise de padrões
+      - Alimentar modelo de churn prediction com resultado
+    depends_on: [schedule-followup]
+
+error_handling:
+  - id: error-detection
+    action: notify
+    message: "Falha ao analisar sinais de churn: {{error.message}}. Verificar dados disponíveis."
+    severity: error
+
+  - id: error-diagnosis
+    action: fallback
+    message: "Diagnóstico inconclusivo. Aplicar intervenção genérica (oferta de ajuda)."
+    severity: warning
+    fallback_step: select-intervention
+
+  - id: error-selection
+    action: escalate
+    message: "Não foi possível selecionar intervenção: {{error.message}}. Escalar para CS humano."
+    severity: error
+
+  - id: error-execution
+    action: retry-or-escalate
+    message: "Falha ao executar intervenção: {{error.message}}. Tentar canal alternativo."
+    severity: error
+    retry_count: 1
+
+completion:
+  message: "Workflow de intervenção de churn concluído."
+  next_steps:
+    - "Verificar resultado do follow-up agendado"
+    - "Atualizar modelo de churn com novo datapoint"
+    - "Se falha: ativar campanha win-back em 30 dias"
+    - "Documentar aprendizado para próximas intervenções"

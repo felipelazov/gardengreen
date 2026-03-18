@@ -1,0 +1,224 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# WORKFLOW: Council Retrospective — Periodic Squad Architecture Review
+# Version: 1.0.0
+# Purpose: Periodic review where council evaluates squad performance and recommends changes
+# ═══════════════════════════════════════════════════════════════════════════════
+
+workflow-id: wf-council-retrospective
+name: Council Retrospective
+version: 1.0.0
+estimated-time: 10-20 minutes
+complexity: high
+
+description: |
+  Retrospectiva periódica onde o conselho reconvoca para avaliar se a arquitetura
+  de squads ainda atende o negócio. Cada conselheiro analisa sob sua lente
+  (competências, processos, receita) usando dados reais de uso.
+
+  Recomendações: ADD, UPGRADE, DEACTIVATE, FIX HANDOFF.
+
+orchestrator: "@squad-chief-pro"
+command: "*council-retro"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# COUNCIL MEMBERS (review lenses)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+council_members:
+  - agent: "@oalanicolas-pro"
+    council_role: "Competency Reviewer"
+    review_lens: "Mentes clonadas ainda relevantes? Novos experts necessários?"
+
+  - agent: "@pedro-valerio-pro"
+    council_role: "Process Reviewer"
+    review_lens: "Handoffs funcionando? Onde estão os gargalos?"
+
+  - agent: "@thiago-finch"
+    council_role: "Revenue Reviewer"
+    review_lens: "Squads entregando ROI? Algum sub-performando?"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# INPUTS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+inputs:
+  required:
+    - ecosystem_path: "Path para o diretório raiz dos squads"
+  optional:
+    - period: "Período de análise (default: 30 days)"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# STATE MACHINE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+type: state_machine
+
+states:
+  collect_metrics:
+    description: "Escanear ecossistema e coletar métricas de uso de todos os squads"
+    model: sonnet
+    elicit: true
+    actions:
+      - "Listar todos os squads ativos no ecosystem_path"
+      - "Para cada squad: coletar observatory logs, ativações, tasks executadas"
+      - "Calcular: último uso, frequência, handoffs enviados/recebidos, erros"
+      - "Classificar health: active, idle, dormant, unhealthy"
+      - "Consolidar em dashboard de métricas"
+    output: "ecosystem_metrics"
+    transitions:
+      - condition: "metrics_collected"
+        to: analyze_knowledge
+      - condition: "no_squads_found"
+        to: complete
+
+  analyze_knowledge:
+    description: "@oalanicolas — Relevância das competências e mentes clonadas"
+    model: opus
+    agent: "@oalanicolas-pro"
+    inputs:
+      ecosystem_metrics: "{{ecosystem_metrics}}"
+    actions:
+      - "Avaliar relevância de cada mente clonada vs uso real"
+      - "Identificar gaps: domínios sem expert adequado"
+      - "Detectar experts com sources desatualizadas"
+      - "Recomendar: manter, atualizar, substituir, ou adicionar experts"
+    output: "competency_review"
+    transitions:
+      - condition: "complete"
+        to: analyze_process
+
+  analyze_process:
+    description: "@pedro-valerio — Saúde dos handoffs e processos entre squads"
+    model: opus
+    agent: "@pedro-valerio-pro"
+    inputs:
+      ecosystem_metrics: "{{ecosystem_metrics}}"
+      competency_review: "{{competency_review}}"
+    actions:
+      - "Avaliar taxa de sucesso de cada handoff entre squads"
+      - "Identificar outputs órfãos (produzidos sem consumidor)"
+      - "Identificar inputs faltantes (necessários sem fornecedor)"
+      - "Detectar gargalos: squads com fila de tasks crescendo"
+      - "Mapear processos manuais que deveriam ser automatizados"
+    output: "process_review"
+    transitions:
+      - condition: "complete"
+        to: analyze_revenue
+
+  analyze_revenue:
+    description: "@thiago-finch — ROI e performance financeira dos squads"
+    model: opus
+    agent: "@thiago-finch"
+    inputs:
+      ecosystem_metrics: "{{ecosystem_metrics}}"
+      competency_review: "{{competency_review}}"
+      process_review: "{{process_review}}"
+    actions:
+      - "Avaliar squads que geram receita: performance manteve, cresceu, caiu?"
+      - "Avaliar squads que protegem receita: incidentes prevenidos vs perdidos"
+      - "Identificar squads sub-performando: baixo uso + baixo impacto"
+      - "Calcular custo-benefício: tokens gastos vs valor gerado"
+      - "Identificar oportunidades de receita não exploradas"
+    output: "revenue_review"
+    transitions:
+      - condition: "complete"
+        to: synthesize_retro
+
+  synthesize_retro:
+    description: "Consolidar 3 análises em recomendações unificadas"
+    model: sonnet
+    actions:
+      - "Cruzar competency + process + revenue reviews"
+      - "Categorizar recomendações:"
+      - "  ADD — squads novos para gaps descobertos"
+      - "  UPGRADE — squads que precisam de melhoria"
+      - "  DEACTIVATE — baixo uso E baixo ROI (nunca desativar PROTEGE receita)"
+      - "  FIX HANDOFF — conexões quebradas ou degradadas"
+      - "Priorizar por impacto no negócio"
+    output: "retro_recommendations"
+    transitions:
+      - condition: "complete"
+        to: present_retro
+
+  present_retro:
+    description: "Apresentar relatório da retrospectiva ao usuário"
+    model: sonnet
+    elicit: true
+    actions:
+      - "Renderizar relatório com resumo executivo e recomendações"
+      - "Incluir evidências (métricas, dados) para cada recomendação"
+      - "Destacar recomendações de maior impacto"
+    options:
+      E: "Executar todas as recomendações"
+      S: "Selecionar quais executar"
+      A: "Agendar para depois"
+      D: "Descartar"
+    transitions:
+      - condition: "execute_all"
+        to: execute_changes
+      - condition: "select"
+        to: execute_changes
+      - condition: "defer"
+        to: complete
+      - condition: "discard"
+        to: complete
+
+  execute_changes:
+    description: "Executar recomendações aprovadas pelo usuário"
+    model: opus
+    actions:
+      - "Para cada ADD: criar squad via *create-squad"
+      - "Para cada UPGRADE: atualizar squad (experts, workflows, capacity)"
+      - "Para cada DEACTIVATE: marcar squad como inativo, preservar dados"
+      - "Para cada FIX HANDOFF: reconfigurar conexão entre squads"
+      - "Registrar todas as mudanças no observatory log"
+    transitions:
+      - condition: "changes_applied"
+        to: complete
+      - condition: "partial_failure"
+        to: present_retro
+
+  complete:
+    description: "Retrospectiva concluída"
+    terminal: true
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# QUALITY GATES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+quality_gates:
+  - gate: METRICS_COLLECTED
+    phase: collect_metrics
+    blocking: true
+    criteria:
+      - "Todos os squads do ecossistema escaneados"
+      - "Métricas de uso coletadas para o período"
+
+  - gate: ANALYSIS_COMPLETE
+    phase: analyze_revenue
+    blocking: true
+    criteria:
+      - "3 análises executadas (competências, processos, receita)"
+      - "Cada análise baseada em dados reais, não suposições"
+
+  - gate: RECOMMENDATIONS_JUSTIFIED
+    phase: synthesize_retro
+    blocking: true
+    criteria:
+      - "Cada recomendação tem evidência de dados"
+      - "DEACTIVATE nunca aplicado a squads que protegem receita"
+      - "Priorização baseada em impacto no negócio"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# VETO CONDITIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+veto_conditions:
+  - condition: "Tentativa de desativar squad que protege receita"
+    action: "BLOCK — squads que protegem receita não podem ser desativados sem substituição"
+  - condition: "Mais de 50% dos squads recomendados para desativação"
+    action: "WARN — possível problema na arquitetura original, re-avaliar"
+  - condition: "Nenhuma métrica disponível para um squad"
+    action: "WARN — marcar como 'sem dados', não recomendar desativação sem evidência"
+  - condition: "Handoff crítico com taxa de sucesso < 50%"
+    action: "URGENT — priorizar fix antes de qualquer ADD ou UPGRADE"

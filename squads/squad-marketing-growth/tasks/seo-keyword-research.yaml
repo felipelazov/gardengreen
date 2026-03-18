@@ -1,0 +1,126 @@
+id: seo-keyword-research
+name: "Pesquisa de Palavras-Chave SEO para Jardineiros"
+squad: squad-marketing-growth
+version: 0.1.0
+type: task
+
+description: |
+  Pesquisar e mapear palavras-chave de busca que jardineiros usam quando
+  procuram soluções para gestão do seu negócio. Foco em termos long-tail
+  com alta intenção e baixa concorrência. O jardineiro busca em PT-BR
+  informal, não em termos técnicos de SaaS.
+
+owner: garden-content
+collaborators:
+  - garden-marketing-chief
+
+inputs:
+  - name: foco
+    type: string
+    description: "Foco da pesquisa: geral, feature_especifica, sazonal"
+    default: "geral"
+  - name: regiao
+    type: string
+    description: "Região para localização de termos"
+    default: "Brasil"
+
+outputs:
+  - name: keyword_map
+    type: document
+    description: "Mapa completo de keywords com volume, dificuldade e intent"
+    path: "docs/marketing/seo-keyword-map.md"
+  - name: content_opportunities
+    type: document
+    description: "Oportunidades de conteúdo baseadas em keywords"
+    path: "docs/marketing/seo-content-opportunities.md"
+
+preconditions:
+  - "Personas de jardineiro definidas"
+  - "Features do app listadas"
+
+steps:
+  - id: 1
+    name: "Brainstorm de termos seed"
+    agent: garden-content
+    action: |
+      Listar termos que jardineiro buscaria no Google:
+      Categoria 1 — Busca direta por solução:
+        "app para jardineiros", "agenda de jardineiro", "app gestão jardinagem",
+        "controle financeiro jardineiro", "orçamento de jardinagem app"
+      Categoria 2 — Busca por dor/problema:
+        "como organizar clientes jardinagem", "quanto cobrar jardinagem",
+        "como não perder clientes", "planilha de controle jardineiro"
+      Categoria 3 — Busca informacional:
+        "quanto ganha um jardineiro", "como começar negócio jardinagem",
+        "preço manutenção jardim por m²"
+      Categoria 4 — Sazonal:
+        "poda de inverno preço", "preparação jardim primavera",
+        "manutenção gramado verão"
+
+  - id: 2
+    name: "Expandir com variações"
+    agent: garden-content
+    action: |
+      Para cada termo seed, gerar variações:
+      - Sinônimos ("jardineiro" vs "paisagista" vs "jardinagem")
+      - Long-tail ("app para jardineiro autônomo organizar clientes")
+      - Perguntas ("como cobrar manutenção de jardim")
+      - Regionais ("jardineiro SP", "paisagismo RJ")
+      - Com modificadores ("melhor", "grátis", "2026")
+
+  - id: 3
+    name: "Analisar volume e concorrência"
+    agent: garden-content
+    action: |
+      Para cada keyword, estimar:
+      - Volume de busca mensal (estimativa)
+      - Dificuldade de ranqueamento (baixa/média/alta)
+      - Intenção de busca (informacional, transacional, navegacional)
+      - Concorrentes atuais no top 5
+      - Oportunidade: alto volume + baixa dificuldade = prioridade
+
+  - id: 4
+    name: "Classificar por intenção e prioridade"
+    agent: garden-content
+    action: |
+      Classificar keywords em:
+      - ALTA prioridade: intenção transacional + baixa concorrência
+        ("app para jardineiros", "agenda jardineiro grátis")
+      - MÉDIA prioridade: intenção informacional + volume bom
+        ("quanto cobrar jardinagem", "como organizar agenda")
+      - BAIXA prioridade: volume baixo ou alta concorrência
+      Priorizar para produção de conteúdo.
+
+  - id: 5
+    name: "Mapear keywords para conteúdo"
+    agent: garden-content
+    action: |
+      Para cada keyword de alta/média prioridade:
+      - Tipo de conteúdo ideal (blog post, landing page, FAQ)
+      - Título sugerido do artigo
+      - Estrutura de H2s
+      - Relacionamento com outras keywords (clusters)
+      - URL sugerida
+
+  - id: 6
+    name: "Validar com estratégia de marketing"
+    agent: garden-marketing-chief
+    action: |
+      Revisar keyword map:
+      - Keywords alinhadas com posicionamento do GardenGreen?
+      - Prioridades fazem sentido para o momento do produto?
+      - Existem gaps importantes não cobertos?
+      - Plano de produção é viável com recursos disponíveis?
+
+postconditions:
+  - "Mínimo 50 keywords mapeadas com volume e dificuldade"
+  - "Keywords classificadas por intenção e prioridade"
+  - "Plano de conteúdo SEO com títulos sugeridos"
+  - "Keyword map validado pelo marketing chief"
+
+acceptance_criteria:
+  - "Termos são em PT-BR informal (como jardineiro busca)"
+  - "Mínimo 10 keywords de alta prioridade identificadas"
+  - "Cada keyword tem volume estimado, dificuldade e intenção"
+  - "Keywords mapeadas para tipos de conteúdo específicos"
+  - "Nenhum termo corporativo/SaaS genérico nas prioridades"

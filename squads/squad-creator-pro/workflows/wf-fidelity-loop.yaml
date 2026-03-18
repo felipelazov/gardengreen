@@ -1,0 +1,216 @@
+# Fidelity Loop — Iterative quality improvement until target score
+name: wf-fidelity-loop
+version: 1.0.0
+description: |
+  Loop iterativo que melhora a fidelidade de um agent até atingir o score target.
+  Executa: score → identify gaps → fix → re-score (max 5 iterations).
+
+type: state_machine
+max_iterations: 5
+target_score: 0.85
+
+states:
+  initial_score:
+    description: "Calcular fidelidade inicial"
+    task: fidelity-score
+    agent: "@squad-chief-pro"
+    model: sonnet
+    transitions:
+      - condition: "score >= target_score"
+        to: approved
+      - condition: "score < target_score"
+        to: gap_analysis
+
+  gap_analysis:
+    description: "Identificar dimensões fracas e causas"
+    agent: "@squad-chief-pro"
+    model: opus
+    actions:
+      - "Identificar dimensão com menor score"
+      - "Analisar indicadores individuais da dimensão"
+      - "Gerar lista priorizada de melhorias"
+    output: "gap_report"
+    transitions:
+      - condition: "gaps_identified"
+        to: fix_gaps
+
+  fix_gaps:
+    description: "Aplicar correções nas dimensões fracas"
+    agent: "@squad-chief-pro"
+    model: opus
+    actions:
+      voice_accuracy_fix:
+        when: "D1 < threshold"
+        actions:
+          - "Adicionar signature phrases faltantes com [SOURCE:]"
+          - "Revisar anchor words contra lista"
+          - "Ajustar emotional_states"
+      thinking_accuracy_fix:
+        when: "D2 < threshold"
+        actions:
+          - "Documentar framework principal com passos"
+          - "Adicionar QUANDO a cada heurística"
+          - "Definir veto conditions"
+      behavioral_fix:
+        when: "D3 < threshold"
+        actions:
+          - "Reescrever output_examples com cenários reais"
+          - "Adicionar objection_algorithms"
+          - "Definir handoff_to"
+      knowledge_fix:
+        when: "D4 < threshold"
+        actions:
+          - "Expandir cobertura de tópicos"
+          - "Adicionar cases concretos"
+          - "Documentar limitações"
+      anti_pattern_fix:
+        when: "D5 < threshold"
+        actions:
+          - "Listar anti-patterns específicos do expert"
+          - "Definir immune system rules"
+          - "Documentar paradoxos autênticos"
+    transitions:
+      - condition: "fixes_applied"
+        to: re_score
+
+  re_score:
+    description: "Re-calcular fidelidade estrutural após correções"
+    task: fidelity-score
+    agent: "@squad-chief-pro"
+    model: sonnet
+    transitions:
+      - condition: "score >= target_score"
+        to: behavioral_test
+      - condition: "score < target_score AND iteration < max_iterations"
+        to: gap_analysis
+      - condition: "score < target_score AND iteration >= max_iterations"
+        to: escalated
+
+  behavioral_test:
+    description: "Executar testes comportamentais via API para validar fidelidade real"
+    script: "scripts/behavioral-scorer.py {agent_path} --combined --json"
+    agent: "@squad-chief-pro"
+    model: sonnet
+    actions:
+      - "Run 5 behavioral smoke tests (Domain Knowledge, Decision Making, Objection Handling, Anti-Pattern Trap, Handoff Awareness)"
+      - "Evaluate responses against pass/fail signals"
+      - "Calculate combined score = (structural * 0.5) + (behavioral * 0.5)"
+    transitions:
+      - condition: "combined_score >= target_score"
+        to: approved
+      - condition: "combined_score < target_score AND behavioral_score < 0.60"
+        to: behavioral_fix
+      - condition: "combined_score < target_score AND behavioral_score >= 0.60"
+        to: gap_analysis
+    fallback:
+      on_api_error: "Use offline mode, generate manual evaluation template"
+      on_no_api_key: "Skip behavioral, approve on structural only with STRUCTURAL_ONLY flag"
+
+  behavioral_fix:
+    description: "Corrigir falhas comportamentais identificadas nos testes"
+    agent: "@squad-chief-pro"
+    model: opus
+    actions:
+      knowledge_gap:
+        when: "ST-1 FAIL"
+        actions:
+          - "Enriquecer knowledge_areas com conteúdo mais específico"
+          - "Adicionar exemplos concretos do expert ao output_examples"
+      thinking_gap:
+        when: "ST-2 FAIL"
+        actions:
+          - "Reforçar heuristics com cenários de decisão mais claros"
+          - "Adicionar decision_architecture steps explícitos"
+      objection_gap:
+        when: "ST-3 FAIL"
+        actions:
+          - "Expandir objection_algorithms com argumentos mais fortes"
+          - "Adicionar evidências e [SOURCE:] às contra-argumentações"
+      immune_gap:
+        when: "ST-4 FAIL"
+        actions:
+          - "Reforçar veto_conditions com linguagem mais assertiva"
+          - "Adicionar immune_system rules explícitas"
+      scope_gap:
+        when: "ST-5 FAIL"
+        actions:
+          - "Clarificar scope.does e scope.does_not"
+          - "Reforçar handoff_to com nomes de agentes específicos"
+    transitions:
+      - condition: "fixes_applied"
+        to: re_score
+
+  approved:
+    description: "Agent atende padrão de fidelidade Pro (estrutural + comportamental)"
+    terminal: true
+    actions:
+      - "Salvar fidelity report final (structural + behavioral)"
+      - "Marcar agent como PRO_CERTIFIED"
+      - "Atualizar observatory com combined score"
+      - "Salvar behavioral test results como golden baseline"
+    output: |
+      ✅ FIDELITY APPROVED
+      Structural Score: {structural_score}/1.0
+      Behavioral Score: {behavioral_score}/1.0
+      Combined Score: {combined_score}/1.0 — {classification}
+      Iterations: {iteration_count}
+      Tests: {pass_count}/5 PASS
+      Agent certified for Pro usage.
+
+  escalated:
+    description: "Max iterations reached sem atingir target"
+    terminal: true
+    actions:
+      - "Salvar relatório de tentativas"
+      - "Listar dimensões que não melhoraram"
+      - "Recomendar ação manual"
+    output: |
+      ⚠️ FIDELITY ESCALATED
+      Best score: {best_score}/1.0 after {max_iterations} iterations
+      Dimensions that need manual intervention:
+      {weak_dimensions}
+
+      Recommendation: Review source materials for completeness
+      or accept current score with documented limitations.
+
+# Quality gates per transition
+quality_gates:
+  initial_to_gap:
+    gate: "QG-PRO-F01"
+    description: "Score calculado corretamente com 5 dimensões"
+  gap_to_fix:
+    gate: "QG-PRO-F02"
+    description: "Gaps identificados com causa raiz"
+  fix_to_rescore:
+    gate: "QG-PRO-F03"
+    description: "Correções aplicadas no agent file"
+
+# Resume capability
+resume_capability:
+  enabled: true
+  description: |
+    O fidelity loop salva estado entre iterações em .aiox/sessions/fidelity-loop-{agent_id}.yaml.
+    Campos persistidos: iteration_count, current_score, last_gap_report, fixes_applied.
+    No resume, o workflow continua do estado re_score para validar o ponto onde parou.
+  state_file: ".aiox/sessions/fidelity-loop-{agent_id}.yaml"
+  resume_from: "re_score"
+
+# Error handling
+error_handling:
+  fidelity_scorer_fails:
+    description: "Script de fidelity-score falha ou retorna resultado inválido"
+    actions:
+      - "Retry once with fresh context"
+      - "If retry fails → save partial state and escalate to user"
+      - "Log error in .aiox/logs/fidelity-loop-errors.log"
+    fallback: "escalated"
+  gap_analysis_empty:
+    description: "Gap analysis não identifica dimensões fracas apesar de score baixo"
+    actions:
+      - "Re-run with verbose scoring (per-indicator breakdown)"
+      - "If still empty → treat lowest dimension as gap"
+  fix_application_fails:
+    description: "Correção não pode ser aplicada (file locked, syntax error)"
+    actions:
+      - "Skip fix, log as SKIPPED"
+      - "Continue to re_score — score refletirá que fix não foi aplicado"

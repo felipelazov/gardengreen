@@ -1,0 +1,35 @@
+# Cross-Provider Configuration
+# Defines supported LLM providers for comparison testing
+
+providers:
+  anthropic:
+    name: Anthropic
+    models:
+      opus: claude-opus-4-6
+      sonnet: claude-sonnet-4-6
+      haiku: claude-haiku-4-5-20251001
+    default: true
+
+  openai:
+    name: OpenAI
+    models:
+      high: gpt-4o
+      medium: gpt-4o-mini
+    env_key: OPENAI_API_KEY
+
+  google:
+    name: Google
+    models:
+      high: gemini-2.5-pro
+      medium: gemini-2.5-flash
+    env_key: GOOGLE_API_KEY
+
+comparison:
+  test_tasks_count: 5
+  runs_per_task: 3
+  timeout_seconds: 120
+  metrics:
+    - quality_score
+    - token_usage
+    - latency_ms
+    - cost_usd
