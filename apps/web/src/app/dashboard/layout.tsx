@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -21,13 +22,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const avatarUrl = profile?.avatar_url ?? user.user_metadata?.avatar_url ?? null;
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <Sidebar userName={userName} userEmail={userEmail} avatarUrl={avatarUrl} />
-      <main className="md:ml-64 min-h-screen">
-        <div className="p-6 md:p-8 pt-16 md:pt-8">
-          {children}
-        </div>
-      </main>
-    </div>
+    <ThemeProvider>
+      <div className="min-h-screen bg-muted/30">
+        <Sidebar userName={userName} userEmail={userEmail} avatarUrl={avatarUrl} />
+        <main className="md:ml-64 min-h-screen">
+          <div className="p-6 md:p-8 pt-16 md:pt-8">
+            {children}
+          </div>
+        </main>
+      </div>
+    </ThemeProvider>
   );
 }

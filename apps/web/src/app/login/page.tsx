@@ -69,7 +69,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-primary-light p-4">
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8">
+      <div className="w-full max-w-sm bg-card rounded-2xl shadow-lg p-8">
         <div className="text-center mb-8">
           <span className="text-4xl">🌱</span>
           <h1 className="text-2xl font-bold text-primary-darker mt-2">GardenGreen</h1>
@@ -125,7 +125,7 @@ export default function LoginPage() {
             <span className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-2 text-muted-foreground">ou</span>
+            <span className="bg-card px-2 text-muted-foreground">ou</span>
           </div>
         </div>
 

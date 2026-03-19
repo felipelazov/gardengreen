@@ -13,12 +13,15 @@ import {
   LogOut,
   Menu,
   X,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { signOut } from '@/app/actions/auth';
+import { useTheme } from '@/components/theme/ThemeProvider';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -39,6 +42,7 @@ interface SidebarProps {
 export function Sidebar({ userName, userEmail, avatarUrl }: SidebarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const initials = userName
     .split(' ')
@@ -91,7 +95,19 @@ export function Sidebar({ userName, userEmail, avatarUrl }: SidebarProps) {
             {userEmail && <p className="text-xs text-muted-foreground truncate">{userEmail}</p>}
           </div>
         </div>
-        <form action={signOut}>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleTheme}
+            className="flex-1 justify-start text-muted-foreground"
+            type="button"
+          >
+            {theme === 'light' ? <Moon className="h-4 w-4 mr-2" /> : <Sun className="h-4 w-4 mr-2" />}
+            {theme === 'light' ? 'Modo escuro' : 'Modo claro'}
+          </Button>
+        </div>
+        <form action={signOut} className="mt-1">
           <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground" type="submit">
             <LogOut className="h-4 w-4 mr-2" />
             Sair
@@ -106,7 +122,7 @@ export function Sidebar({ userName, userEmail, avatarUrl }: SidebarProps) {
       {/* Mobile toggle */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed top-4 left-4 z-50 md:hidden bg-white border border-border rounded-lg p-2 shadow-sm"
+        className="fixed top-4 left-4 z-50 md:hidden bg-card border border-border rounded-lg p-2 shadow-sm"
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>

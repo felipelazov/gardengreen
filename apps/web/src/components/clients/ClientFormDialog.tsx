@@ -54,7 +54,7 @@ export function ClientFormDialog({ client, onClose }: ClientFormDialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 m-4" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-card rounded-xl shadow-xl w-full max-w-md p-6 m-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold">{isEdit ? 'Editar Cliente' : 'Novo Cliente'}</h2>
           <button onClick={onClose} className="p-1 hover:bg-muted rounded-lg">

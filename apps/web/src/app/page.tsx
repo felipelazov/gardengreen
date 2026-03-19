@@ -62,7 +62,7 @@ function Nav() {
             gap: 32,
           }}
         >
-          {['Funcionalidades', 'Precos', 'Depoimentos'].map((item) => (
+          {['Funcionalidades', 'Preços', 'Depoimentos'].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase()}`}
@@ -78,7 +78,18 @@ function Nav() {
             </a>
           ))}
           <a
-            href="#download"
+            href="/login"
+            style={{
+              color: colors.dark,
+              textDecoration: 'none',
+              fontSize: 15,
+              fontWeight: 600,
+            }}
+          >
+            Entrar
+          </a>
+          <a
+            href="/login"
             style={{
               background: colors.primary,
               color: colors.white,
@@ -90,7 +101,7 @@ function Nav() {
               letterSpacing: '-0.2px',
             }}
           >
-            Baixar gratis
+            Começar grátis
           </a>
         </div>
       </div>
@@ -186,7 +197,7 @@ function Hero() {
             fontWeight: 400,
           }}
         >
-          Agenda, clientes, orcamentos e cobranca PIX —<br />
+          Agenda, clientes, orçamentos e cobrança PIX —<br />
           tudo no celular, em <strong style={{ color: colors.amber }}>3 toques</strong>
         </p>
 
@@ -219,7 +230,7 @@ function Hero() {
             <span style={{ fontSize: 24 }}>▶</span>
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontSize: 10, opacity: 0.7, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
-                Disponivel no
+                Disponível no
               </div>
               <div style={{ fontSize: 16, fontWeight: 800 }}>Google Play</div>
             </div>
@@ -297,7 +308,7 @@ function Hero() {
           }}
         >
           {[
-            { value: '14 dias', label: 'gratis pra testar' },
+            { value: '14 dias', label: 'grátis pra testar' },
             { value: '3 toques', label: 'pra cobrar no PIX' },
             { value: '100%', label: 'offline no jardim' },
           ].map((stat) => (
@@ -318,17 +329,17 @@ function ProblemSection() {
     {
       emoji: '📅',
       title: 'Esquece clientes',
-      desc: 'Sem agenda, voce perde visita e o cliente vai embora sem falar nada.',
+      desc: 'Sem agenda, você perde visita e o cliente vai embora sem falar nada.',
     },
     {
       emoji: '💰',
-      title: 'Nao sabe quanto ganhou',
-      desc: 'O dinheiro entra pelo PIX mas some. No fim do mes, zero controle.',
+      title: 'Não sabe quanto ganhou',
+      desc: 'O dinheiro entra pelo PIX, mas some. No fim do mês, zero controle.',
     },
     {
       emoji: '📱',
       title: 'Cobra por mensagem',
-      desc: 'Pedir pagamento pelo WhatsApp e constrangedor e parece pouco profissional.',
+      desc: 'Pedir pagamento pelo WhatsApp é constrangedor e parece pouco profissional.',
     },
   ];
 
@@ -355,7 +366,7 @@ function ProblemSection() {
             letterSpacing: '0.3px',
           }}
         >
-          Voce se identifica?
+          Você se identifica?
         </div>
 
         <h2
@@ -380,8 +391,8 @@ function ProblemSection() {
             lineHeight: 1.6,
           }}
         >
-          Jardineiros que nao usam um app perdem em media <strong style={{ color: '#B45309' }}>R$3.600 por ano</strong>{' '}
-          em servicos esquecidos e clientes sem retorno.
+          Jardineiros que não usam um app perdem em média <strong style={{ color: '#B45309' }}>R$3.600 por ano</strong>{' '}
+          em serviços esquecidos e clientes sem retorno.
         </p>
 
         <div
@@ -423,7 +434,7 @@ function ProblemSection() {
             gap: 8,
           }}
         >
-          <span>Existe uma solucao mais simples</span>
+          <span>Existe uma solução mais simples</span>
           <span style={{ fontSize: 20 }}>↓</span>
         </div>
       </div>
@@ -437,32 +448,32 @@ function FeaturesSection() {
     {
       emoji: '📅',
       title: 'Agenda inteligente',
-      desc: 'Saiba quem atender hoje e amanha. Receba lembretes antes de cada visita.',
+      desc: 'Saiba quem atender hoje e amanhã. Receba lembretes antes de cada visita.',
     },
     {
       emoji: '👥',
       title: 'Clientes organizados',
-      desc: 'Historico completo de cada jardim, observacoes e frequencia de atendimento.',
+      desc: 'Histórico completo de cada jardim, observações e frequência de atendimento.',
     },
     {
       emoji: '💰',
-      title: 'Cobranca PIX',
-      desc: 'Cobre na hora, receba na hora. QR code gerado automaticamente apos o servico.',
+      title: 'Cobrança PIX',
+      desc: 'Cobre na hora, receba na hora. QR code gerado automaticamente após o serviço.',
     },
     {
       emoji: '📊',
       title: 'Quanto ganhei',
-      desc: 'Veja seus ganhos do mes em 1 toque. Relatorio simples, sem complicacao.',
+      desc: 'Veja seus ganhos do mês em 1 toque. Relatório simples, sem complicação.',
     },
     {
       emoji: '📄',
-      title: 'Orcamentos profissionais',
-      desc: 'Monte orcamentos bonitos e envie por WhatsApp em menos de 1 minuto.',
+      title: 'Orçamentos profissionais',
+      desc: 'Monte orçamentos bonitos e envie por WhatsApp em menos de 1 minuto.',
     },
     {
       emoji: '📴',
       title: 'Funciona offline',
-      desc: 'Use no jardim, sem internet. Tudo sincroniza quando voce conectar o Wi-Fi.',
+      desc: 'Use no jardim, sem internet. Tudo sincroniza quando você conectar o Wi-Fi.',
     },
   ];
 
@@ -500,9 +511,9 @@ function FeaturesSection() {
               letterSpacing: '-1px',
             }}
           >
-            Tudo que voce precisa,
+            Tudo que você precisa,
             <br />
-            <span style={{ color: colors.primary }}>sem complicacao</span>
+            <span style={{ color: colors.primary }}>sem complicação</span>
           </h2>
           <p
             style={{
@@ -513,7 +524,7 @@ function FeaturesSection() {
               lineHeight: 1.6,
             }}
           >
-            Desenvolvido pensando em quem trabalha com as maos na terra e o celular no bolso.
+            Desenvolvido pensando em quem trabalha com as mãos na terra e o celular no bolso.
           </p>
         </div>
 
@@ -580,22 +591,23 @@ function FeaturesSection() {
 function PricingSection() {
   const plans = [
     {
-      name: 'Gratis',
+      name: 'Grátis',
       price: 'R$0',
       period: '14 dias',
-      sub: 'Sem cartao de credito',
+      sub: 'Sem cartão de crédito',
       color: colors.textMuted,
       bg: colors.white,
       border: colors.border,
       features: [
         '✓ Agenda de clientes',
-        '✓ Cobranca PIX',
-        '✓ Relatorio basico',
+        '✓ Cobrança PIX',
+        '✓ Relatório básico',
         '✓ Funciona offline',
-        '— Orcamentos ilimitados',
-        '— Multiplos membros',
+        '— Orçamentos ilimitados',
+        '— Múltiplos membros',
       ],
-      cta: 'Comecar gratis',
+      cta: 'Começar grátis',
+      ctaHref: '/login',
       ctaBg: colors.light,
       ctaColor: colors.dark,
       highlight: false,
@@ -603,20 +615,21 @@ function PricingSection() {
     {
       name: 'Solo',
       price: 'R$39',
-      period: '/mes',
-      sub: 'Ou R$390/ano (2 meses gratis)',
+      period: '/mês',
+      sub: 'Ou R$390/ano (2 meses grátis)',
       color: colors.white,
       bg: colors.primary,
       border: colors.primary,
       features: [
-        '✓ Tudo do Gratis',
-        '✓ Orcamentos ilimitados',
-        '✓ Relatorio completo',
+        '✓ Tudo do Grátis',
+        '✓ Orçamentos ilimitados',
+        '✓ Relatório completo',
         '✓ Exportar para PDF',
-        '✓ Suporte prioritario',
-        '— Multiplos membros',
+        '✓ Suporte prioritário',
+        '— Múltiplos membros',
       ],
       cta: 'Assinar Solo',
+      ctaHref: '/login',
       ctaBg: colors.white,
       ctaColor: colors.primary,
       highlight: true,
@@ -624,20 +637,21 @@ function PricingSection() {
     {
       name: 'Equipe',
       price: 'R$99',
-      period: '/mes',
-      sub: 'Ate 5 membros da equipe',
+      period: '/mês',
+      sub: 'Até 5 membros da equipe',
       color: colors.text,
       bg: colors.white,
       border: colors.border,
       features: [
         '✓ Tudo do Solo',
-        '✓ Ate 5 membros',
+        '✓ Até 5 membros',
         '✓ Dashboard da equipe',
         '✓ Controle de rotas',
-        '✓ Relatorio por membro',
-        '✓ Integracao WhatsApp',
+        '✓ Relatório por membro',
+        '✓ Integração WhatsApp',
       ],
       cta: 'Assinar Equipe',
+      ctaHref: '/login',
       ctaBg: colors.dark,
       ctaColor: colors.white,
       highlight: false,
@@ -667,7 +681,7 @@ function PricingSection() {
               marginBottom: 20,
             }}
           >
-            Precos
+            Preços
           </div>
           <h2
             style={{
@@ -681,7 +695,7 @@ function PricingSection() {
             Simples. Justo. Sem pegadinha.
           </h2>
           <p style={{ color: colors.textMuted, fontSize: 17, maxWidth: 440, margin: '0 auto', lineHeight: 1.6 }}>
-            Comece gratis por 14 dias. Cancele quando quiser, sem burocracia.
+            Comece grátis por 14 dias. Cancele quando quiser, sem burocracia.
           </p>
         </div>
 
@@ -754,7 +768,7 @@ function PricingSection() {
               </div>
 
               <a
-                href="#"
+                href={plan.ctaHref}
                 style={{
                   display: 'block',
                   background: plan.ctaBg,
@@ -782,22 +796,22 @@ function PricingSection() {
 function TestimonialsSection() {
   const testimonials = [
     {
-      name: 'Carlos Mendonca',
-      role: 'Jardineiro autonomo — Sao Paulo, SP',
+      name: 'Carlos Mendonça',
+      role: 'Jardineiro autônomo — São Paulo, SP',
       avatar: '👨‍🌾',
-      text: 'Antes eu perdia umas 3 visitas por mes por esquecimento. Hoje a agenda me avisa no dia. Ja paguei o plano so nisso.',
+      text: 'Antes eu perdia umas 3 visitas por mês por esquecimento. Hoje a agenda me avisa no dia. Já paguei o plano só nisso.',
     },
     {
       name: 'Ana Paula Ferreira',
-      role: 'Proprietaria — JardimBelo, Curitiba, PR',
+      role: 'Proprietária — JardimBelo, Curitiba, PR',
       avatar: '👩‍🌾',
-      text: 'O PIX direto do app e o que meus clientes mais gostam. Eles pagam na hora, eu nao preciso ficar cobrando.',
+      text: 'O PIX direto do app é o que meus clientes mais gostam. Eles pagam na hora, eu não preciso ficar cobrando.',
     },
     {
-      name: 'Joao Batista',
+      name: 'João Batista',
       role: 'Equipe de 3 jardineiros — Belo Horizonte, MG',
       avatar: '🧑‍🌾',
-      text: 'Eu e meus dois parceiros usamos o plano Equipe. Cada um ve sua agenda, eu vejo o total. Simples demais.',
+      text: 'Eu e meus dois parceiros usamos o plano Equipe. Cada um vê sua agenda, eu vejo o total. Simples demais.',
     },
   ];
 
@@ -839,7 +853,7 @@ function TestimonialsSection() {
             <span style={{ color: colors.amber }}>no sol, com luvas, com pressa</span>
           </h2>
           <p style={{ opacity: 0.7, fontSize: 17, maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>
-            Jardineiros reais, resultados reais. Sem enrolacao.
+            Jardineiros reais, resultados reais. Sem enrolação.
           </p>
         </div>
 
@@ -915,8 +929,8 @@ function TestimonialsSection() {
         >
           {[
             { emoji: '🔒', label: 'Dados protegidos', sub: 'LGPD compliant' },
-            { emoji: '🇧🇷', label: 'Servidor no Brasil', sub: 'Baixa latencia' },
-            { emoji: '💳', label: 'Sem cartao', sub: 'Pra comecar' },
+            { emoji: '🇧🇷', label: 'Servidor no Brasil', sub: 'Baixa latência' },
+            { emoji: '💳', label: 'Sem cartão', sub: 'Pra começar' },
           ].map((badge) => (
             <div key={badge.label} style={{ textAlign: 'center', opacity: 0.75 }}>
               <div style={{ fontSize: 28, marginBottom: 6 }}>{badge.emoji}</div>
@@ -956,12 +970,12 @@ function FinalCTA() {
           seus jardins?
         </h2>
         <p style={{ color: colors.textMuted, fontSize: 17, margin: '0 0 40px', lineHeight: 1.6 }}>
-          14 dias gratis. Sem cartao. Cancele quando quiser. <br />
-          Comece agora e veja a diferenca na proxima semana.
+          14 dias grátis. Sem cartão. Cancele quando quiser. <br />
+          Comece agora e veja a diferença na próxima semana.
         </p>
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
           <a
-            href="#"
+            href="/login"
             style={{
               background: colors.primary,
               color: colors.white,
@@ -974,10 +988,10 @@ function FinalCTA() {
               boxShadow: `0 8px 32px ${colors.primary}55`,
             }}
           >
-            Baixar no Google Play
+            Começar grátis agora
           </a>
           <a
-            href="#"
+            href="/login"
             style={{
               background: colors.white,
               color: colors.dark,
@@ -989,7 +1003,7 @@ function FinalCTA() {
               border: `1px solid ${colors.border}`,
             }}
           >
-            Baixar na App Store
+            Já tenho conta
           </a>
         </div>
       </div>
@@ -1042,7 +1056,7 @@ function Footer() {
               <div style={{ fontWeight: 700, color: colors.white, fontSize: 13, marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Produto
               </div>
-              {['Funcionalidades', 'Precos', 'Atualizacoes', 'Roadmap'].map((link) => (
+              {['Funcionalidades', 'Preços', 'Atualizações', 'Roadmap'].map((link) => (
                 <a
                   key={link}
                   href="#"
@@ -1062,7 +1076,7 @@ function Footer() {
               <div style={{ fontWeight: 700, color: colors.white, fontSize: 13, marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Legal
               </div>
-              {['Sobre nos', 'Privacidade', 'Termos de uso', 'Contato'].map((link) => (
+              {['Sobre nós', 'Privacidade', 'Termos de uso', 'Contato'].map((link) => (
                 <a
                   key={link}
                   href="#"
