@@ -1,5 +1,3 @@
-import './globals.css';
-
 // ─── Shared style tokens ───────────────────────────────────────────────────
 const colors = {
   primary: '#16A34A',
