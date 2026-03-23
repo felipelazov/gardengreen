@@ -1,3 +1,5 @@
+'use client';
+
 import { MetricCard } from '@/components/ui/metric-card';
 import { DollarSign, CheckCircle, Users, FileText } from 'lucide-react';
 
