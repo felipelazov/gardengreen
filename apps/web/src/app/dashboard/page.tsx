@@ -9,6 +9,15 @@ const emptyMetrics = {
 };
 const emptyAlerts = { overdue: [] as { id: string; clientName: string }[], oldQuotes: [] as { id: string; clientName: string }[] };
 
+async function safeQuery(query: PromiseLike<any>) {
+  try {
+    const result = await query;
+    return result;
+  } catch {
+    return { data: null, count: null, error: 'query failed' };
+  }
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -23,65 +32,63 @@ export default async function DashboardPage() {
   }
 
   const userId = user.id;
+  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+  const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
+  const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
 
-  let metrics = emptyMetrics;
-  let alerts = emptyAlerts;
-  let todayServices: any[] = [];
+  // Each query isolated — one failure doesn't break others
+  const todayServicesRes = await safeQuery(
+    supabase.from('services').select('*, clients(name, phone, address)').eq('user_id', userId).eq('scheduled_date', today).order('start_time')
+  );
+  const monthServicesRes = await safeQuery(
+    supabase.from('services').select('price, status').eq('user_id', userId).gte('scheduled_date', startOfMonth).lte('scheduled_date', endOfMonth)
+  );
+  const prevMonthServicesRes = await safeQuery(
+    supabase.from('services').select('price, status').eq('user_id', userId).gte('scheduled_date', startOfPrevMonth).lte('scheduled_date', endOfPrevMonth)
+  );
+  const clientsRes = await safeQuery(
+    supabase.from('clients').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'active')
+  );
+  const pendingQuotesRes = await safeQuery(
+    supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('user_id', userId).in('status', ['draft', 'sent'])
+  );
+  const overdueRes = await safeQuery(
+    supabase.from('services').select('id, clients(name)').eq('user_id', userId).eq('payment_status', 'overdue')
+  );
+  const oldQuotesRes = await safeQuery(
+    supabase.from('quotes').select('id, clients(name)').eq('user_id', userId).eq('status', 'sent').lt('created_at', new Date(Date.now() - 7 * 86400000).toISOString())
+  );
+  const monthExpensesRes = await safeQuery(
+    supabase.from('expenses').select('amount').eq('user_id', userId).gte('date', startOfMonth).lte('date', endOfMonth)
+  );
+  const prevMonthExpensesRes = await safeQuery(
+    supabase.from('expenses').select('amount').eq('user_id', userId).gte('date', startOfPrevMonth).lte('date', endOfPrevMonth)
+  );
 
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-    const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0];
-    const startOfPrevMonth = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1).toISOString().split('T')[0];
-    const endOfPrevMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 0).toISOString().split('T')[0];
+  const todayServices = todayServicesRes.data ?? [];
+  const completedServices = (monthServicesRes.data ?? []).filter((s: any) => s.status === 'completed');
+  const prevCompletedServices = (prevMonthServicesRes.data ?? []).filter((s: any) => s.status === 'completed');
+  const revenue = completedServices.reduce((sum: number, s: any) => sum + (s.price ?? 0), 0);
+  const prevRevenue = prevCompletedServices.reduce((sum: number, s: any) => sum + (s.price ?? 0), 0);
+  const expenses = (monthExpensesRes.data ?? []).reduce((sum: number, e: any) => sum + (e.amount ?? 0), 0);
+  const prevExpenses = (prevMonthExpensesRes.data ?? []).reduce((sum: number, e: any) => sum + (e.amount ?? 0), 0);
 
-    const [
-      todayServicesRes,
-      monthServicesRes,
-      prevMonthServicesRes,
-      clientsRes,
-      pendingQuotesRes,
-      overdueRes,
-      oldQuotesRes,
-      monthExpensesRes,
-      prevMonthExpensesRes,
-    ] = await Promise.all([
-      supabase.from('services').select('*, clients(name, phone, address)').eq('user_id', userId).eq('scheduled_date', today).order('start_time'),
-      supabase.from('services').select('price, status').eq('user_id', userId).gte('scheduled_date', startOfMonth).lte('scheduled_date', endOfMonth),
-      supabase.from('services').select('price, status').eq('user_id', userId).gte('scheduled_date', startOfPrevMonth).lte('scheduled_date', endOfPrevMonth),
-      supabase.from('clients').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'active'),
-      supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('user_id', userId).in('status', ['draft', 'sent']),
-      supabase.from('services').select('id, clients(name)').eq('user_id', userId).eq('payment_status', 'overdue'),
-      supabase.from('quotes').select('id, clients(name)').eq('user_id', userId).eq('status', 'sent').lt('created_at', new Date(Date.now() - 7 * 86400000).toISOString()),
-      supabase.from('expenses').select('amount').eq('user_id', userId).gte('date', startOfMonth).lte('date', endOfMonth),
-      supabase.from('expenses').select('amount').eq('user_id', userId).gte('date', startOfPrevMonth).lte('date', endOfPrevMonth),
-    ]);
+  const metrics = {
+    revenue, prevRevenue,
+    servicesCount: completedServices.length,
+    prevServicesCount: prevCompletedServices.length,
+    clientsCount: clientsRes.count ?? 0,
+    pendingQuotes: pendingQuotesRes.count ?? 0,
+    expenses, prevExpenses,
+  };
 
-    todayServices = todayServicesRes.data ?? [];
-
-    const completedServices = (monthServicesRes.data ?? []).filter(s => s.status === 'completed');
-    const prevCompletedServices = (prevMonthServicesRes.data ?? []).filter(s => s.status === 'completed');
-    const revenue = completedServices.reduce((sum, s) => sum + (s.price ?? 0), 0);
-    const prevRevenue = prevCompletedServices.reduce((sum, s) => sum + (s.price ?? 0), 0);
-    const expenses = (monthExpensesRes.data ?? []).reduce((sum, e) => sum + (e.amount ?? 0), 0);
-    const prevExpenses = (prevMonthExpensesRes.data ?? []).reduce((sum, e) => sum + (e.amount ?? 0), 0);
-
-    metrics = {
-      revenue, prevRevenue,
-      servicesCount: completedServices.length,
-      prevServicesCount: prevCompletedServices.length,
-      clientsCount: clientsRes.count ?? 0,
-      pendingQuotes: pendingQuotesRes.count ?? 0,
-      expenses, prevExpenses,
-    };
-
-    alerts = {
-      overdue: (overdueRes.data ?? []).map(s => ({ id: s.id, clientName: (s.clients as any)?.name ?? 'Cliente' })),
-      oldQuotes: (oldQuotesRes.data ?? []).map(q => ({ id: q.id, clientName: (q.clients as any)?.name ?? 'Cliente' })),
-    };
-  } catch {
-    // Queries failed (RLS, table missing, etc) — show empty dashboard
-  }
+  const alerts = {
+    overdue: (overdueRes.data ?? []).map((s: any) => ({ id: s.id, clientName: s.clients?.name ?? 'Cliente' })),
+    oldQuotes: (oldQuotesRes.data ?? []).map((q: any) => ({ id: q.id, clientName: q.clients?.name ?? 'Cliente' })),
+  };
 
   return (
     <div className="space-y-6">
