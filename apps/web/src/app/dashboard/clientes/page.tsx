@@ -5,14 +5,26 @@ export default async function ClientesPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: clients, count } = await supabase
-    .from('clients')
-    .select('*, services(id)', { count: 'exact' })
-    .eq('user_id', user!.id)
-    .order('name')
-    .range(0, 19);
+  if (!user) {
+    return <div>Carregando...</div>;
+  }
 
-  const clientsWithCount = (clients ?? []).map((c: any) => ({
+  let clients: any[] = [];
+  let count: number | null = 0;
+  try {
+    const res = await supabase
+      .from('clients')
+      .select('*, services(id)', { count: 'exact' })
+      .eq('user_id', user.id)
+      .order('name')
+      .range(0, 19);
+    clients = res.data ?? [];
+    count = res.count;
+  } catch {
+    // Graceful fallback
+  }
+
+  const clientsWithCount = (clients).map((c: any) => ({
     ...c,
     services_count: Array.isArray(c.services) ? c.services.length : 0,
     services: undefined,

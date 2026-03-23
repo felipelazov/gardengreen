@@ -5,17 +5,34 @@ export default async function ConfiguracoesPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user!.id)
-    .single();
+  if (!user) {
+    return <div>Carregando...</div>;
+  }
 
-  const { data: notifPrefs } = await supabase
-    .from('notification_preferences')
-    .select('*')
-    .eq('user_id', user!.id)
-    .single();
+  let profile: any = null;
+  let notifPrefs: any = null;
+
+  try {
+    const { data } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+    profile = data;
+  } catch {
+    // Graceful fallback
+  }
+
+  try {
+    const { data } = await supabase
+      .from('notification_preferences')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    notifPrefs = data;
+  } catch {
+    // Graceful fallback
+  }
 
   return (
     <div className="space-y-6">

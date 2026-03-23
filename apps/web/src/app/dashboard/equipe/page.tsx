@@ -5,7 +5,17 @@ export default async function EquipePage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase.from('users').select('plan, team_id').eq('id', user!.id).single();
+  if (!user) {
+    return <div>Carregando...</div>;
+  }
+
+  let profile: any = null;
+  try {
+    const { data } = await supabase.from('users').select('plan, team_id').eq('id', user.id).single();
+    profile = data;
+  } catch {
+    // Graceful fallback
+  }
 
   if (profile?.plan !== 'team') {
     return (
@@ -28,18 +38,24 @@ export default async function EquipePage() {
     );
   }
 
-  const { data: members } = await supabase
-    .from('team_members')
-    .select('*, users(name, phone, avatar_url)')
-    .eq('team_id', profile.team_id);
+  let members: any[] = [];
+  try {
+    const { data } = await supabase
+      .from('team_members')
+      .select('*, users(name, phone, avatar_url)')
+      .eq('team_id', profile.team_id);
+    members = data ?? [];
+  } catch {
+    // Graceful fallback
+  }
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Equipe</h1>
-        <p className="text-muted-foreground text-sm">{members?.length ?? 0} membros</p>
+        <p className="text-muted-foreground text-sm">{members.length} membros</p>
       </div>
-      <EquipeView members={members ?? []} />
+      <EquipeView members={members} />
     </div>
   );
 }

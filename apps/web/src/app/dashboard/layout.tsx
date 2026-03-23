@@ -12,15 +12,26 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/login');
   }
 
-  const { data: profile } = await supabase
-    .from('users')
-    .select('name, email, avatar_url')
-    .eq('id', user.id)
-    .single();
+  // Query profile — graceful fallback if RLS blocks or table is empty
+  let userName = user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'Jardineiro';
+  let userEmail = user.email ?? null;
+  let avatarUrl = user.user_metadata?.avatar_url ?? null;
 
-  const userName = profile?.name ?? user.user_metadata?.full_name ?? 'Jardineiro';
-  const userEmail = profile?.email ?? user.email ?? null;
-  const avatarUrl = profile?.avatar_url ?? user.user_metadata?.avatar_url ?? null;
+  try {
+    const { data: profile } = await supabase
+      .from('users')
+      .select('name, email, avatar_url')
+      .eq('id', user.id)
+      .single();
+
+    if (profile) {
+      userName = profile.name ?? userName;
+      userEmail = profile.email ?? userEmail;
+      avatarUrl = profile.avatar_url ?? avatarUrl;
+    }
+  } catch {
+    // RLS blocked or table doesn't exist — use auth metadata
+  }
 
   return (
     <ThemeProvider>
