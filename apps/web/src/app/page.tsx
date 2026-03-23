@@ -50,91 +50,89 @@ function Hero() {
   return (
     <section
       id="download"
-      className="bg-linear-to-br from-primary to-primary-darker text-white py-24 pb-20 px-6 text-center relative overflow-hidden"
+      className="bg-[#0a0a0a] text-white pt-28 pb-24 px-6 text-center relative overflow-hidden"
     >
-      {/* Decorative blobs */}
+      {/* Ambient glow effects */}
       <div
         aria-hidden
-        className="absolute -top-[120px] -right-[120px] w-[400px] h-[400px] rounded-full bg-white/5 pointer-events-none"
+        className="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[800px] h-[600px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse, rgba(22,163,74,0.15) 0%, transparent 70%)' }}
       />
       <div
         aria-hidden
-        className="absolute -bottom-[80px] -left-[80px] w-[280px] h-[280px] rounded-full bg-white/5 pointer-events-none"
+        className="absolute bottom-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%)' }}
+      />
+      <div
+        aria-hidden
+        className="absolute top-[40%] left-[-80px] w-[300px] h-[300px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(22,163,74,0.06) 0%, transparent 70%)' }}
       />
 
-      <div className="relative max-w-[780px] mx-auto">
+      <div className="relative max-w-[860px] mx-auto">
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-4 py-1.5 mb-8 text-[13px] font-semibold tracking-wide uppercase">
-          <span>🌱</span>
+        <div className="inline-flex items-center gap-2.5 bg-white/[0.06] border border-white/[0.08] rounded-full px-5 py-2 mb-10 text-[13px] font-medium tracking-wide text-white/70">
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <span>Feito para o jardineiro brasileiro</span>
         </div>
 
         <h1
-          className="font-black leading-[1.08] mb-6 tracking-[-2px]"
-          style={{ fontSize: 'clamp(36px, 6vw, 68px)' }}
+          className="font-black leading-[1.05] mb-8 tracking-[-3px]"
+          style={{ fontSize: 'clamp(40px, 7vw, 80px)' }}
         >
           O app do
           <br />
-          <span className="text-amber">jardineiro</span> brasileiro
+          <span
+            className="bg-clip-text text-transparent"
+            style={{ backgroundImage: 'linear-gradient(135deg, #16A34A 0%, #4ade80 50%, #F59E0B 100%)' }}
+          >
+            jardineiro
+          </span>
+          {' '}brasileiro
         </h1>
 
         <p
-          className="opacity-[0.88] leading-relaxed mx-auto mb-12 max-w-[580px] font-normal"
-          style={{ fontSize: 'clamp(16px, 2.5vw, 22px)' }}
+          className="text-white/60 leading-relaxed mx-auto mb-14 max-w-[540px] font-normal"
+          style={{ fontSize: 'clamp(17px, 2.5vw, 22px)' }}
         >
-          Agenda, clientes, orçamentos e cobrança PIX —<br />
-          tudo no celular, em <strong className="text-amber">3 toques</strong>
+          Agenda, clientes, orçamentos e cobrança PIX —
+          <br />
+          tudo no celular, em{' '}
+          <span className="text-white font-semibold">3 toques</span>
         </p>
 
         {/* CTA Buttons */}
-        <div className="flex gap-4 justify-center flex-wrap mb-16">
+        <div className="flex gap-4 justify-center flex-wrap mb-20">
           <a
-            href="#"
-            className="flex items-center gap-3 bg-[#1B1B1B] text-white px-6 py-3.5 rounded-[14px] no-underline font-bold text-[15px] border border-white/15"
+            href="/login"
+            className="group bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-2xl no-underline font-bold text-[17px] transition-all shadow-[0_0_40px_rgba(22,163,74,0.3)] hover:shadow-[0_0_60px_rgba(22,163,74,0.5)]"
           >
-            <span className="text-2xl">▶</span>
-            <div className="text-left">
-              <div className="text-[10px] opacity-70 tracking-wide uppercase">
-                Disponível no
-              </div>
-              <div className="text-base font-extrabold">Google Play</div>
-            </div>
+            Começar grátis
+            <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">→</span>
           </a>
           <a
-            href="#"
-            className="flex items-center gap-3 bg-[#1B1B1B] text-white px-6 py-3.5 rounded-[14px] no-underline font-bold text-[15px] border border-white/15"
+            href="#funcionalidades"
+            className="bg-white/[0.06] hover:bg-white/[0.1] text-white/80 hover:text-white px-8 py-4 rounded-2xl no-underline font-semibold text-[17px] border border-white/[0.08] transition-all"
           >
-            <span className="text-2xl">🍎</span>
-            <div className="text-left">
-              <div className="text-[10px] opacity-70 tracking-wide uppercase">
-                Baixe na
-              </div>
-              <div className="text-base font-extrabold">App Store</div>
-            </div>
+            Ver funcionalidades
           </a>
-        </div>
-
-        {/* Phone Mockup */}
-        <div className="mx-auto w-[220px] h-[420px] border-[3px] border-white/35 rounded-[36px] bg-white/[0.08] flex flex-col items-center justify-center gap-4 backdrop-blur-sm shadow-[0_40px_80px_rgba(0,0,0,0.3)]">
-          <div className="w-[60px] h-1.5 rounded-full bg-white/30" />
-          <span className="text-5xl">🌿</span>
-          <div className="text-center opacity-70 text-[13px] px-5">
-            App screenshot
-            <br />
-            (em breve)
-          </div>
         </div>
 
         {/* Stats row */}
-        <div className="flex gap-10 justify-center flex-wrap mt-16 pt-10 border-t border-white/15">
+        <div className="flex gap-12 justify-center flex-wrap">
           {[
             { value: '14 dias', label: 'grátis pra testar' },
             { value: '3 toques', label: 'pra cobrar no PIX' },
             { value: '100%', label: 'offline no jardim' },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
-              <div className="text-[28px] font-black text-amber">{stat.value}</div>
-              <div className="text-[13px] opacity-70 mt-1">{stat.label}</div>
+              <div
+                className="text-[32px] font-black bg-clip-text text-transparent"
+                style={{ backgroundImage: 'linear-gradient(135deg, #16A34A, #4ade80)' }}
+              >
+                {stat.value}
+              </div>
+              <div className="text-[13px] text-white/40 mt-1 font-medium">{stat.label}</div>
             </div>
           ))}
         </div>
