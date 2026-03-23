@@ -5,11 +5,19 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/components/ui/toast';
 
-export function ExpenseFormDialog({ onClose }: { onClose: () => void }) {
+interface ExpenseFormDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps) {
   const router = useRouter();
   const supabase = createClient();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     description: '',
@@ -22,54 +30,64 @@ export function ExpenseFormDialog({ onClose }: { onClose: () => void }) {
     e.preventDefault();
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    await supabase.from('expenses').insert({
+    const { error } = await supabase.from('expenses').insert({
       user_id: user!.id,
       description: form.description,
       amount: parseFloat(form.amount) || 0,
       date: form.date,
       category: form.category,
     });
-    router.refresh();
-    onClose();
+
+    if (error) {
+      toast('Erro ao registrar despesa.', 'error');
+    } else {
+      toast('Despesa registrada com sucesso!', 'success');
+      router.refresh();
+      onOpenChange(false);
+    }
     setLoading(false);
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-card rounded-xl shadow-xl w-full max-w-sm p-6 m-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">Nova Despesa</h2>
-          <button onClick={onClose} className="p-1 hover:bg-muted rounded-lg"><X className="h-5 w-5" /></button>
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Nova Despesa</DialogTitle>
+        </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="text-sm font-medium block mb-1">Descricao *</label>
-            <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
+            <label htmlFor="expense-desc" className="text-sm font-medium block mb-1">Descricao *</label>
+            <Input id="expense-desc" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1">Valor (R$) *</label>
-            <Input type="number" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
+            <label htmlFor="expense-amount" className="text-sm font-medium block mb-1">Valor (R$) *</label>
+            <Input id="expense-amount" type="number" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required />
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1">Data</label>
-            <Input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+            <label htmlFor="expense-date" className="text-sm font-medium block mb-1">Data</label>
+            <Input id="expense-date" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1">Categoria</label>
-            <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
-              <option value="fuel">Combustivel</option>
-              <option value="tools">Ferramentas</option>
-              <option value="supplies">Insumos</option>
-              <option value="maintenance">Manutencao</option>
-              <option value="other">Outros</option>
-            </select>
+            <label htmlFor="expense-category" className="text-sm font-medium block mb-1">Categoria</label>
+            <Select value={form.category} onValueChange={(value) => setForm({ ...form, category: value })}>
+              <SelectTrigger id="expense-category" aria-label="Categoria">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="fuel">Combustivel</SelectItem>
+                <SelectItem value="tools">Ferramentas</SelectItem>
+                <SelectItem value="supplies">Insumos</SelectItem>
+                <SelectItem value="maintenance">Manutencao</SelectItem>
+                <SelectItem value="other">Outros</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
             <Button type="submit" disabled={loading} className="flex-1">{loading ? 'Salvando...' : 'Registrar'}</Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

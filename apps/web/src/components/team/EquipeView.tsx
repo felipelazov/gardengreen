@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Plus, Phone } from 'lucide-react';
 import { InviteMemberDialog } from './InviteMemberDialog';
+import type { Status } from '@/components/ui/status-badge';
 
 interface Member {
   id: string;
@@ -14,12 +15,6 @@ interface Member {
   status: string;
   users: { name: string; phone: string; avatar_url: string | null } | null;
 }
-
-const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'success' | 'warning' }> = {
-  active: { label: 'Ativo', variant: 'success' },
-  invited: { label: 'Convidado', variant: 'warning' },
-  inactive: { label: 'Inativo', variant: 'secondary' },
-};
 
 export function EquipeView({ members }: { members: Member[] }) {
   const [showInvite, setShowInvite] = useState(false);
@@ -35,7 +30,6 @@ export function EquipeView({ members }: { members: Member[] }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {members.map((member) => {
           const user = member.users as any;
-          const st = statusMap[member.status] ?? { label: member.status, variant: 'secondary' as const };
           const initials = (user?.name ?? 'M').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase();
           return (
             <Card key={member.id}>
@@ -49,7 +43,7 @@ export function EquipeView({ members }: { members: Member[] }) {
                     <p className="font-semibold truncate">{user?.name ?? 'Membro'}</p>
                     <p className="text-xs text-muted-foreground capitalize">{member.role}</p>
                   </div>
-                  <Badge variant={st.variant}>{st.label}</Badge>
+                  <StatusBadge status={member.status as Status} />
                 </div>
                 {user?.phone && (
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -69,7 +63,7 @@ export function EquipeView({ members }: { members: Member[] }) {
         )}
       </div>
 
-      {showInvite && <InviteMemberDialog onClose={() => setShowInvite(false)} />}
+      <InviteMemberDialog open={showInvite} onOpenChange={setShowInvite} />
     </>
   );
 }

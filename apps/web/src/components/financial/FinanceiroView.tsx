@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { MetricCard } from '@/components/ui/metric-card';
 import { DollarSign, TrendingUp, TrendingDown, Download, Plus } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
@@ -92,27 +93,26 @@ export function FinanceiroView({ services, expenses }: { services: ServiceRow[];
     URL.revokeObjectURL(url);
   }
 
+  const summaryCards = [
+    { title: 'Receita total', value: formatBRL(totalRevenue), icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50' },
+    { title: 'Despesas totais', value: formatBRL(totalExpenses), icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50' },
+    { title: 'Lucro liquido', value: formatBRL(profit), icon: TrendingUp, color: profit >= 0 ? 'text-green-600' : 'text-red-600', bg: profit >= 0 ? 'bg-green-50' : 'bg-red-50' },
+    { title: 'Ticket medio', value: formatBRL(avgTicket), icon: DollarSign, color: 'text-blue-600', bg: 'bg-blue-50' },
+  ];
+
   return (
     <>
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { title: 'Receita total', value: formatBRL(totalRevenue), icon: DollarSign, color: 'text-green-600', bg: 'bg-green-50' },
-          { title: 'Despesas totais', value: formatBRL(totalExpenses), icon: TrendingDown, color: 'text-red-600', bg: 'bg-red-50' },
-          { title: 'Lucro liquido', value: formatBRL(profit), icon: TrendingUp, color: profit >= 0 ? 'text-green-600' : 'text-red-600', bg: profit >= 0 ? 'bg-green-50' : 'bg-red-50' },
-          { title: 'Ticket medio', value: formatBRL(avgTicket), icon: DollarSign, color: 'text-blue-600', bg: 'bg-blue-50' },
-        ].map((c) => (
-          <Card key={c.title}>
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground">{c.title}</p>
-                  <p className="text-2xl font-bold mt-1">{c.value}</p>
-                </div>
-                <div className={`${c.bg} ${c.color} p-3 rounded-xl`}><c.icon className="h-5 w-5" /></div>
-              </div>
-            </CardContent>
-          </Card>
+        {summaryCards.map((c) => (
+          <MetricCard
+            key={c.title}
+            title={c.title}
+            value={c.value}
+            icon={c.icon}
+            color={c.color}
+            bg={c.bg}
+          />
         ))}
       </div>
 
@@ -204,7 +204,7 @@ export function FinanceiroView({ services, expenses }: { services: ServiceRow[];
         </CardContent>
       </Card>
 
-      {showExpenseForm && <ExpenseFormDialog onClose={() => setShowExpenseForm(false)} />}
+      <ExpenseFormDialog open={showExpenseForm} onOpenChange={setShowExpenseForm} />
     </>
   );
 }

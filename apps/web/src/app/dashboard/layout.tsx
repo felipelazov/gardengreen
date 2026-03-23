@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { ToastProvider } from '@/components/ui/toast';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -23,14 +24,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-muted/30">
-        <Sidebar userName={userName} userEmail={userEmail} avatarUrl={avatarUrl} />
-        <main className="md:ml-64 min-h-screen">
-          <div className="p-6 md:p-8 pt-16 md:pt-8">
-            {children}
-          </div>
-        </main>
-      </div>
+      <ToastProvider>
+        <div className="min-h-screen bg-muted/30">
+          <Sidebar userName={userName} userEmail={userEmail} avatarUrl={avatarUrl} />
+          <main className="md:ml-64 min-h-screen">
+            <div className="p-6 md:p-8 pt-16 md:pt-8">
+              {children}
+            </div>
+          </main>
+        </div>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

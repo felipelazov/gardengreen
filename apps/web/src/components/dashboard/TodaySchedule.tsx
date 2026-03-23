@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { Clock, MapPin, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import type { Status } from '@/components/ui/status-badge';
 
 interface Service {
   id: string;
@@ -12,13 +13,6 @@ interface Service {
   price: number;
   clients: { name: string; phone: string; address: string | null } | null;
 }
-
-const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'success' | 'destructive' }> = {
-  scheduled: { label: 'Agendado', variant: 'default' },
-  in_progress: { label: 'Em andamento', variant: 'secondary' },
-  completed: { label: 'Concluido', variant: 'success' },
-  cancelled: { label: 'Cancelado', variant: 'destructive' },
-};
 
 export function TodaySchedule({ services }: { services: Service[] }) {
   if (services.length === 0) {
@@ -60,7 +54,6 @@ export function TodaySchedule({ services }: { services: Service[] }) {
       </CardHeader>
       <CardContent className="space-y-3">
         {services.map((service) => {
-          const st = statusMap[service.status] ?? { label: service.status, variant: 'secondary' as const };
           const isCompleted = service.status === 'completed';
           return (
             <div
@@ -70,7 +63,7 @@ export function TodaySchedule({ services }: { services: Service[] }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="font-semibold text-sm truncate">{service.clients?.name ?? 'Cliente'}</p>
-                  <Badge variant={st.variant}>{st.label}</Badge>
+                  <StatusBadge status={service.status as Status} />
                 </div>
                 <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                   <span className="flex items-center gap-1">

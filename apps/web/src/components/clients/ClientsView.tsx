@@ -4,9 +4,12 @@ import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Phone, MapPin } from 'lucide-react';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Plus, Phone, MapPin, Users } from 'lucide-react';
 import { ClientFormDialog } from './ClientFormDialog';
+import type { Status } from '@/components/ui/status-badge';
 
 interface ClientRow {
   id: string;
@@ -51,15 +54,16 @@ export function ClientsView({ initialClients, totalCount }: { initialClients: Cl
               className="pl-9"
             />
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-          >
-            <option value="all">Todos</option>
-            <option value="active">Ativos</option>
-            <option value="inactive">Inativos</option>
-          </select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[130px]" aria-label="Filtrar por status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="active">Ativos</SelectItem>
+              <SelectItem value="inactive">Inativos</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <Button onClick={() => { setEditingClient(null); setShowForm(true); }}>
           <Plus className="h-4 w-4 mr-1" /> Novo Cliente
@@ -82,8 +86,19 @@ export function ClientsView({ initialClients, totalCount }: { initialClients: Cl
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
-                      Nenhum cliente encontrado
+                    <td colSpan={5}>
+                      <EmptyState
+                        icon={<Users />}
+                        title="Nenhum cliente encontrado"
+                        description={search ? 'Tente ajustar os filtros de busca.' : 'Adicione seu primeiro cliente para comecar.'}
+                        action={
+                          !search ? (
+                            <Button size="sm" onClick={() => { setEditingClient(null); setShowForm(true); }}>
+                              <Plus className="h-4 w-4 mr-1" /> Novo Cliente
+                            </Button>
+                          ) : undefined
+                        }
+                      />
                     </td>
                   </tr>
                 ) : (
@@ -115,9 +130,7 @@ export function ClientsView({ initialClients, totalCount }: { initialClients: Cl
                         <span className="text-sm font-medium">{client.services_count}</span>
                       </td>
                       <td className="p-3 text-center">
-                        <Badge variant={client.status === 'active' ? 'success' : 'secondary'}>
-                          {client.status === 'active' ? 'Ativo' : 'Inativo'}
-                        </Badge>
+                        <StatusBadge status={client.status as Status} />
                       </td>
                     </tr>
                   ))
@@ -131,12 +144,14 @@ export function ClientsView({ initialClients, totalCount }: { initialClients: Cl
         </CardContent>
       </Card>
 
-      {showForm && (
-        <ClientFormDialog
-          client={editingClient}
-          onClose={() => { setShowForm(false); setEditingClient(null); }}
-        />
-      )}
+      <ClientFormDialog
+        client={editingClient}
+        open={showForm}
+        onOpenChange={(open) => {
+          setShowForm(open);
+          if (!open) setEditingClient(null);
+        }}
+      />
     </>
   );
 }

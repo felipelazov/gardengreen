@@ -5,11 +5,15 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/components/ui/toast';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface QuoteFormDialogProps {
   clients: { id: string; name: string; phone: string }[];
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 interface QuoteItem {
@@ -18,9 +22,10 @@ interface QuoteItem {
   unit_price: number;
 }
 
-export function QuoteFormDialog({ clients, onClose }: QuoteFormDialogProps) {
+export function QuoteFormDialog({ clients, open, onOpenChange }: QuoteFormDialogProps) {
   const router = useRouter();
   const supabase = createClient();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [clientId, setClientId] = useState('');
   const [notes, setNotes] = useState('');
@@ -64,29 +69,33 @@ export function QuoteFormDialog({ clients, onClose }: QuoteFormDialogProps) {
     });
 
     if (error) {
-      alert('Erro ao criar orcamento.');
+      toast('Erro ao criar orcamento.', 'error');
     } else {
+      toast('Orcamento criado com sucesso!', 'success');
       router.refresh();
-      onClose();
+      onOpenChange(false);
     }
     setLoading(false);
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-card rounded-xl shadow-xl w-full max-w-lg p-6 m-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">Novo Orcamento</h2>
-          <button onClick={onClose} className="p-1 hover:bg-muted rounded-lg"><X className="h-5 w-5" /></button>
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Novo Orcamento</DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm font-medium block mb-1">Cliente *</label>
-            <select value={clientId} onChange={(e) => setClientId(e.target.value)} required className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
-              <option value="">Selecione</option>
-              {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+            <label htmlFor="quote-client" className="text-sm font-medium block mb-1">Cliente *</label>
+            <Select value={clientId} onValueChange={setClientId}>
+              <SelectTrigger id="quote-client" aria-label="Cliente">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -116,21 +125,21 @@ export function QuoteFormDialog({ clients, onClose }: QuoteFormDialogProps) {
           </div>
 
           <div>
-            <label className="text-sm font-medium block mb-1">Validade (dias)</label>
-            <Input type="number" value={validDays} onChange={(e) => setValidDays(parseInt(e.target.value) || 30)} />
+            <label htmlFor="quote-valid-days" className="text-sm font-medium block mb-1">Validade (dias)</label>
+            <Input id="quote-valid-days" type="number" value={validDays} onChange={(e) => setValidDays(parseInt(e.target.value) || 30)} />
           </div>
 
           <div>
-            <label className="text-sm font-medium block mb-1">Observacoes</label>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[60px]" />
+            <label htmlFor="quote-notes" className="text-sm font-medium block mb-1">Observacoes</label>
+            <textarea id="quote-notes" value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[60px]" />
           </div>
 
           <div className="flex gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
             <Button type="submit" disabled={loading} className="flex-1">{loading ? 'Salvando...' : 'Criar Orcamento'}</Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

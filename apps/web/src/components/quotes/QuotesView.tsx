@@ -3,11 +3,14 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge, statusMap } from '@/components/ui/status-badge';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useToast } from '@/components/ui/toast';
 import { Plus, Send, Copy } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { QuoteFormDialog } from './QuoteFormDialog';
+import type { Status } from '@/components/ui/status-badge';
 
 interface Quote {
   id: string;
@@ -19,20 +22,23 @@ interface Quote {
   clients: { name: string; phone: string } | null;
 }
 
-const statusMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'success' | 'destructive' | 'warning' }> = {
-  draft: { label: 'Rascunho', variant: 'secondary' },
-  sent: { label: 'Enviado', variant: 'default' },
-  approved: { label: 'Aprovado', variant: 'success' },
-  rejected: { label: 'Rejeitado', variant: 'destructive' },
-  expired: { label: 'Expirado', variant: 'warning' },
+const filterLabels: Record<string, string> = {
+  all: 'Todos',
+  draft: 'Rascunho',
+  sent: 'Enviado',
+  approved: 'Aprovado',
+  rejected: 'Rejeitado',
 };
 
 export function QuotesView({ initialQuotes, totalCount, clients }: { initialQuotes: Quote[]; totalCount: number; clients: { id: string; name: string; phone: string }[] }) {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [batchPending, setBatchPending] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
+  const { toast } = useToast();
 
   const filtered = useMemo(() => {
     if (statusFilter === 'all') return initialQuotes;
@@ -62,19 +68,28 @@ export function QuotesView({ initialQuotes, totalCount, clients }: { initialQuot
       status: 'draft',
       valid_until: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
     });
+    toast('Orcamento duplicado!', 'success');
     router.refresh();
   }
 
-  async function batchAction(action: string) {
+  function requestBatchAction(action: string) {
     if (selectedIds.size === 0) return;
-    if (!confirm(`${action === 'delete' ? 'Excluir' : 'Atualizar'} ${selectedIds.size} orcamentos?`)) return;
+    setBatchPending(action);
+    setConfirmOpen(true);
+  }
+
+  async function executeBatchAction() {
+    if (!batchPending || selectedIds.size === 0) return;
     const ids = Array.from(selectedIds);
-    if (action === 'delete') {
+    if (batchPending === 'delete') {
       await supabase.from('quotes').delete().in('id', ids);
+      toast(`${ids.length} orcamento(s) excluido(s).`, 'success');
     } else {
-      await supabase.from('quotes').update({ status: action }).in('id', ids);
+      await supabase.from('quotes').update({ status: batchPending }).in('id', ids);
+      toast(`${ids.length} orcamento(s) atualizado(s).`, 'success');
     }
     setSelectedIds(new Set());
+    setBatchPending(null);
     router.refresh();
   }
 
@@ -90,15 +105,15 @@ export function QuotesView({ initialQuotes, totalCount, clients }: { initialQuot
                 statusFilter === s ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}
             >
-              {s === 'all' ? 'Todos' : statusMap[s]?.label ?? s}
+              {filterLabels[s] ?? s}
             </button>
           ))}
         </div>
         <div className="flex gap-2">
           {selectedIds.size > 0 && (
             <>
-              <Button variant="outline" size="sm" onClick={() => batchAction('approved')}>Aprovar ({selectedIds.size})</Button>
-              <Button variant="destructive" size="sm" onClick={() => batchAction('delete')}>Excluir ({selectedIds.size})</Button>
+              <Button variant="outline" size="sm" onClick={() => requestBatchAction('approved')}>Aprovar ({selectedIds.size})</Button>
+              <Button variant="destructive" size="sm" onClick={() => requestBatchAction('delete')}>Excluir ({selectedIds.size})</Button>
             </>
           )}
           <Button onClick={() => setShowForm(true)}>
@@ -128,7 +143,6 @@ export function QuotesView({ initialQuotes, totalCount, clients }: { initialQuot
                 {filtered.length === 0 ? (
                   <tr><td colSpan={6} className="text-center py-8 text-muted-foreground text-sm">Nenhum orcamento encontrado</td></tr>
                 ) : filtered.map((quote) => {
-                  const st = statusMap[quote.status] ?? { label: quote.status, variant: 'secondary' as const };
                   return (
                     <tr key={quote.id} className="border-b border-border hover:bg-muted/30 transition-colors">
                       <td className="p-3"><input type="checkbox" checked={selectedIds.has(quote.id)} onChange={() => toggleSelect(quote.id)} /></td>
@@ -137,7 +151,7 @@ export function QuotesView({ initialQuotes, totalCount, clients }: { initialQuot
                       <td className="p-3 text-right font-bold text-sm text-green-700">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(quote.total_amount)}
                       </td>
-                      <td className="p-3 text-center"><Badge variant={st.variant}>{st.label}</Badge></td>
+                      <td className="p-3 text-center"><StatusBadge status={quote.status as Status} /></td>
                       <td className="p-3 text-center">
                         <div className="flex gap-1 justify-center">
                           <button onClick={() => sendWhatsApp(quote)} className="p-1.5 hover:bg-muted rounded-lg" title="Enviar WhatsApp">
@@ -160,7 +174,23 @@ export function QuotesView({ initialQuotes, totalCount, clients }: { initialQuot
         </CardContent>
       </Card>
 
-      {showForm && <QuoteFormDialog clients={clients} onClose={() => { setShowForm(false); router.refresh(); }} />}
+      <QuoteFormDialog
+        clients={clients}
+        open={showForm}
+        onOpenChange={(open) => {
+          setShowForm(open);
+          if (!open) router.refresh();
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={batchPending === 'delete' ? 'Excluir orcamentos' : 'Atualizar orcamentos'}
+        description={`${batchPending === 'delete' ? 'Excluir' : 'Atualizar'} ${selectedIds.size} orcamento(s)?`}
+        variant={batchPending === 'delete' ? 'destructive' : 'default'}
+        onConfirm={executeBatchAction}
+      />
     </>
   );
 }

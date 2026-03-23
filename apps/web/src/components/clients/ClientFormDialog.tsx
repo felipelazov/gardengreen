@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/toast';
 
 interface ClientFormDialogProps {
   client: {
@@ -17,12 +18,14 @@ interface ClientFormDialogProps {
     neighborhood: string | null;
     city: string | null;
   } | null;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export function ClientFormDialog({ client, onClose }: ClientFormDialogProps) {
+export function ClientFormDialog({ client, open, onOpenChange }: ClientFormDialogProps) {
   const router = useRouter();
   const supabase = createClient();
+  const { toast } = useToast();
   const isEdit = !!client;
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
@@ -48,55 +51,53 @@ export function ClientFormDialog({ client, onClose }: ClientFormDialogProps) {
     }
 
     setLoading(false);
-    onClose();
+    toast(isEdit ? 'Cliente atualizado com sucesso!' : 'Cliente criado com sucesso!', 'success');
+    onOpenChange(false);
     router.refresh();
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-card rounded-xl shadow-xl w-full max-w-md p-6 m-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">{isEdit ? 'Editar Cliente' : 'Novo Cliente'}</h2>
-          <button onClick={onClose} className="p-1 hover:bg-muted rounded-lg">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{isEdit ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
+        </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="text-sm font-medium block mb-1">Nome *</label>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            <label htmlFor="client-name" className="text-sm font-medium block mb-1">Nome *</label>
+            <Input id="client-name" aria-label="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1">Telefone *</label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
+            <label htmlFor="client-phone" className="text-sm font-medium block mb-1">Telefone *</label>
+            <Input id="client-phone" aria-label="Telefone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1">Email</label>
-            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <label htmlFor="client-email" className="text-sm font-medium block mb-1">Email</label>
+            <Input id="client-email" aria-label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1">Endereco</label>
-            <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+            <label htmlFor="client-address" className="text-sm font-medium block mb-1">Endereco</label>
+            <Input id="client-address" aria-label="Endereco" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-medium block mb-1">Bairro</label>
-              <Input value={form.neighborhood} onChange={(e) => setForm({ ...form, neighborhood: e.target.value })} />
+              <label htmlFor="client-neighborhood" className="text-sm font-medium block mb-1">Bairro</label>
+              <Input id="client-neighborhood" aria-label="Bairro" value={form.neighborhood} onChange={(e) => setForm({ ...form, neighborhood: e.target.value })} />
             </div>
             <div>
-              <label className="text-sm font-medium block mb-1">Cidade</label>
-              <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+              <label htmlFor="client-city" className="text-sm font-medium block mb-1">Cidade</label>
+              <Input id="client-city" aria-label="Cidade" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
             </div>
           </div>
           <div className="flex gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
             <Button type="submit" disabled={loading} className="flex-1">
               {loading ? 'Salvando...' : isEdit ? 'Salvar' : 'Criar'}
             </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

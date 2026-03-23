@@ -5,11 +5,18 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/toast';
 
-export function InviteMemberDialog({ onClose }: { onClose: () => void }) {
+interface InviteMemberDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function InviteMemberDialog({ open, onOpenChange }: InviteMemberDialogProps) {
   const router = useRouter();
   const supabase = createClient();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: '', phone: '', email: '' });
 
@@ -21,49 +28,53 @@ export function InviteMemberDialog({ onClose }: { onClose: () => void }) {
     const { data: profile } = await supabase.from('users').select('team_id').eq('id', user!.id).single();
 
     if (!profile?.team_id) {
-      alert('Erro: equipe nao encontrada.');
+      toast('Erro: equipe nao encontrada.', 'error');
       setLoading(false);
       return;
     }
 
-    await supabase.from('team_members').insert({
+    const { error } = await supabase.from('team_members').insert({
       team_id: profile.team_id,
       user_id: user!.id, // placeholder — in production, would create invite flow
       role: 'member',
       status: 'invited',
     });
 
-    router.refresh();
-    onClose();
+    if (error) {
+      toast('Erro ao convidar membro.', 'error');
+    } else {
+      toast('Convite enviado com sucesso!', 'success');
+      router.refresh();
+      onOpenChange(false);
+    }
     setLoading(false);
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-card rounded-xl shadow-xl w-full max-w-sm p-6 m-4" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold">Convidar Membro</h2>
-          <button onClick={onClose} className="p-1 hover:bg-muted rounded-lg"><X className="h-5 w-5" /></button>
-        </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Convidar Membro</DialogTitle>
+        </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="text-sm font-medium block mb-1">Nome *</label>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            <label htmlFor="member-name" className="text-sm font-medium block mb-1">Nome *</label>
+            <Input id="member-name" aria-label="Nome" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1">Telefone *</label>
-            <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
+            <label htmlFor="member-phone" className="text-sm font-medium block mb-1">Telefone *</label>
+            <Input id="member-phone" aria-label="Telefone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
           </div>
           <div>
-            <label className="text-sm font-medium block mb-1">Email</label>
-            <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            <label htmlFor="member-email" className="text-sm font-medium block mb-1">Email</label>
+            <Input id="member-email" aria-label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
           <div className="flex gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">Cancelar</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
             <Button type="submit" disabled={loading} className="flex-1">{loading ? 'Enviando...' : 'Convidar'}</Button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
