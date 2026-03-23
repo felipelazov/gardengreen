@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
 
@@ -70,7 +71,7 @@ export function ClientFormDialog({ client, open, onOpenChange }: ClientFormDialo
           </div>
           <div>
             <label htmlFor="client-phone" className="text-sm font-medium block mb-1">Telefone *</label>
-            <Input id="client-phone" aria-label="Telefone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
+            <PhoneInput id="client-phone" aria-label="Telefone" value={form.phone} onValueChange={(raw) => setForm({ ...form, phone: raw })} required />
           </div>
           <div>
             <label htmlFor="client-email" className="text-sm font-medium block mb-1">Email</label>

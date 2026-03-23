@@ -11,8 +11,8 @@ function Nav() {
           </span>
         </div>
 
-        {/* Links desktop */}
-        <div className="flex items-center gap-8">
+        {/* Desktop links */}
+        <div className="hidden md:flex items-center gap-8">
           {['Funcionalidades', 'Preços', 'Depoimentos'].map((item) => (
             <a
               key={item}
@@ -34,6 +34,11 @@ function Nav() {
           >
             Começar grátis
           </a>
+        </div>
+        {/* Mobile CTAs */}
+        <div className="flex md:hidden items-center gap-3">
+          <a href="/login" className="text-primary-dark no-underline text-sm font-semibold">Entrar</a>
+          <a href="/login" className="bg-primary text-primary-foreground px-4 py-2 rounded-lg no-underline text-sm font-bold">Começar</a>
         </div>
       </div>
     </nav>
@@ -159,23 +164,23 @@ function ProblemSection() {
   ];
 
   return (
-    <section className="bg-[#FEF9C3] py-20 px-6 text-center">
+    <section className="bg-[var(--color-problem-bg)] py-20 px-6 text-center">
       <div className="max-w-[860px] mx-auto">
-        <div className="inline-block bg-[#FEF08A] border border-[#EAB308] rounded-lg px-3.5 py-1 text-[13px] font-bold text-[#713F12] mb-5 tracking-wide">
+        <div className="inline-block bg-[var(--color-problem-badge-bg)] border border-[var(--color-problem-badge-border)] rounded-lg px-3.5 py-1 text-[13px] font-bold text-[var(--color-problem-badge-text)] mb-5 tracking-wide">
           Você se identifica?
         </div>
 
         <h2
-          className="font-black text-[#1C1917] mb-4 tracking-tight"
+          className="font-black text-[var(--color-problem-text)] mb-4 tracking-tight"
           style={{ fontSize: 'clamp(26px, 4vw, 42px)' }}
         >
           Ainda gerencia seus clientes <br />
-          <span className="text-[#CA8A04]">pelo WhatsApp?</span>
+          <span className="text-[var(--color-problem-highlight)]">pelo WhatsApp?</span>
         </h2>
 
-        <p className="text-[#57534E] text-[17px] mx-auto mb-14 max-w-[540px] leading-relaxed">
+        <p className="text-[var(--color-problem-subtext)] text-[17px] mx-auto mb-14 max-w-[540px] leading-relaxed">
           Jardineiros que não usam um app perdem em média{' '}
-          <strong className="text-[#B45309]">R$3.600 por ano</strong> em serviços
+          <strong className="text-[var(--color-problem-strong)]">R$3.600 por ano</strong> em serviços
           esquecidos e clientes sem retorno.
         </p>
 
@@ -183,11 +188,11 @@ function ProblemSection() {
           {pains.map((p) => (
             <div
               key={p.title}
-              className="bg-white border border-[#FDE68A] rounded-2xl py-8 px-6 text-center shadow-[0_4px_16px_rgba(234,179,8,0.08)]"
+              className="bg-[var(--color-problem-card)] border border-[var(--color-problem-border)] rounded-2xl py-8 px-6 text-center shadow-[0_4px_16px_rgba(234,179,8,0.08)]"
             >
               <div className="text-[44px] mb-4">{p.emoji}</div>
-              <div className="font-extrabold text-lg text-[#1C1917] mb-2.5">{p.title}</div>
-              <div className="text-[#57534E] text-sm leading-relaxed">{p.desc}</div>
+              <div className="font-extrabold text-lg text-[var(--color-problem-text)] mb-2.5">{p.title}</div>
+              <div className="text-[var(--color-problem-subtext)] text-sm leading-relaxed">{p.desc}</div>
             </div>
           ))}
         </div>
@@ -568,13 +573,18 @@ function Footer() {
               <div className="font-bold text-white text-[13px] mb-4 uppercase tracking-wide">
                 Produto
               </div>
-              {['Funcionalidades', 'Preços', 'Atualizações', 'Roadmap'].map((link) => (
+              {[
+                { label: 'Funcionalidades', href: '#funcionalidades' },
+                { label: 'Preços', href: '#precos' },
+                { label: 'Atualizações', href: '#' },
+                { label: 'Roadmap', href: '#' },
+              ].map((link) => (
                 <a
-                  key={link}
-                  href="#"
+                  key={link.label}
+                  href={link.href}
                   className="block text-white/55 no-underline text-sm mb-2.5"
                 >
-                  {link}
+                  {link.label}
                 </a>
               ))}
             </div>
@@ -582,13 +592,18 @@ function Footer() {
               <div className="font-bold text-white text-[13px] mb-4 uppercase tracking-wide">
                 Legal
               </div>
-              {['Sobre nós', 'Privacidade', 'Termos de uso', 'Contato'].map((link) => (
+              {[
+                { label: 'Sobre nós', href: '#' },
+                { label: 'Privacidade', href: '#' },
+                { label: 'Termos de uso', href: '#' },
+                { label: 'Contato', href: 'mailto:contato@gardengreen.com.br' },
+              ].map((link) => (
                 <a
-                  key={link}
-                  href="#"
+                  key={link.label}
+                  href={link.href}
                   className="block text-white/55 no-underline text-sm mb-2.5"
                 >
-                  {link}
+                  {link.label}
                 </a>
               ))}
             </div>

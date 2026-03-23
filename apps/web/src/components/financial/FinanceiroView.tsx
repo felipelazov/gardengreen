@@ -123,11 +123,11 @@ export function FinanceiroView({ services, expenses }: { services: ServiceRow[];
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(v) => formatBRL(Number(v))} />
-                <Legend />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <XAxis dataKey="month" tick={{ fill: 'var(--color-muted-foreground)' }} stroke="var(--color-border)" />
+                <YAxis tick={{ fill: 'var(--color-muted-foreground)' }} stroke="var(--color-border)" />
+                <Tooltip formatter={(v) => formatBRL(Number(v))} contentStyle={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-foreground)' }} />
+                <Legend wrapperStyle={{ color: 'var(--color-foreground)' }} />
                 <Bar dataKey="receita" name="Receita" fill="#16A34A" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="despesa" name="Despesa" fill="#ef4444" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -143,7 +143,7 @@ export function FinanceiroView({ services, expenses }: { services: ServiceRow[];
                 <Pie data={byType} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name }) => name}>
                   {byType.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
-                <Tooltip formatter={(v) => formatBRL(Number(v))} />
+                <Tooltip formatter={(v) => formatBRL(Number(v))} contentStyle={{ backgroundColor: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-foreground)' }} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -193,7 +193,7 @@ export function FinanceiroView({ services, expenses }: { services: ServiceRow[];
                     <td className="p-3 text-sm">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
                     <td className="p-3"><Badge variant={t.type === 'receita' ? 'success' : 'destructive'}>{t.type === 'receita' ? 'Receita' : 'Despesa'}</Badge></td>
                     <td className="p-3 text-sm truncate max-w-[250px]">{t.desc}</td>
-                    <td className={`p-3 text-right font-bold text-sm ${t.type === 'receita' ? 'text-green-700' : 'text-red-600'}`}>
+                    <td className={`p-3 text-right font-bold text-sm ${t.type === 'receita' ? 'text-green-600' : 'text-red-500'}`}>
                       {t.type === 'despesa' ? '- ' : ''}{formatBRL(t.amount)}
                     </td>
                   </tr>
