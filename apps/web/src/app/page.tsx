@@ -1,105 +1,36 @@
-// ─── Shared style tokens ───────────────────────────────────────────────────
-const colors = {
-  primary: '#16A34A',
-  dark: '#166534',
-  darker: '#14532D',
-  light: '#F0FDF4',
-  lightMid: '#DCFCE7',
-  amber: '#F59E0B',
-  amberDark: '#D97706',
-  text: '#1C1917',
-  textMuted: '#57534E',
-  textLight: '#A8A29E',
-  white: '#FFFFFF',
-  cardBg: '#FFFFFF',
-  border: '#E7E5E4',
-};
-
 // ─── Nav ───────────────────────────────────────────────────────────────────
 function Nav() {
   return (
-    <nav
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        background: 'rgba(255,255,255,0.95)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: `1px solid ${colors.border}`,
-        padding: '0 24px',
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1140,
-          margin: '0 auto',
-          height: 64,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
+    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border px-6">
+      <div className="max-w-[1140px] mx-auto h-16 flex items-center justify-between">
         {/* Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 28 }}>🌱</span>
-          <span
-            style={{
-              fontWeight: 800,
-              fontSize: 20,
-              color: colors.dark,
-              letterSpacing: '-0.5px',
-            }}
-          >
+        <div className="flex items-center gap-2.5">
+          <span className="text-[28px]">🌱</span>
+          <span className="font-extrabold text-xl text-primary-dark tracking-tight">
             GardenGreen
           </span>
         </div>
 
         {/* Links desktop */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 32,
-          }}
-        >
+        <div className="flex items-center gap-8">
           {['Funcionalidades', 'Preços', 'Depoimentos'].map((item) => (
             <a
               key={item}
               href={`#${item.toLowerCase()}`}
-              style={{
-                color: colors.textMuted,
-                textDecoration: 'none',
-                fontSize: 15,
-                fontWeight: 500,
-                transition: 'color 0.2s',
-              }}
+              className="text-muted-foreground no-underline text-[15px] font-medium transition-colors hover:text-foreground"
             >
               {item}
             </a>
           ))}
           <a
             href="/login"
-            style={{
-              color: colors.dark,
-              textDecoration: 'none',
-              fontSize: 15,
-              fontWeight: 600,
-            }}
+            className="text-primary-dark no-underline text-[15px] font-semibold"
           >
             Entrar
           </a>
           <a
             href="/login"
-            style={{
-              background: colors.primary,
-              color: colors.white,
-              padding: '10px 20px',
-              borderRadius: 10,
-              textDecoration: 'none',
-              fontSize: 14,
-              fontWeight: 700,
-              letterSpacing: '-0.2px',
-            }}
+            className="bg-primary text-primary-foreground px-5 py-2.5 rounded-[10px] no-underline text-sm font-bold tracking-tight"
           >
             Começar grátis
           </a>
@@ -114,181 +45,75 @@ function Hero() {
   return (
     <section
       id="download"
-      style={{
-        background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.darker} 100%)`,
-        color: colors.white,
-        padding: '100px 24px 80px',
-        textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
+      className="bg-linear-to-br from-primary to-primary-darker text-white py-24 pb-20 px-6 text-center relative overflow-hidden"
     >
       {/* Decorative blobs */}
       <div
         aria-hidden
-        style={{
-          position: 'absolute',
-          top: -120,
-          right: -120,
-          width: 400,
-          height: 400,
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,0.05)',
-          pointerEvents: 'none',
-        }}
+        className="absolute -top-[120px] -right-[120px] w-[400px] h-[400px] rounded-full bg-white/5 pointer-events-none"
       />
       <div
         aria-hidden
-        style={{
-          position: 'absolute',
-          bottom: -80,
-          left: -80,
-          width: 280,
-          height: 280,
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,0.05)',
-          pointerEvents: 'none',
-        }}
+        className="absolute -bottom-[80px] -left-[80px] w-[280px] h-[280px] rounded-full bg-white/5 pointer-events-none"
       />
 
-      <div style={{ position: 'relative', maxWidth: 780, margin: '0 auto' }}>
+      <div className="relative max-w-[780px] mx-auto">
         {/* Badge */}
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            background: 'rgba(255,255,255,0.15)',
-            border: '1px solid rgba(255,255,255,0.25)',
-            borderRadius: 100,
-            padding: '6px 16px',
-            marginBottom: 32,
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase',
-          }}
-        >
+        <div className="inline-flex items-center gap-2 bg-white/15 border border-white/25 rounded-full px-4 py-1.5 mb-8 text-[13px] font-semibold tracking-wide uppercase">
           <span>🌱</span>
           <span>Feito para o jardineiro brasileiro</span>
         </div>
 
         <h1
-          style={{
-            fontSize: 'clamp(36px, 6vw, 68px)',
-            fontWeight: 900,
-            lineHeight: 1.08,
-            margin: '0 0 24px',
-            letterSpacing: '-2px',
-          }}
+          className="font-black leading-[1.08] mb-6 tracking-[-2px]"
+          style={{ fontSize: 'clamp(36px, 6vw, 68px)' }}
         >
           O app do
           <br />
-          <span style={{ color: colors.amber }}>jardineiro</span> brasileiro
+          <span className="text-amber">jardineiro</span> brasileiro
         </h1>
 
         <p
-          style={{
-            fontSize: 'clamp(16px, 2.5vw, 22px)',
-            opacity: 0.88,
-            lineHeight: 1.6,
-            margin: '0 auto 48px',
-            maxWidth: 580,
-            fontWeight: 400,
-          }}
+          className="opacity-[0.88] leading-relaxed mx-auto mb-12 max-w-[580px] font-normal"
+          style={{ fontSize: 'clamp(16px, 2.5vw, 22px)' }}
         >
           Agenda, clientes, orçamentos e cobrança PIX —<br />
-          tudo no celular, em <strong style={{ color: colors.amber }}>3 toques</strong>
+          tudo no celular, em <strong className="text-amber">3 toques</strong>
         </p>
 
         {/* CTA Buttons */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 16,
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-            marginBottom: 64,
-          }}
-        >
+        <div className="flex gap-4 justify-center flex-wrap mb-16">
           <a
             href="#"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              background: '#1B1B1B',
-              color: colors.white,
-              padding: '14px 24px',
-              borderRadius: 14,
-              textDecoration: 'none',
-              fontWeight: 700,
-              fontSize: 15,
-              border: '1px solid rgba(255,255,255,0.15)',
-            }}
+            className="flex items-center gap-3 bg-[#1B1B1B] text-white px-6 py-3.5 rounded-[14px] no-underline font-bold text-[15px] border border-white/15"
           >
-            <span style={{ fontSize: 24 }}>▶</span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: 10, opacity: 0.7, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+            <span className="text-2xl">▶</span>
+            <div className="text-left">
+              <div className="text-[10px] opacity-70 tracking-wide uppercase">
                 Disponível no
               </div>
-              <div style={{ fontSize: 16, fontWeight: 800 }}>Google Play</div>
+              <div className="text-base font-extrabold">Google Play</div>
             </div>
           </a>
           <a
             href="#"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              background: '#1B1B1B',
-              color: colors.white,
-              padding: '14px 24px',
-              borderRadius: 14,
-              textDecoration: 'none',
-              fontWeight: 700,
-              fontSize: 15,
-              border: '1px solid rgba(255,255,255,0.15)',
-            }}
+            className="flex items-center gap-3 bg-[#1B1B1B] text-white px-6 py-3.5 rounded-[14px] no-underline font-bold text-[15px] border border-white/15"
           >
-            <span style={{ fontSize: 24 }}>🍎</span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: 10, opacity: 0.7, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+            <span className="text-2xl">🍎</span>
+            <div className="text-left">
+              <div className="text-[10px] opacity-70 tracking-wide uppercase">
                 Baixe na
               </div>
-              <div style={{ fontSize: 16, fontWeight: 800 }}>App Store</div>
+              <div className="text-base font-extrabold">App Store</div>
             </div>
           </a>
         </div>
 
         {/* Phone Mockup */}
-        <div
-          style={{
-            margin: '0 auto',
-            width: 220,
-            height: 420,
-            border: '3px solid rgba(255,255,255,0.35)',
-            borderRadius: 36,
-            background: 'rgba(255,255,255,0.08)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 16,
-            backdropFilter: 'blur(4px)',
-            boxShadow: '0 40px 80px rgba(0,0,0,0.3)',
-          }}
-        >
-          <div
-            style={{
-              width: 60,
-              height: 6,
-              borderRadius: 3,
-              background: 'rgba(255,255,255,0.3)',
-            }}
-          />
-          <span style={{ fontSize: 48 }}>🌿</span>
-          <div style={{ textAlign: 'center', opacity: 0.7, fontSize: 13, padding: '0 20px' }}>
+        <div className="mx-auto w-[220px] h-[420px] border-[3px] border-white/35 rounded-[36px] bg-white/[0.08] flex flex-col items-center justify-center gap-4 backdrop-blur-sm shadow-[0_40px_80px_rgba(0,0,0,0.3)]">
+          <div className="w-[60px] h-1.5 rounded-full bg-white/30" />
+          <span className="text-5xl">🌿</span>
+          <div className="text-center opacity-70 text-[13px] px-5">
             App screenshot
             <br />
             (em breve)
@@ -296,25 +121,15 @@ function Hero() {
         </div>
 
         {/* Stats row */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 40,
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-            marginTop: 64,
-            paddingTop: 40,
-            borderTop: '1px solid rgba(255,255,255,0.15)',
-          }}
-        >
+        <div className="flex gap-10 justify-center flex-wrap mt-16 pt-10 border-t border-white/15">
           {[
             { value: '14 dias', label: 'grátis pra testar' },
             { value: '3 toques', label: 'pra cobrar no PIX' },
             { value: '100%', label: 'offline no jardim' },
           ].map((stat) => (
-            <div key={stat.label} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 28, fontWeight: 900, color: colors.amber }}>{stat.value}</div>
-              <div style={{ fontSize: 13, opacity: 0.7, marginTop: 4 }}>{stat.label}</div>
+            <div key={stat.label} className="text-center">
+              <div className="text-[28px] font-black text-amber">{stat.value}</div>
+              <div className="text-[13px] opacity-70 mt-1">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -344,98 +159,43 @@ function ProblemSection() {
   ];
 
   return (
-    <section
-      style={{
-        background: '#FEF9C3',
-        padding: '80px 24px',
-        textAlign: 'center',
-      }}
-    >
-      <div style={{ maxWidth: 860, margin: '0 auto' }}>
-        <div
-          style={{
-            display: 'inline-block',
-            background: '#FEF08A',
-            border: '1px solid #EAB308',
-            borderRadius: 8,
-            padding: '4px 14px',
-            fontSize: 13,
-            fontWeight: 700,
-            color: '#713F12',
-            marginBottom: 20,
-            letterSpacing: '0.3px',
-          }}
-        >
+    <section className="bg-[#FEF9C3] py-20 px-6 text-center">
+      <div className="max-w-[860px] mx-auto">
+        <div className="inline-block bg-[#FEF08A] border border-[#EAB308] rounded-lg px-3.5 py-1 text-[13px] font-bold text-[#713F12] mb-5 tracking-wide">
           Você se identifica?
         </div>
 
         <h2
-          style={{
-            fontSize: 'clamp(26px, 4vw, 42px)',
-            fontWeight: 900,
-            color: colors.text,
-            margin: '0 0 16px',
-            letterSpacing: '-1px',
-          }}
+          className="font-black text-[#1C1917] mb-4 tracking-tight"
+          style={{ fontSize: 'clamp(26px, 4vw, 42px)' }}
         >
           Ainda gerencia seus clientes <br />
-          <span style={{ color: '#CA8A04' }}>pelo WhatsApp?</span>
+          <span className="text-[#CA8A04]">pelo WhatsApp?</span>
         </h2>
 
-        <p
-          style={{
-            color: colors.textMuted,
-            fontSize: 17,
-            margin: '0 auto 56px',
-            maxWidth: 540,
-            lineHeight: 1.6,
-          }}
-        >
-          Jardineiros que não usam um app perdem em média <strong style={{ color: '#B45309' }}>R$3.600 por ano</strong>{' '}
-          em serviços esquecidos e clientes sem retorno.
+        <p className="text-[#57534E] text-[17px] mx-auto mb-14 max-w-[540px] leading-relaxed">
+          Jardineiros que não usam um app perdem em média{' '}
+          <strong className="text-[#B45309]">R$3.600 por ano</strong> em serviços
+          esquecidos e clientes sem retorno.
         </p>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 24,
-          }}
-        >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
           {pains.map((p) => (
             <div
               key={p.title}
-              style={{
-                background: colors.white,
-                border: '1px solid #FDE68A',
-                borderRadius: 16,
-                padding: '32px 24px',
-                textAlign: 'center',
-                boxShadow: '0 4px 16px rgba(234,179,8,0.08)',
-              }}
+              className="bg-white border border-[#FDE68A] rounded-2xl py-8 px-6 text-center shadow-[0_4px_16px_rgba(234,179,8,0.08)]"
             >
-              <div style={{ fontSize: 44, marginBottom: 16 }}>{p.emoji}</div>
-              <div style={{ fontWeight: 800, fontSize: 18, color: colors.text, marginBottom: 10 }}>{p.title}</div>
-              <div style={{ color: colors.textMuted, fontSize: 14, lineHeight: 1.6 }}>{p.desc}</div>
+              <div className="text-[44px] mb-4">{p.emoji}</div>
+              <div className="font-extrabold text-lg text-[#1C1917] mb-2.5">{p.title}</div>
+              <div className="text-[#57534E] text-sm leading-relaxed">{p.desc}</div>
             </div>
           ))}
         </div>
 
         {/* Arrow / transition */}
-        <div
-          style={{
-            marginTop: 56,
-            fontSize: 14,
-            fontWeight: 700,
-            color: colors.primary,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-          }}
-        >
+        <div className="mt-14 text-sm font-bold text-primary flex items-center justify-center gap-2">
           <span>Existe uma solução mais simples</span>
-          <span style={{ fontSize: 20 }}>↓</span>
+          <span className="text-xl">↓</span>
         </div>
       </div>
     </section>
@@ -478,106 +238,43 @@ function FeaturesSection() {
   ];
 
   return (
-    <section
-      id="funcionalidades"
-      style={{
-        background: colors.light,
-        padding: '100px 24px',
-      }}
-    >
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <div
-            style={{
-              display: 'inline-block',
-              background: colors.lightMid,
-              border: `1px solid ${colors.primary}33`,
-              borderRadius: 8,
-              padding: '4px 14px',
-              fontSize: 13,
-              fontWeight: 700,
-              color: colors.dark,
-              marginBottom: 20,
-            }}
-          >
+    <section id="funcionalidades" className="bg-primary-light py-24 px-6">
+      <div className="max-w-[1100px] mx-auto">
+        <div className="text-center mb-16">
+          <div className="inline-block bg-primary-light-mid border border-primary/20 rounded-lg px-3.5 py-1 text-[13px] font-bold text-primary-dark mb-5">
             Funcionalidades
           </div>
           <h2
-            style={{
-              fontSize: 'clamp(28px, 4vw, 44px)',
-              fontWeight: 900,
-              color: colors.text,
-              margin: '0 0 16px',
-              letterSpacing: '-1px',
-            }}
+            className="font-black text-foreground mb-4 tracking-tight"
+            style={{ fontSize: 'clamp(28px, 4vw, 44px)' }}
           >
             Tudo que você precisa,
             <br />
-            <span style={{ color: colors.primary }}>sem complicação</span>
+            <span className="text-primary">sem complicação</span>
           </h2>
-          <p
-            style={{
-              color: colors.textMuted,
-              fontSize: 17,
-              maxWidth: 480,
-              margin: '0 auto',
-              lineHeight: 1.6,
-            }}
-          >
+          <p className="text-muted-foreground text-[17px] max-w-[480px] mx-auto leading-relaxed">
             Desenvolvido pensando em quem trabalha com as mãos na terra e o celular no bolso.
           </p>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: 24,
-          }}
-        >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-6">
           {features.map((f, i) => (
             <div
               key={f.title}
-              style={{
-                background: colors.white,
-                border: `1px solid ${colors.border}`,
-                borderRadius: 20,
-                padding: '36px 28px',
-                display: 'flex',
-                gap: 20,
-                alignItems: 'flex-start',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-              }}
+              className="bg-card border border-border rounded-[20px] py-9 px-7 flex gap-5 items-start shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-transform hover:-translate-y-0.5"
             >
               <div
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 14,
-                  background: i % 2 === 0 ? colors.light : colors.lightMid,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: 26,
-                  flexShrink: 0,
-                }}
+                className={`w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-[26px] shrink-0 ${
+                  i % 2 === 0 ? 'bg-primary-light' : 'bg-primary-light-mid'
+                }`}
               >
                 {f.emoji}
               </div>
               <div>
-                <div
-                  style={{
-                    fontWeight: 800,
-                    fontSize: 17,
-                    color: colors.text,
-                    marginBottom: 8,
-                    letterSpacing: '-0.3px',
-                  }}
-                >
+                <div className="font-extrabold text-[17px] text-card-foreground mb-2 tracking-tight">
                   {f.title}
                 </div>
-                <div style={{ color: colors.textMuted, fontSize: 14, lineHeight: 1.65 }}>{f.desc}</div>
+                <div className="text-muted-foreground text-sm leading-relaxed">{f.desc}</div>
               </div>
             </div>
           ))}
@@ -595,9 +292,6 @@ function PricingSection() {
       price: 'R$0',
       period: '14 dias',
       sub: 'Sem cartão de crédito',
-      color: colors.textMuted,
-      bg: colors.white,
-      border: colors.border,
       features: [
         '✓ Agenda de clientes',
         '✓ Cobrança PIX',
@@ -608,18 +302,14 @@ function PricingSection() {
       ],
       cta: 'Começar grátis',
       ctaHref: '/login',
-      ctaBg: colors.light,
-      ctaColor: colors.dark,
       highlight: false,
+      variant: 'free' as const,
     },
     {
       name: 'Solo',
       price: 'R$39',
       period: '/mês',
       sub: 'Ou R$390/ano (2 meses grátis)',
-      color: colors.white,
-      bg: colors.primary,
-      border: colors.primary,
       features: [
         '✓ Tudo do Grátis',
         '✓ Orçamentos ilimitados',
@@ -630,18 +320,14 @@ function PricingSection() {
       ],
       cta: 'Assinar Solo',
       ctaHref: '/login',
-      ctaBg: colors.white,
-      ctaColor: colors.primary,
       highlight: true,
+      variant: 'solo' as const,
     },
     {
       name: 'Equipe',
       price: 'R$99',
       period: '/mês',
       sub: 'Até 5 membros da equipe',
-      color: colors.text,
-      bg: colors.white,
-      border: colors.border,
       features: [
         '✓ Tudo do Solo',
         '✓ Até 5 membros',
@@ -652,115 +338,59 @@ function PricingSection() {
       ],
       cta: 'Assinar Equipe',
       ctaHref: '/login',
-      ctaBg: colors.dark,
-      ctaColor: colors.white,
       highlight: false,
+      variant: 'team' as const,
     },
   ];
 
   return (
-    <section
-      id="precos"
-      style={{
-        background: colors.white,
-        padding: '100px 24px',
-      }}
-    >
-      <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <div
-            style={{
-              display: 'inline-block',
-              background: colors.lightMid,
-              border: `1px solid ${colors.primary}33`,
-              borderRadius: 8,
-              padding: '4px 14px',
-              fontSize: 13,
-              fontWeight: 700,
-              color: colors.dark,
-              marginBottom: 20,
-            }}
-          >
+    <section id="precos" className="bg-background py-24 px-6">
+      <div className="max-w-[1000px] mx-auto">
+        <div className="text-center mb-16">
+          <div className="inline-block bg-primary-light-mid border border-primary/20 rounded-lg px-3.5 py-1 text-[13px] font-bold text-primary-dark mb-5">
             Preços
           </div>
           <h2
-            style={{
-              fontSize: 'clamp(28px, 4vw, 44px)',
-              fontWeight: 900,
-              color: colors.text,
-              margin: '0 0 16px',
-              letterSpacing: '-1px',
-            }}
+            className="font-black text-foreground mb-4 tracking-tight"
+            style={{ fontSize: 'clamp(28px, 4vw, 44px)' }}
           >
             Simples. Justo. Sem pegadinha.
           </h2>
-          <p style={{ color: colors.textMuted, fontSize: 17, maxWidth: 440, margin: '0 auto', lineHeight: 1.6 }}>
+          <p className="text-muted-foreground text-[17px] max-w-[440px] mx-auto leading-relaxed">
             Comece grátis por 14 dias. Cancele quando quiser, sem burocracia.
           </p>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-            gap: 24,
-            alignItems: 'stretch',
-          }}
-        >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-6 items-stretch">
           {plans.map((plan) => (
             <div
               key={plan.name}
-              style={{
-                background: plan.bg,
-                border: `2px solid ${plan.border}`,
-                borderRadius: 24,
-                padding: '40px 32px',
-                display: 'flex',
-                flexDirection: 'column',
-                color: plan.color,
-                boxShadow: plan.highlight ? '0 20px 60px rgba(22,163,74,0.25)' : '0 2px 12px rgba(0,0,0,0.04)',
-                transform: plan.highlight ? 'scale(1.04)' : 'scale(1)',
-                position: 'relative',
-              }}
+              className={`rounded-3xl p-10 flex flex-col relative ${
+                plan.variant === 'solo'
+                  ? 'bg-primary text-white border-2 border-primary shadow-[0_20px_60px_rgba(22,163,74,0.25)] scale-[1.04]'
+                  : 'bg-card text-card-foreground border-2 border-border shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
+              }`}
             >
               {plan.highlight && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: -14,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: colors.amber,
-                    color: '#7C2D12',
-                    fontSize: 12,
-                    fontWeight: 800,
-                    padding: '4px 16px',
-                    borderRadius: 100,
-                    whiteSpace: 'nowrap',
-                    letterSpacing: '0.5px',
-                    textTransform: 'uppercase',
-                  }}
-                >
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber text-[#7C2D12] text-xs font-extrabold px-4 py-1 rounded-full whitespace-nowrap tracking-wide uppercase">
                   Mais popular
                 </div>
               )}
 
-              <div style={{ marginBottom: 8, fontSize: 15, fontWeight: 700, opacity: 0.8 }}>{plan.name}</div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, marginBottom: 4 }}>
-                <span style={{ fontSize: 44, fontWeight: 900, letterSpacing: '-2px' }}>{plan.price}</span>
-                <span style={{ fontSize: 16, opacity: 0.75 }}>{plan.period}</span>
+              <div className="mb-2 text-[15px] font-bold opacity-80">{plan.name}</div>
+              <div className="flex items-baseline gap-1 mb-1">
+                <span className="text-[44px] font-black tracking-[-2px]">{plan.price}</span>
+                <span className="text-base opacity-75">{plan.period}</span>
               </div>
-              <div style={{ fontSize: 13, opacity: 0.65, marginBottom: 32 }}>{plan.sub}</div>
+              <div className="text-[13px] opacity-65 mb-8">{plan.sub}</div>
 
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 32 }}>
+              <div className="flex-1 flex flex-col gap-3 mb-8">
                 {plan.features.map((feat) => (
                   <div
                     key={feat}
-                    style={{
-                      fontSize: 14,
-                      opacity: feat.startsWith('—') ? 0.4 : 1,
-                      fontWeight: feat.startsWith('✓') ? 500 : 400,
-                    }}
+                    className={`text-sm ${
+                      feat.startsWith('—') ? 'opacity-40 font-normal' : 'opacity-100 font-medium'
+                    }`}
                   >
                     {feat}
                   </div>
@@ -769,18 +399,13 @@ function PricingSection() {
 
               <a
                 href={plan.ctaHref}
-                style={{
-                  display: 'block',
-                  background: plan.ctaBg,
-                  color: plan.ctaColor,
-                  textAlign: 'center',
-                  padding: '14px',
-                  borderRadius: 12,
-                  textDecoration: 'none',
-                  fontWeight: 800,
-                  fontSize: 15,
-                  border: plan.highlight ? 'none' : `1px solid ${colors.border}`,
-                }}
+                className={`block text-center py-3.5 rounded-xl no-underline font-extrabold text-[15px] ${
+                  plan.variant === 'solo'
+                    ? 'bg-white text-primary'
+                    : plan.variant === 'team'
+                      ? 'bg-primary-dark text-white'
+                      : 'bg-primary-light text-primary-dark border border-border'
+                }`}
               >
                 {plan.cta}
               </a>
@@ -818,97 +443,46 @@ function TestimonialsSection() {
   return (
     <section
       id="depoimentos"
-      style={{
-        background: `linear-gradient(180deg, ${colors.darker} 0%, ${colors.dark} 100%)`,
-        padding: '100px 24px',
-        color: colors.white,
-      }}
+      className="bg-linear-to-b from-[#14532D] to-[#166534] py-24 px-6 text-white"
     >
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 64 }}>
-          <div
-            style={{
-              display: 'inline-block',
-              background: 'rgba(255,255,255,0.12)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: 8,
-              padding: '4px 14px',
-              fontSize: 13,
-              fontWeight: 700,
-              marginBottom: 20,
-            }}
-          >
+      <div className="max-w-[1100px] mx-auto">
+        <div className="text-center mb-16">
+          <div className="inline-block bg-white/[0.12] border border-white/20 rounded-lg px-3.5 py-1 text-[13px] font-bold mb-5">
             Depoimentos
           </div>
           <h2
-            style={{
-              fontSize: 'clamp(26px, 4vw, 44px)',
-              fontWeight: 900,
-              margin: '0 0 16px',
-              letterSpacing: '-1px',
-            }}
+            className="font-black mb-4 tracking-tight"
+            style={{ fontSize: 'clamp(26px, 4vw, 44px)' }}
           >
             Feito para quem trabalha
             <br />
-            <span style={{ color: colors.amber }}>no sol, com luvas, com pressa</span>
+            <span className="text-amber">no sol, com luvas, com pressa</span>
           </h2>
-          <p style={{ opacity: 0.7, fontSize: 17, maxWidth: 480, margin: '0 auto', lineHeight: 1.6 }}>
+          <p className="opacity-70 text-[17px] max-w-[480px] mx-auto leading-relaxed">
             Jardineiros reais, resultados reais. Sem enrolação.
           </p>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 24,
-          }}
-        >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
           {testimonials.map((t) => (
             <div
               key={t.name}
-              style={{
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 20,
-                padding: '32px 28px',
-                backdropFilter: 'blur(8px)',
-              }}
+              className="bg-white/[0.08] border border-white/[0.12] rounded-[20px] py-8 px-7 backdrop-blur-sm"
             >
               {/* Stars */}
-              <div style={{ marginBottom: 20, color: colors.amber, fontSize: 18, letterSpacing: 2 }}>★★★★★</div>
+              <div className="mb-5 text-amber text-lg tracking-widest">★★★★★</div>
 
-              <p
-                style={{
-                  fontSize: 15,
-                  lineHeight: 1.7,
-                  opacity: 0.88,
-                  margin: '0 0 24px',
-                  fontStyle: 'italic',
-                }}
-              >
+              <p className="text-[15px] leading-relaxed opacity-[0.88] mb-6 italic">
                 &ldquo;{t.text}&rdquo;
               </p>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '50%',
-                    background: 'rgba(255,255,255,0.15)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 22,
-                    flexShrink: 0,
-                  }}
-                >
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center text-[22px] shrink-0">
                   {t.avatar}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>{t.name}</div>
-                  <div style={{ opacity: 0.6, fontSize: 13 }}>{t.role}</div>
+                  <div className="font-bold text-[15px]">{t.name}</div>
+                  <div className="opacity-60 text-[13px]">{t.role}</div>
                 </div>
               </div>
             </div>
@@ -916,26 +490,16 @@ function TestimonialsSection() {
         </div>
 
         {/* Trust badges */}
-        <div
-          style={{
-            marginTop: 64,
-            paddingTop: 48,
-            borderTop: '1px solid rgba(255,255,255,0.12)',
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 48,
-            flexWrap: 'wrap',
-          }}
-        >
+        <div className="mt-16 pt-12 border-t border-white/[0.12] flex justify-center gap-12 flex-wrap">
           {[
             { emoji: '🔒', label: 'Dados protegidos', sub: 'LGPD compliant' },
             { emoji: '🇧🇷', label: 'Servidor no Brasil', sub: 'Baixa latência' },
             { emoji: '💳', label: 'Sem cartão', sub: 'Pra começar' },
           ].map((badge) => (
-            <div key={badge.label} style={{ textAlign: 'center', opacity: 0.75 }}>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>{badge.emoji}</div>
-              <div style={{ fontWeight: 700, fontSize: 13 }}>{badge.label}</div>
-              <div style={{ fontSize: 12, opacity: 0.7 }}>{badge.sub}</div>
+            <div key={badge.label} className="text-center opacity-75">
+              <div className="text-[28px] mb-1.5">{badge.emoji}</div>
+              <div className="font-bold text-[13px]">{badge.label}</div>
+              <div className="text-xs opacity-70">{badge.sub}</div>
             </div>
           ))}
         </div>
@@ -947,61 +511,31 @@ function TestimonialsSection() {
 // ─── Final CTA ─────────────────────────────────────────────────────────────
 function FinalCTA() {
   return (
-    <section
-      style={{
-        background: colors.light,
-        padding: '100px 24px',
-        textAlign: 'center',
-      }}
-    >
-      <div style={{ maxWidth: 640, margin: '0 auto' }}>
-        <div style={{ fontSize: 56, marginBottom: 24 }}>🌱</div>
+    <section className="bg-primary-light py-24 px-6 text-center">
+      <div className="max-w-[640px] mx-auto">
+        <div className="text-[56px] mb-6">🌱</div>
         <h2
-          style={{
-            fontSize: 'clamp(28px, 4vw, 44px)',
-            fontWeight: 900,
-            color: colors.text,
-            margin: '0 0 16px',
-            letterSpacing: '-1px',
-          }}
+          className="font-black text-foreground mb-4 tracking-tight"
+          style={{ fontSize: 'clamp(28px, 4vw, 44px)' }}
         >
           Pronto pra organizar
           <br />
           seus jardins?
         </h2>
-        <p style={{ color: colors.textMuted, fontSize: 17, margin: '0 0 40px', lineHeight: 1.6 }}>
+        <p className="text-muted-foreground text-[17px] mb-10 leading-relaxed">
           14 dias grátis. Sem cartão. Cancele quando quiser. <br />
           Comece agora e veja a diferença na próxima semana.
         </p>
-        <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className="flex gap-4 justify-center flex-wrap">
           <a
             href="/login"
-            style={{
-              background: colors.primary,
-              color: colors.white,
-              padding: '16px 36px',
-              borderRadius: 14,
-              textDecoration: 'none',
-              fontWeight: 800,
-              fontSize: 17,
-              letterSpacing: '-0.3px',
-              boxShadow: `0 8px 32px ${colors.primary}55`,
-            }}
+            className="bg-primary text-white px-9 py-4 rounded-[14px] no-underline font-extrabold text-[17px] tracking-tight shadow-[0_8px_32px_rgba(22,163,74,0.33)]"
           >
             Começar grátis agora
           </a>
           <a
             href="/login"
-            style={{
-              background: colors.white,
-              color: colors.dark,
-              padding: '16px 36px',
-              borderRadius: 14,
-              textDecoration: 'none',
-              fontWeight: 800,
-              fontSize: 17,
-              border: `1px solid ${colors.border}`,
-            }}
+            className="bg-card text-primary-dark px-9 py-4 rounded-[14px] no-underline font-extrabold text-[17px] border border-border"
           >
             Já tenho conta
           </a>
@@ -1014,79 +548,45 @@ function FinalCTA() {
 // ─── Footer ────────────────────────────────────────────────────────────────
 function Footer() {
   return (
-    <footer
-      style={{
-        background: colors.darker,
-        color: 'rgba(255,255,255,0.65)',
-        padding: '48px 24px 32px',
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1100,
-          margin: '0 auto',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            flexWrap: 'wrap',
-            gap: 32,
-            marginBottom: 40,
-            paddingBottom: 40,
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
-          }}
-        >
+    <footer className="bg-[#14532D] text-white/65 pt-12 pb-8 px-6">
+      <div className="max-w-[1100px] mx-auto">
+        <div className="flex justify-between items-start flex-wrap gap-8 mb-10 pb-10 border-b border-white/10">
           {/* Brand */}
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <span style={{ fontSize: 24 }}>🌱</span>
-              <span style={{ fontWeight: 800, fontSize: 18, color: colors.white }}>GardenGreen</span>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-2xl">🌱</span>
+              <span className="font-extrabold text-lg text-white">GardenGreen</span>
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.6, maxWidth: 220 }}>
+            <div className="text-sm leading-relaxed max-w-[220px]">
               O app que organiza a vida do jardineiro brasileiro.
             </div>
           </div>
 
           {/* Links */}
-          <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
+          <div className="flex gap-12 flex-wrap">
             <div>
-              <div style={{ fontWeight: 700, color: colors.white, fontSize: 13, marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div className="font-bold text-white text-[13px] mb-4 uppercase tracking-wide">
                 Produto
               </div>
               {['Funcionalidades', 'Preços', 'Atualizações', 'Roadmap'].map((link) => (
                 <a
                   key={link}
                   href="#"
-                  style={{
-                    display: 'block',
-                    color: 'rgba(255,255,255,0.55)',
-                    textDecoration: 'none',
-                    fontSize: 14,
-                    marginBottom: 10,
-                  }}
+                  className="block text-white/55 no-underline text-sm mb-2.5"
                 >
                   {link}
                 </a>
               ))}
             </div>
             <div>
-              <div style={{ fontWeight: 700, color: colors.white, fontSize: 13, marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div className="font-bold text-white text-[13px] mb-4 uppercase tracking-wide">
                 Legal
               </div>
               {['Sobre nós', 'Privacidade', 'Termos de uso', 'Contato'].map((link) => (
                 <a
                   key={link}
                   href="#"
-                  style={{
-                    display: 'block',
-                    color: 'rgba(255,255,255,0.55)',
-                    textDecoration: 'none',
-                    fontSize: 14,
-                    marginBottom: 10,
-                  }}
+                  className="block text-white/55 no-underline text-sm mb-2.5"
                 >
                   {link}
                 </a>
@@ -1095,16 +595,7 @@ function Footer() {
           </div>
         </div>
 
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 12,
-            fontSize: 13,
-          }}
-        >
+        <div className="flex justify-between items-center flex-wrap gap-3 text-[13px]">
           <div>© 2025 GardenGreen. Todos os direitos reservados.</div>
           <div>Feito com 🌱 para jardineiros brasileiros</div>
         </div>
