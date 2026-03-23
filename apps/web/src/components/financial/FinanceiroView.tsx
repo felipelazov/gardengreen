@@ -167,7 +167,7 @@ export function FinanceiroView({ services, expenses }: { services: ServiceRow[];
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border bg-muted/50">
+                <tr className="border-b border-border bg-muted sticky top-0 z-10">
                   <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Data</th>
                   <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Tipo</th>
                   <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Descricao</th>
@@ -189,7 +189,7 @@ export function FinanceiroView({ services, expenses }: { services: ServiceRow[];
                     amount: e.amount,
                   })),
                 ].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15).map((t, i) => (
-                  <tr key={i} className="border-b border-border">
+                  <tr key={i} className="border-b border-border hover:bg-muted/50 transition-all duration-150">
                     <td className="p-3 text-sm">{new Date(t.date).toLocaleDateString('pt-BR')}</td>
                     <td className="p-3"><Badge variant={t.type === 'receita' ? 'success' : 'destructive'}>{t.type === 'receita' ? 'Receita' : 'Despesa'}</Badge></td>
                     <td className="p-3 text-sm truncate max-w-[250px]">{t.desc}</td>

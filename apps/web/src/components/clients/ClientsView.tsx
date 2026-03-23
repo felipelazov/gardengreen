@@ -75,7 +75,7 @@ export function ClientsView({ initialClients, totalCount }: { initialClients: Cl
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border bg-muted/50">
+                <tr className="border-b border-border bg-muted sticky top-0 z-10">
                   <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Nome</th>
                   <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Telefone</th>
                   <th className="text-left p-3 text-xs font-semibold text-muted-foreground hidden md:table-cell">Bairro</th>
@@ -105,7 +105,7 @@ export function ClientsView({ initialClients, totalCount }: { initialClients: Cl
                   filtered.map((client) => (
                     <tr
                       key={client.id}
-                      className="border-b border-border hover:bg-muted/30 cursor-pointer transition-colors"
+                      className="border-b border-border hover:bg-muted/50 cursor-pointer transition-all duration-150"
                       onClick={() => { setEditingClient(client); setShowForm(true); }}
                     >
                       <td className="p-3">

@@ -1,5 +1,24 @@
 import { createClient } from '@/lib/supabase/server';
-import { AgendaView } from '@/components/agenda/AgendaView';
+import dynamic from 'next/dynamic';
+import { Card, CardContent } from '@/components/ui/card';
+
+function AgendaLoading() {
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-5 w-40 bg-muted rounded" />
+          <div className="h-[400px] bg-muted rounded" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+const AgendaView = dynamic(
+  () => import('@/components/agenda/AgendaView').then(mod => ({ default: mod.AgendaView })),
+  { ssr: false, loading: () => <AgendaLoading /> }
+);
 
 export default async function AgendaPage() {
   const supabase = await createClient();

@@ -261,7 +261,7 @@ function FeaturesSection() {
           {features.map((f, i) => (
             <div
               key={f.title}
-              className="bg-card border border-border rounded-[20px] py-9 px-7 flex gap-5 items-start shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-transform hover:-translate-y-0.5"
+              className="bg-card border border-border rounded-[20px] py-9 px-7 flex gap-5 items-start shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all hover:-translate-y-0.5 hover:shadow-md"
             >
               <div
                 className={`w-[52px] h-[52px] rounded-[14px] flex items-center justify-center text-[26px] shrink-0 ${

@@ -28,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className="min-h-screen bg-muted/30">
           <Sidebar userName={userName} userEmail={userEmail} avatarUrl={avatarUrl} />
           <main className="md:ml-64 min-h-screen">
-            <div className="p-6 md:p-8 pt-16 md:pt-8">
+            <div className="p-6 md:p-8 pt-16 md:pt-8 animate-page-in">
               {children}
             </div>
           </main>

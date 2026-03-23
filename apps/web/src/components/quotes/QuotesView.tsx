@@ -127,7 +127,7 @@ export function QuotesView({ initialQuotes, totalCount, clients }: { initialQuot
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border bg-muted/50">
+                <tr className="border-b border-border bg-muted sticky top-0 z-10">
                   <th className="p-3 w-8"><input type="checkbox" onChange={(e) => {
                     if (e.target.checked) setSelectedIds(new Set(filtered.map(q => q.id)));
                     else setSelectedIds(new Set());
@@ -144,7 +144,7 @@ export function QuotesView({ initialQuotes, totalCount, clients }: { initialQuot
                   <tr><td colSpan={6} className="text-center py-8 text-muted-foreground text-sm">Nenhum orcamento encontrado</td></tr>
                 ) : filtered.map((quote) => {
                   return (
-                    <tr key={quote.id} className="border-b border-border hover:bg-muted/30 transition-colors">
+                    <tr key={quote.id} className="border-b border-border hover:bg-muted/50 transition-all duration-150">
                       <td className="p-3"><input type="checkbox" checked={selectedIds.has(quote.id)} onChange={() => toggleSelect(quote.id)} /></td>
                       <td className="p-3 font-semibold text-sm">{quote.clients?.name ?? 'Cliente'}</td>
                       <td className="p-3 text-sm text-muted-foreground hidden md:table-cell truncate max-w-[200px]">{quote.description}</td>

@@ -1,5 +1,28 @@
 import { createClient } from '@/lib/supabase/server';
-import { FinanceiroView } from '@/components/financial/FinanceiroView';
+import dynamic from 'next/dynamic';
+import { Card, CardContent } from '@/components/ui/card';
+
+function FinanceiroLoading() {
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 bg-muted rounded" />
+            ))}
+          </div>
+          <div className="h-[300px] bg-muted rounded" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+const FinanceiroView = dynamic(
+  () => import('@/components/financial/FinanceiroView').then(mod => ({ default: mod.FinanceiroView })),
+  { ssr: false, loading: () => <FinanceiroLoading /> }
+);
 
 export default async function FinanceiroPage() {
   const supabase = await createClient();
